@@ -26,7 +26,6 @@ private slots:
     // 手动添加一个槽函数
     void on_openButton_click();
     void on_closeButton_clicked();
-    void onCurrentIndexChanged(int);
 
 private:
     Ui::Widget *ui;
