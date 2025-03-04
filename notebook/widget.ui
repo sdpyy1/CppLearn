@@ -16,46 +16,116 @@
   <widget class="QWidget" name="">
    <property name="geometry">
     <rect>
-     <x>30</x>
-     <y>40</y>
-     <width>330</width>
-     <height>32</height>
+     <x>0</x>
+     <y>0</y>
+     <width>481</width>
+     <height>391</height>
     </rect>
    </property>
-   <layout class="QHBoxLayout" name="horizontalLayout">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="spacing">
+     <number>0</number>
+    </property>
     <item>
-     <widget class="QPushButton" name="closeButton">
-      <property name="text">
-       <string>关闭</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QPushButton" name="savaButton">
-      <property name="text">
-       <string>保存</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QPushButton" name="openButton">
-      <property name="text">
-       <string>打开</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <spacer name="horizontalSpacer">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
+     <widget class="QWidget" name="widgetButtonUp" native="true">
+      <property name="minimumSize">
        <size>
-        <width>40</width>
+        <width>0</width>
+        <height>50</height>
+       </size>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(72, 72, 72);</string>
+      </property>
+      <widget class="QWidget" name="layoutWidget">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>10</y>
+         <width>441</width>
+         <height>32</height>
+        </rect>
+       </property>
+       <layout class="QHBoxLayout" name="Hbuttonlayout">
+        <item>
+         <widget class="QPushButton" name="closeButton">
+          <property name="text">
+           <string>关闭</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="savaButton">
+          <property name="text">
+           <string>保存</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="openButton">
+          <property name="text">
+           <string>打开</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+    <item>
+     <widget class="QTextEdit" name="textEdit"/>
+    </item>
+    <item>
+     <widget class="QWidget" name="widgetButtonDown" native="true">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
         <height>20</height>
        </size>
       </property>
-     </spacer>
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(72, 72, 72);</string>
+      </property>
+      <widget class="QWidget" name="">
+       <property name="geometry">
+        <rect>
+         <x>360</x>
+         <y>0</y>
+         <width>116</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QLabel" name="labelPos">
+          <property name="text">
+           <string>第1行，第1列</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="labelCode">
+          <property name="text">
+           <string>UTF-8</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </widget>
     </item>
    </layout>
   </widget>
