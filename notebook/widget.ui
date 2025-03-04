@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>Widget</string>
   </property>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>0</x>
@@ -49,6 +49,9 @@
        <layout class="QHBoxLayout" name="Hbuttonlayout">
         <item>
          <widget class="QPushButton" name="closeButton">
+          <property name="styleSheet">
+           <string notr="true">color: rgb(190, 227, 203);</string>
+          </property>
           <property name="text">
            <string>关闭</string>
           </property>
@@ -56,6 +59,9 @@
         </item>
         <item>
          <widget class="QPushButton" name="savaButton">
+          <property name="styleSheet">
+           <string notr="true">color: rgb(190, 227, 203);</string>
+          </property>
           <property name="text">
            <string>保存</string>
           </property>
@@ -63,6 +69,9 @@
         </item>
         <item>
          <widget class="QPushButton" name="openButton">
+          <property name="styleSheet">
+           <string notr="true">color: rgb(190, 227, 203);</string>
+          </property>
           <property name="text">
            <string>打开</string>
           </property>
@@ -99,18 +108,34 @@
       <property name="styleSheet">
        <string notr="true">background-color: rgb(72, 72, 72);</string>
       </property>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <property name="geometry">
         <rect>
-         <x>360</x>
+         <x>3</x>
          <y>0</y>
-         <width>116</width>
-         <height>17</height>
+         <width>471</width>
+         <height>22</height>
         </rect>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
+         <spacer name="horizontalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
          <widget class="QLabel" name="labelPos">
+          <property name="styleSheet">
+           <string notr="true">color: rgb(190, 227, 203);</string>
+          </property>
           <property name="text">
            <string>第1行，第1列</string>
           </property>
@@ -118,10 +143,29 @@
         </item>
         <item>
          <widget class="QLabel" name="labelCode">
+          <property name="styleSheet">
+           <string notr="true">color: rgb(190, 227, 203);</string>
+          </property>
           <property name="text">
            <string>UTF-8</string>
           </property>
          </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_3">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Fixed</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
         </item>
        </layout>
       </widget>
