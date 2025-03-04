@@ -2,7 +2,7 @@
 #define WIDGET_H
 
 #include <QWidget>
-
+#include<iostream>
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class Widget;
@@ -17,6 +17,12 @@ public:
     Widget(QWidget *parent = nullptr);
     ~Widget();
 
+
+private slots:
+    // 自动生成的槽函数 private slots:表示下边的函数都会被标记为槽函数
+    void on_savaButton_clicked();
+    // 手动添加一个槽函数
+    void on_openButton_click();
 private:
     Ui::Widget *ui;
 };

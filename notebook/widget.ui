@@ -98,7 +98,7 @@
      <widget class="QTextEdit" name="textEdit"/>
     </item>
     <item>
-     <widget class="QWidget" name="widgetButtonDown" native="true">
+     <widget class="QWidget" name="widgetLabelDown" native="true">
       <property name="minimumSize">
        <size>
         <width>0</width>
@@ -175,5 +175,22 @@
   </widget>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>closeButton</sender>
+   <signal>clicked()</signal>
+   <receiver>Widget</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>29</x>
+     <y>26</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>
