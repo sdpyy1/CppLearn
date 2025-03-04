@@ -12,13 +12,13 @@ Widget::Widget(QWidget *parent)
     // 让页面下的提示框跟着布局变动
     ui->widgetLabelDown->setLayout(ui->horizontalLayout);
     // 此处可进行信号与槽的绑定
-    // QObject::connect(ui->openButton,SIGNAL(clicked()),this,SLOT(on_openButton_click()));
+    QObject::connect(ui->openButton,SIGNAL(clicked()),this,SLOT(on_openButton_click()));
     // 用lambda函数方式实现上边一行的功能
     // QObject::connect(ui->openButton,&QPushButton::clicked,this,[=](){
     //     std::cout<<"open"<<std::endl;
     // });
     // 用函数指针实现
-    QObject::connect(ui->openButton,&QPushButton::clicked,this,&Widget::on_openButton_click);
+    // QObject::connect(ui->openButton,&QPushButton::clicked,this,&Widget::on_openButton_click);
 
 }
 
