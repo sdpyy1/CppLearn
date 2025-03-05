@@ -1,6 +1,8 @@
 #include "widget.h"
 #include "./ui_widget.h"
 
+#include <QWheelEvent>
+
 Widget::Widget(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::Widget)
@@ -21,8 +23,35 @@ Widget::Widget(QWidget *parent)
     // QObject::connect(ui->openButton,&QPushButton::clicked,this,&Widget::on_openButton_click);
 
     // 编码下拉框选择后，触发槽函数
-    QObject::connect(ui->comboBox,SIGNAL(currentIndexChanged(int)),this,SLOT(onCurrentIndexChanged(int)));
+    // QObject::connect(ui->comboBox,SIGNAL(currentIndexChanged(int)),this,SLOT(onCurrentIndexChanged(int)));
 
+    // 绑定光标位置改变事件
+    QObject::connect(ui->textEdit,SIGNAL(cursorPositionChanged()),this,SLOT(on_cursorPosChange()));
+
+    // 快捷键绑定
+    QShortcut * saveShortcut = new QShortcut(QKeySequence(tr("Ctrl+s","File|Open")),this);
+    QObject::connect(saveShortcut,&QShortcut::activated,this,[=](){
+        on_saveButton_clicked();
+    });
+    // 放大快捷键
+    QShortcut * zoomInShortcut = new QShortcut(QKeySequence(tr("Ctrl+shift+=","File|Open")),this);
+    QObject::connect(zoomInShortcut,&QShortcut::activated,this,[=](){
+        QFont font = ui->textEdit->font();
+        int fontSize = font.pointSizeF();
+        if(fontSize == -1) return;
+        int newFontSize = fontSize + 1;
+        font.setPointSize(newFontSize);
+        ui->textEdit->setFont(font);
+    });
+    QShortcut * zoomOutShortcut = new QShortcut(QKeySequence(tr("Ctrl+shift+-","File|Open")),this);
+    QObject::connect(zoomOutShortcut,&QShortcut::activated,this,[=](){
+        QFont font = ui->textEdit->font();
+        int fontSize = font.pointSizeF();
+        if(fontSize == -1) return;
+        int newFontSize = fontSize -1;
+        font.setPointSize(newFontSize);
+        ui->textEdit->setFont(font);
+    });
 }
 
 Widget::~Widget()
@@ -30,13 +59,22 @@ Widget::~Widget()
     delete ui;
 }
 
+void Widget::wheelEvent(QWheelEvent *event)
+{
+    qDebug() << event->angleDelta();
+}
+
+
 // 自动生成的槽函数实现位置，🈶函数名约定连接
 void Widget::on_saveButton_clicked()
 {
-    QString fileName = QFileDialog::getSaveFileName(this,tr("save file"),"C:/Users/Administrator/Desktop",tr("Text Files (*.txt)"));
-    file.setFileName(fileName);
-    if(!file.open(QIODevice::WriteOnly|QIODevice::Text)){
-        qDebug() << "file open error";
+    if(!file.isOpen()){
+        QString fileName = QFileDialog::getSaveFileName(this,tr("save file"),"C:/Users/Administrator/Desktop",tr("Text Files (*.txt)"));
+        file.setFileName(fileName);
+        if(!file.open(QIODevice::WriteOnly|QIODevice::Text)){
+            qDebug() << "file open error";
+        }
+        this->setWindowTitle(fileName);
     }
     QTextStream out(&file);
     out.setEncoding(QStringConverter::Utf8);
@@ -51,10 +89,11 @@ void Widget::on_openButton_click(){
     qDebug() << "open file :"<<fileName;
     ui->textEdit->clear();
     file.setFileName(fileName);
-    if(!file.open(QIODevice::ReadOnly|QIODevice::Text)){
+    if(!file.open(QIODevice::ReadWrite|QIODevice::Text)){
         qDebug()<<"open file error!";
         return;
     }
+    this->setWindowTitle(fileName);
     QTextStream in(&file);
     in.setEncoding(QStringConverter::Utf8);
     while(!in.atEnd()){
@@ -67,15 +106,58 @@ void Widget::on_openButton_click(){
 
 void Widget::on_closeButton_clicked()
 {
-    if(file.isOpen()){
-        file.close();
+    QMessageBox msgBox;
+    int ret = QMessageBox::warning(this, tr("notebook"),
+                                   tr("The document has been modified.\n"
+                                      "Do you want to save your changes?"),
+                                   QMessageBox::Save | QMessageBox::Discard
+                                       | QMessageBox::Cancel,
+                                   QMessageBox::Save);
+    switch (ret) {
+    case QMessageBox::Save:
+        // Save was clicked
+        on_saveButton_clicked();
+        break;
+    case QMessageBox::Discard:
+        // Don't Save was clicked
         ui->textEdit->clear();
+        if(file.isOpen()){
+            file.close();
+            this->setWindowTitle("记事本");
+        }
+        break;
+    case QMessageBox::Cancel:
+        return;
+    default:
+        // should never be reached
+        break;
     }
+
 }
 
-void Widget::onCurrentIndexChanged(int index)
+void Widget::on_cursorPosChange()
 {
-    // qt6 QStringConverter的编码被限制，继续研究文件乱码问题无价值，不开发此功能，默认全部使用utf-8
-    qDebug() << index;
+
+    QTextCursor cursor = ui->textEdit->textCursor();
+    // 列号
+    int columnNum = cursor.columnNumber() + 1;
+    // 行号
+    int lineNum = cursor.blockNumber() + 1;
+    ui->posLabel->setText("第" + QString::number(lineNum) +"行第"+QString::number(columnNum) + "列");
+    // 设置当前行高亮
+    QList<QTextEdit::ExtraSelection> extraSelections;
+    QTextEdit::ExtraSelection ext;
+    ext.cursor=ui->textEdit->textCursor();
+    QBrush qBrush(Qt::yellow);
+    ext.format.setBackground(qBrush);
+    ext.format.setProperty(QTextFormat::FullWidthSelection,true);
+    extraSelections.append(ext);
+    ui->textEdit->setExtraSelections(extraSelections);
 }
+
+// void Widget::onCurrentIndexChanged(int index)
+// {
+//     // qt6 QStringConverter的编码被限制，继续研究文件乱码问题无价值，不开发此功能，默认全部使用utf-8
+//     qDebug() << index;
+// }
 
