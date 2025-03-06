@@ -24,7 +24,10 @@ public:
     QFile file;
     // 重写滚轮事件事件处理
     void wheelEvent(QWheelEvent *event) override;
-
+    // 窗口关闭事件
+    virtual void closeEvent(QCloseEvent *event) override;
+    // 事件过滤器
+    bool eventFilter(QObject*watched,QEvent *event) override;
 
 private slots:
     // 自动生成的槽函数 private slots:表示下边的函数都会被标记为槽函数

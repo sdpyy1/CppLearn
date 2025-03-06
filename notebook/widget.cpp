@@ -26,7 +26,7 @@ Widget::Widget(QWidget *parent)
     // QObject::connect(ui->comboBox,SIGNAL(currentIndexChanged(int)),this,SLOT(onCurrentIndexChanged(int)));
 
     // 绑定光标位置改变事件
-    QObject::connect(ui->textEdit,SIGNAL(cursorPositionChanged()),this,SLOT(on_cursorPosChange()));
+    QObject::connect(ui->myTextEdit,SIGNAL(cursorPositionChanged()),this,SLOT(on_cursorPosChange()));
 
     // 快捷键绑定
     QShortcut * saveShortcut = new QShortcut(QKeySequence(tr("Ctrl+s","File|Open")),this);
@@ -36,22 +36,26 @@ Widget::Widget(QWidget *parent)
     // 放大快捷键
     QShortcut * zoomInShortcut = new QShortcut(QKeySequence(tr("Ctrl+shift+=","File|Open")),this);
     QObject::connect(zoomInShortcut,&QShortcut::activated,this,[=](){
-        QFont font = ui->textEdit->font();
+        QFont font = ui->myTextEdit->font();
         int fontSize = font.pointSizeF();
         if(fontSize == -1) return;
         int newFontSize = fontSize + 1;
         font.setPointSize(newFontSize);
-        ui->textEdit->setFont(font);
+        ui->myTextEdit->setFont(font);
     });
     QShortcut * zoomOutShortcut = new QShortcut(QKeySequence(tr("Ctrl+shift+-","File|Open")),this);
     QObject::connect(zoomOutShortcut,&QShortcut::activated,this,[=](){
-        QFont font = ui->textEdit->font();
+        QFont font = ui->myTextEdit->font();
         int fontSize = font.pointSizeF();
         if(fontSize == -1) return;
         int newFontSize = fontSize -1;
         font.setPointSize(newFontSize);
-        ui->textEdit->setFont(font);
+        ui->myTextEdit->setFont(font);
     });
+
+    // 事件过滤器安装（事件触发后首先进行的就是事件过滤器，然后才会分发） 这里this表示调用谁的过滤器，因为是在Widget类中实现的过滤器，所以就该他来调用
+    ui->myTextEdit->installEventFilter(this);
+
 }
 
 Widget::~Widget()
@@ -61,7 +65,22 @@ Widget::~Widget()
 
 void Widget::wheelEvent(QWheelEvent *event)
 {
-    qDebug() << event->angleDelta();
+    // qDebug() << event->angleDelta();
+}
+
+void Widget::closeEvent(QCloseEvent *event)
+{
+    QMessageBox q;
+    q.setText("关闭事件触发啦");
+    q.exec();
+}
+
+bool Widget::eventFilter(QObject *watched, QEvent *event)
+{
+    if(event->type() == QEvent::Type::KeyPress){
+        qDebug() << "按下事件被过滤器过滤";
+    }
+    return false; // 表示继续执行事件，true表示停止
 }
 
 
@@ -78,7 +97,7 @@ void Widget::on_saveButton_clicked()
     }
     QTextStream out(&file);
     out.setEncoding(QStringConverter::Utf8);
-    QString content = ui->textEdit->toPlainText();
+    QString content = ui->myTextEdit->toPlainText();
     out << content;
 }
 
@@ -87,7 +106,7 @@ void Widget::on_saveButton_clicked()
 void Widget::onOpenButtonClick(){
     QString fileName = QFileDialog::getOpenFileName(this,tr("标题，tr用于国际化"),"C:/Users/Administrator/Desktop",tr("Text Files (*.txt)"));
     qDebug() << "open file :"<<fileName;
-    ui->textEdit->clear();
+    ui->myTextEdit->clear();
     file.setFileName(fileName);
     if(!file.open(QIODevice::ReadWrite|QIODevice::Text)){
         qDebug()<<"open file error!";
@@ -99,7 +118,7 @@ void Widget::onOpenButtonClick(){
     while(!in.atEnd()){
         QString context = in.readLine();
         qDebug() << "file content: "<<context;
-        ui->textEdit->append(context);
+        ui->myTextEdit->append(context);
     }
 }
 
@@ -120,7 +139,7 @@ void Widget::on_closeButton_clicked()
         break;
     case QMessageBox::Discard:
         // Don't Save was clicked
-        ui->textEdit->clear();
+        ui->myTextEdit->clear();
         if(file.isOpen()){
             file.close();
             this->setWindowTitle("记事本");
@@ -138,7 +157,7 @@ void Widget::on_closeButton_clicked()
 void Widget::on_cursorPosChange()
 {
 
-    QTextCursor cursor = ui->textEdit->textCursor();
+    QTextCursor cursor = ui->myTextEdit->textCursor();
     // 列号
     int columnNum = cursor.columnNumber() + 1;
     // 行号
@@ -147,12 +166,12 @@ void Widget::on_cursorPosChange()
     // 设置当前行高亮
     QList<QTextEdit::ExtraSelection> extraSelections;
     QTextEdit::ExtraSelection ext;
-    ext.cursor=ui->textEdit->textCursor();
+    ext.cursor=ui->myTextEdit->textCursor();
     QBrush qBrush(Qt::yellow);
     ext.format.setBackground(qBrush);
     ext.format.setProperty(QTextFormat::FullWidthSelection,true);
     extraSelections.append(ext);
-    ui->textEdit->setExtraSelections(extraSelections);
+    ui->myTextEdit->setExtraSelections(extraSelections);
 }
 
 // void Widget::onCurrentIndexChanged(int index)
