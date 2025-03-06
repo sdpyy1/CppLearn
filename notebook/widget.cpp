@@ -14,7 +14,7 @@ Widget::Widget(QWidget *parent)
     // 让页面下的提示框跟着布局变动
     ui->widgetLabelDown->setLayout(ui->horizontalLayout);
     // 此处可进行信号与槽的绑定
-    QObject::connect(ui->openButton,SIGNAL(clicked()),this,SLOT(on_openButton_click()));
+    QObject::connect(ui->openButton,SIGNAL(clicked()),this,SLOT(onOpenButtonClick()));
     // 用lambda函数方式实现上边一行的功能
     // QObject::connect(ui->openButton,&QPushButton::clicked,this,[=](){
     //     std::cout<<"open"<<std::endl;
@@ -84,7 +84,7 @@ void Widget::on_saveButton_clicked()
 
 // 手动添加槽函数(注意手动添加的函数名如果满足上边自动生成的约定，connect后点击会被执行2次)
 // 打开文件按钮
-void Widget::on_openButton_click(){
+void Widget::onOpenButtonClick(){
     QString fileName = QFileDialog::getOpenFileName(this,tr("标题，tr用于国际化"),"C:/Users/Administrator/Desktop",tr("Text Files (*.txt)"));
     qDebug() << "open file :"<<fileName;
     ui->textEdit->clear();
