@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 project(SerialPortDebuger VERSION 0.1 LANGUAGES CXX)
+include_directories(${PROJECT_SOURCE_DIR})
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -25,6 +26,8 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         ${PROJECT_SOURCES}
         README.md
         res.qrc
+        mycombobox.h mycombobox.cpp
+        timethread.h timethread.cpp
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET SerialPortDebuger APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

@@ -44,7 +44,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QComboBox" name="comboBoxSerialName"/>
+            <widget class="MyComboBox" name="comboBoxSerialName"/>
            </item>
           </layout>
          </item>
@@ -294,6 +294,9 @@
          <property name="text">
           <string>接收时间</string>
          </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
         </widget>
        </item>
        <item row="0" column="3">
@@ -315,6 +318,9 @@
          <property name="text">
           <string>隐藏面板</string>
          </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
         </widget>
        </item>
        <item row="1" column="1">
@@ -328,6 +334,9 @@
         <widget class="QCheckBox" name="checkBoxAutoLineChange">
          <property name="text">
           <string>自动换行</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -358,6 +367,9 @@
         <widget class="QCheckBox" name="checkBoxSendNewLine">
          <property name="text">
           <string>发送新行</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -413,6 +425,9 @@
          <property name="text">
           <string>格式输入</string>
          </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
         </widget>
        </item>
       </layout>
@@ -437,7 +452,11 @@
       </property>
       <layout class="QGridLayout" name="gridLayout">
        <item row="0" column="0">
-        <widget class="QTextEdit" name="textEditRev"/>
+        <widget class="QTextEdit" name="textEditRev">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -450,6 +469,9 @@
       <layout class="QGridLayout" name="gridLayout_2">
        <item row="0" column="0">
         <widget class="QTextEdit" name="textEditRecord">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
          <property name="html">
           <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
@@ -947,6 +969,13 @@ li.checked::marker { content: &quot;\2612&quot;; }
    </widget>
   </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>MyComboBox</class>
+   <extends>QComboBox</extends>
+   <header>mycombobox.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

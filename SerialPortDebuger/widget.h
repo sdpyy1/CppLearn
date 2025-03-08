@@ -1,12 +1,16 @@
 #ifndef WIDGET_H
 #define WIDGET_H
 
+#include <QFile>
 #include <QMessageBox>
 #include <QWidget>
 #include <QList>
 #include<QSerialPort>
 #include<QSerialPortInfo>
 #include<QTimer>
+#include<QDateTime>
+#include <TimeThread.h>
+#include<QThread>
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class Widget;
@@ -33,6 +37,10 @@ private slots:
     void on_msg_reach();
     void copySerialPortConfig();
     void on_checkBoxclockSend_clicked(bool checked);
+    void on_pushButtonRevClear_clicked();
+    void on_pushButtonRevSave_clicked();
+    void on_checkBoxHexShow_clicked(bool checked);
+    void on_pushButtonHidePanel_clicked(bool checked);
 
 private:
     Ui::Widget *ui;
@@ -42,5 +50,7 @@ private:
     int recvCntTotal;
     QString preRecvMsg;
     QTimer *timer;
+    void refresh_time();
+    TimeThread timeThread;
 };
 #endif // WIDGET_H

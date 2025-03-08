@@ -2,15 +2,22 @@
 #include "./ui_widget.h"
 
 
+
 Widget::Widget(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::Widget)
 {
     ui->setupUi(this);
+    timeThread.start();
     writeCntTotal = 0;
     recvCntTotal = 0;
     preRecvMsg = "";
     timer = new QTimer(this);
+    QTimer *sysTimeTimer = new QTimer(this);
+    connect(sysTimeTimer,&QTimer::timeout,this,[=](){
+        refresh_time();
+    });
+    sysTimeTimer->start(1000);
     // 串口对象创建
     this->serialPort = new QSerialPort(this);
     this->serialPortForRecv = new QSerialPort(this);
@@ -19,6 +26,18 @@ Widget::Widget(QWidget *parent)
     for(QSerialPortInfo info: list){
         ui->comboBoxSerialName->addItem(info.portName());
     }
+
+    // 不直接在自定义控件的事件重写方法，是为了直接在这里使用ui-> xxx
+    connect(ui->comboBoxSerialName,&MyComboBox::fresh,this,[=](){
+        ui->comboBoxSerialName->clear();
+        // 获取当前存在的串口
+        QList<QSerialPortInfo> list = QSerialPortInfo::availablePorts();
+        for(QSerialPortInfo info: list){
+            ui->comboBoxSerialName->addItem(info.portName());
+        }
+        ui->labelSend->setText("刷新串口成功");
+    });
+
     // 设置一些下拉框的默认选择位置
     ui->comboBoxBoautrate->setCurrentIndex(6);
     ui->comboBoxDatabit->setCurrentIndex(3);
@@ -38,6 +57,9 @@ Widget::Widget(QWidget *parent)
             on_pushButtonMsgSend_clicked();
         }
 
+    });
+    connect(&timeThread,&QThread::finished,this,[](){
+        qDebug() << "new Thread stop";
     });
 }
 
@@ -60,6 +82,9 @@ void Widget::on_pushButtonCloseOrOpenSerial_clicked()
         ui->pushButtonCloseOrOpenSerial->setText("打开串口");
         ui->lineEditClockSend->setEnabled(false);
         ui->checkBoxclockSend->setEnabled(false);
+        if(timer->isActive()){
+            timer->stop();
+        }
 
         return;
     }
@@ -146,9 +171,17 @@ void Widget::on_msg_reach()
             preRecvMsg = msg;
         }
         recvCntTotal += msg.toUtf8().size();
+        if(ui->checkBoxHexShow->isChecked()){
+            msg = QString::fromUtf8(msg.toUtf8().toHex());
+        }
+        if(ui->checkBoxRevTime->isChecked()){
+            QDateTime curTime = QDateTime::currentDateTime();
+            msg.prepend(curTime.toString("[hh:mm:ss]"));
+        }
         ui->textEditRev->append(msg);
-
+        ui->textEditRev->moveCursor(QTextCursor::MoveOperation::End);
         qDebug() << QString("recv msg: %1").arg(msg);
+
         ui->labelRecv->setText(QString("recv: %1").arg(recvCntTotal));
     }
 
@@ -173,6 +206,122 @@ void Widget::on_checkBoxclockSend_clicked(bool checked)
         timer->start(ui->lineEditClockSend->text().toInt());
     }else{
         timer->stop();
+    }
+}
+
+
+void Widget::on_pushButtonRevClear_clicked()
+{
+    ui->textEditRev->clear();
+}
+
+
+void Widget::on_pushButtonRevSave_clicked()
+{
+    QMessageBox box;
+    box.setText("懒得做了");
+    box.exec();
+}
+
+void Widget::refresh_time()
+{
+    QDateTime curTime = QDateTime::currentDateTime();
+    ui->labelCurTime->setText(curTime.toString("yyyy-MM-dd hh:mm:ss"));
+}
+
+void Widget::on_checkBoxHexShow_clicked(bool checked)
+{
+    if (checked) {
+        // 转 HEX
+        QString content = ui->textEditRev->toPlainText();
+        QStringList lines = content.split('\n');
+        QString newContent;
+        for (int i = 0; i < lines.size(); ++i) {
+            const QString& line = lines[i];
+            QString processedLine;
+            int pos = 0;
+            QRegularExpression re("\\[(.*?)\\]");
+            QRegularExpressionMatchIterator id = re.globalMatch(line);
+            while (id.hasNext()) {
+                QRegularExpressionMatch match = id.next();
+                int start = match.capturedStart();
+                int end = match.capturedEnd();
+                // 处理 [] 之前的部分
+                if (start > pos) {
+                    QString part = line.mid(pos, start - pos);
+                    QByteArray array = part.toUtf8();
+                    QByteArray arrayHex = array.toHex();
+                    processedLine += QString::fromUtf8(arrayHex);
+                }
+                // 保留 [] 内的内容
+                processedLine += match.captured(0);
+                pos = end;
+            }
+            // 处理最后一个 [] 之后的部分
+            if (pos < line.length()) {
+                QString part = line.mid(pos);
+                QByteArray array = part.toUtf8();
+                QByteArray arrayHex = array.toHex();
+                processedLine += QString::fromUtf8(arrayHex);
+            }
+            newContent += processedLine;
+            if (i < lines.size() - 1) {
+                newContent += '\n';
+            }
+        }
+        ui->textEditRev->setText(newContent);
+    } else {
+        // 回去
+        QString content = ui->textEditRev->toPlainText();
+        QStringList lines = content.split('\n');
+        QString newContent;
+        for (int i = 0; i < lines.size(); ++i) {
+            const QString& line = lines[i];
+            QString processedLine;
+            int pos = 0;
+            QRegularExpression re("\\[(.*?)\\]");
+            QRegularExpressionMatchIterator id = re.globalMatch(line);
+            while (id.hasNext()) {
+                QRegularExpressionMatch match = id.next();
+                int start = match.capturedStart();
+                int end = match.capturedEnd();
+
+                // 处理 [] 之前的部分
+                if (start > pos) {
+                    QString part = line.mid(pos, start - pos);
+                    QByteArray array = part.toUtf8();
+                    array = QByteArray::fromHex(array);
+                    processedLine += QString::fromUtf8(array);
+                }
+                // 保留 [] 内的内容
+                processedLine += match.captured(0);
+                pos = end;
+            }
+            // 处理最后一个 [] 之后的部分
+            if (pos < line.length()) {
+                QString part = line.mid(pos);
+                QByteArray array = part.toUtf8();
+                array = QByteArray::fromHex(array);
+                processedLine += QString::fromUtf8(array);
+            }
+            newContent += processedLine;
+            if (i < lines.size() - 1) {
+                newContent += '\n';
+            }
+        }
+        ui->textEditRev->setText(newContent);
+    }
+}
+
+void Widget::on_pushButtonHidePanel_clicked(bool checked)
+{
+    if(checked){
+        // 隐藏面板
+        ui->groupBoxTexts->hide();
+        ui->pushButtonHidePanel->setText("打开面板");
+    }else{
+        ui->groupBoxTexts->show();
+        ui->pushButtonHidePanel->setText("隐藏面板");
     }
 }
 

@@ -29,3 +29,11 @@ void QStringLearn(){
 ```
 # QTimer 定时器
 - 通过timeout信号，连接槽函数
+# QDateTime
+- 获取时间
+# QThread
+- 非ui操作不要占用ui线程
+- `worker->moveToThread(&workerThread);`将一个 QObject 及其所有子对象的事件处理转移到指定的线程中
+
+# 其他
+当我想点击串口选择的下拉框时，希望刷新系统的串口列表，但是并没有这个信号，所以需要提升为，用自定义控件实现,通过点击事件触发来完成
