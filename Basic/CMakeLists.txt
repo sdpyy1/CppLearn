@@ -12,7 +12,7 @@ file(GLOB ASSETS "./asset")
 file(COPY ${ASSETS} DESTINATION ${CMAKE_BINARY_DIR})
 
 # 设置主程序名称 + 主程序文件  这里后边只能加cpp文件，h文件会自动搜索，不需要手动
-add_executable(proName1 base/hello.cpp)
+add_executable(proName1 hello.cpp)
 # 另外一个程序入口
 #add_executable(proName2 base/hello1.cpp)
 # 别的地方的头文件需要
