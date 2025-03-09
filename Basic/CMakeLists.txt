@@ -17,3 +17,5 @@ add_executable(proName1 hello.cpp)
 #add_executable(proName2 base/hello1.cpp)
 # 别的地方的头文件需要
 include_directories(include)
+
+add_executable(funP 函数指针.cpp)
