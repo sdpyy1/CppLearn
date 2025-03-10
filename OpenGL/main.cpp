@@ -93,7 +93,7 @@ void shaderLearn() {
                                      "uniform float time;\n"
                                      "void main()\n"
                                      "{\n"
-                                     "   gl_Position = vec4(aPos.x, aPos.y, aPos.z,1.0);\n"  // 最后的1.0是为了表示齐次坐标
+                                     "   gl_Position = vec4(aPos.x * (sin(time)+1.0) / 2.0, aPos.y, aPos.z,1.0);\n"  // 最后的1.0是为了表示齐次坐标
                                      "   color = aColor * (sin(time)+1.0) / 2.0;\n"            // 让color随时间变动
                                      "}\n";
     // frameShader源码
@@ -104,6 +104,32 @@ void shaderLearn() {
                                     "{\n" // 最终每个片元的颜色由输入的3个顶点颜色通过插值算法获得
                                     "   FragColor = vec4(color,0.3f);\n"   // 最后的1.0表示透明度（需要额外的操作才能生效）
                                     "}\n";
+        // 娱乐
+//        const char* frameShaderSource="#version 330 core\n"
+//                                      "out vec4 FragColor;\n"
+//                                      "in vec3 color;\n"
+//                                      "uniform float time;  // 新增时间变量\u200C:ml-citation{ref=\"1\" data=\"citationList\"}\n"
+//                                      "\n"
+//                                      "// 改进的伪随机函数，增加时间维度\u200C:ml-citation{ref=\"2,3\" data=\"citationList\"}\n"
+//                                      "float random(vec2 seed) {\n"
+//                                      "    return fract(sin(dot(seed, vec2(12.9898,78.233))) * (43758.5453123 + time*0.1));\n"
+//                                      "}\n"
+//                                      "\n"
+//                                      "void main() {\n"
+//                                      "    // 动态种子生成\u200C:ml-citation{ref=\"3,4\" data=\"citationList\"}\n"
+//                                      "    vec2 dynamicSeed = gl_FragCoord.xy * vec2(sin(time*0.5)+1.0, cos(time*0.3)+1.0);\n"
+//                                      "    float randValue = random(dynamicSeed);\n"
+//                                      "    \n"
+//                                      "    // 时间关联的随机颜色生成\u200C:ml-citation{ref=\"6,7\" data=\"citationList\"}\n"
+//                                      "    vec3 noiseColor = vec3(\n"
+//                                      "        random(dynamicSeed + vec2(time*0.2, 0.0)),\n"
+//                                      "        random(dynamicSeed + vec2(0.0, time*0.3)),\n"
+//                                      "        random(dynamicSeed + vec2(time*0.1, time*0.2))\n"
+//                                      "    );\n"
+//                                      "    \n"
+//                                      "    vec3 finalColor = (randValue > 0.9) ? noiseColor : color;\n"
+//                                      "    FragColor = vec4(finalColor, 0.3);\n"
+//                                      "}";
     // 创建shader程序
     GLuint vertex, fragment;
     GL_CALL(vertex = glCreateShader(GL_VERTEX_SHADER));
