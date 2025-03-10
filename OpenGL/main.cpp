@@ -2,8 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
-GLuint vao,program;
-
+GLuint vao, program;
 
 // 定义 GL_CALL 宏
 #define GL_CALL(x) \
@@ -16,133 +15,163 @@ GLuint vao,program;
     } while (0)
 
 // 响应函数（槽函数）
-void frameBufferSizeCallBack(GLFWwindow*window,int width,int height){
-    std::cout << "修改viewPoint{" << width << "."<< height << "}";
-    glViewport(0,0,width,height);
+void frameBufferSizeCallBack(GLFWwindow* window, int width, int height) {
+    std::cout << "修改viewPoint{" << width << "." << height << "}";
+    GL_CALL(glViewport(0, 0, width, height));
 }
 // OpenGL是状态机，可以绑定curVBO，操作时都是操作当前插入的状态
 // VBO目的：发送数据到显存
 // VAO目的: 将VBO绑定到VAO上，再使用glVertexAttribPointer()来设置属性
-void learnVBO(){
+void learnVBO() {
     // 构建VBO 每行前三个是位置，后三个是颜色
-    float vertices[]={
-            -0.5f, -0.5f, 0.0f,1.0f,1.0f,1.0f,
-            0.5f, -0.5f, 0.0f,1.0f,1.0f,1.0f,
-            0.0f, 0.5f, 0.0f,1.0f,1.0f,1.0f,
-            0.3f, 0.3f, 0.3f,1.0f,1.0f,1.0f
+    float vertices[] = {
+            -0.5f, -0.5f, 0.0f, 0.2f, 0.3f, 1.0f, // 蓝色
+            0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,  // 红色
+            0.0f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f,   // 绿色
+            0.3f, 0.3f, 0.3f, 1.0f, 1.0f, 0.0f    // 黄色
+    };
+
+    unsigned int indices[] = {
+            0, 1, 2,
+            2, 1, 3
     };
     // 创建VBO,glGenBuffers后会设置一个id
     GLuint VBO = 0;
     // n=1表示生成一个（也可以指定多个，VBO对象就需要定义为数组）
-    GL_CALL(glGenBuffers(1,&VBO));
+    GL_CALL(glGenBuffers(1, &VBO));
     // 销毁一个vbo
     // GL_CALL(glDeleteBuffers(1,&VBO));
     // 绑定当前VBO到openGL的状态上 GL_ARRAY_BUFFER表示当前VBO
-    glBindBuffer(GL_ARRAY_BUFFER,VBO);
+    GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, VBO));
     // 向当前VBO创建数据（使用显存） GL_STATIC_DRAW表示该数据不会进行修改，用于优化效率，也可以选择为GL_DYNAMIC_DRAW，表示数据会频繁修改
-    glBufferData(GL_ARRAY_BUFFER,sizeof(vertices),vertices,GL_STATIC_DRAW);
+    GL_CALL(glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW));
 
     // 构建VAO
     vao = 0;
     // 生成id
-    glGenVertexArrays(1,&vao);
+    GL_CALL(glGenVertexArrays(1, &vao));
+
+    // 根据glsl的参数输入顺序来获取vao中数据定义的顺序
+    GLint posAttrib = glGetAttribLocation(program, "aPos");
+    GLint colorAttrib = glGetAttribLocation(program, "aColor");
+
     // 绑定opengl当前状态的vao
-    glBindVertexArray(vao);
+    GL_CALL(glBindVertexArray(vao));
     // 指定下一次属性设置在vao中的位置
-    glEnableVertexAttribArray(0);
+    GL_CALL(glEnableVertexAttribArray(posAttrib));
     // vao中添加描述信息(index:放在0位置 size:这个属性有几个数字 type:数据类型 normalized:是否归一化 stride:数据的跨度 pointer:内部偏移)  这里就定义了：顶点位置信息是6个float数据的前三个的意思
-    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,6*sizeof(float),(void*)0);
+    GL_CALL(glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0));
     // 指定下一次属性设置在vao中的位置
-    glEnableVertexAttribArray(1);
+    GL_CALL(glEnableVertexAttribArray(colorAttrib));
     // 添加颜色属性信息的描述
-    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,6*sizeof(float),(void*)(3*sizeof(float)));
+    GL_CALL(glVertexAttribPointer(colorAttrib, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float))));
+
+    // 创建EBO(与VBO类似，只是GL_ELEMENT_ARRAY_BUFFER这个参数不一样)
+    GLuint ebo = 0;
+    GL_CALL(glGenBuffers(1, &ebo));
+    GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo));
+    GL_CALL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW));
+    // 绑定EBO到VAO
+    GL_CALL(glBindVertexArray(vao));
+    GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo));
 
     // 扫尾工作 解除绑定
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER,0);
+    GL_CALL(glBindVertexArray(0));
+    GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, 0));
 }
 
 //shader
-void shaderLearn(){
+void shaderLearn() {
     // glsl源码
+    // vertexShader源码：输入坐标和颜色，并直接输出（没做处理）
     const char* vertexShaderSource = "#version 330 core\n"
-                                     "layout (location = 0) in vec3 aPos;\n"
-                                     "layout (location = 1) in vec3 aColor;\n"
+                                     // "layout (location = 0) in vec3 aPos;\n"   // 输入位置1的3维坐标
+                                     "in vec3 aPos;\n"   // 输入位置1的3维坐标(不指定位置版本，就按从头开始)
+                                     // "layout (location = 1) in vec3 aColor;\n" // 输入位置2的颜色数据
+                                     "in vec3 aColor;\n" // 输入位置2的颜色数据(不指定位置版本，就是从上一个变量输入完成之后的3个数据)
+                                     "out vec3 color;\n"
+                                     "uniform float time;\n"
                                      "void main()\n"
                                      "{\n"
-                                     "   gl_Position = vec4(aPos.x, aPos.y, aPos.z,1.0);\n"
+                                     "   gl_Position = vec4(aPos.x, aPos.y, aPos.z,1.0);\n"  // 最后的1.0是为了表示齐次坐标
+                                     "   color = aColor * (sin(time)+1.0) / 2.0;\n"            // 让color随时间变动
                                      "}\n";
+    // frameShader源码
     const char* frameShaderSource = "#version 330 core\n"
-                                     "out vec4 FragColor;\n"
-                                     "void main()\n"
-                                     "{\n"
-                                     "   FragColor = vec4(0.1f,0.8f,0.2f,1.0f);\n"
-                                     "}\n";
+                                    "out vec4 FragColor;\n"   // 表示最后要输出的变量名
+                                    "in vec3 color;\n"  // 输入是在vertex中定义的输出color，通过插值之后获得的颜色
+                                    "void main()\n"
+                                    "{\n" // 最终每个片元的颜色由输入的3个顶点颜色通过插值算法获得
+                                    "   FragColor = vec4(color,0.3f);\n"   // 最后的1.0表示透明度（需要额外的操作才能生效）
+                                    "}\n";
     // 创建shader程序
-    GLuint vertex,fragment;
-    vertex = glCreateShader(GL_VERTEX_SHADER);
-    fragment = glCreateShader(GL_FRAGMENT_SHADER);
+    GLuint vertex, fragment;
+    GL_CALL(vertex = glCreateShader(GL_VERTEX_SHADER));
+    GL_CALL(fragment = glCreateShader(GL_FRAGMENT_SHADER));
 
     // 源码输入
-    glShaderSource(vertex,1,&vertexShaderSource,NULL);
-    glShaderSource(fragment,1,&frameShaderSource,NULL);
+    GL_CALL(glShaderSource(vertex, 1, &vertexShaderSource, NULL));
+    GL_CALL(glShaderSource(fragment, 1, &frameShaderSource, NULL));
 
     int success = 0;
     char infoLog[1024];
     // 编译源码
-    glCompileShader(vertex);
+    GL_CALL(glCompileShader(vertex));
     // 检查
-    glGetShaderiv(vertex,GL_COMPILE_STATUS,&success);
-    if (!success){
-        glGetShaderInfoLog(vertex,1024,NULL,infoLog);
-        std::cout << "fail to compile vertex shader" <<infoLog<< std::endl;
+    GL_CALL(glGetShaderiv(vertex, GL_COMPILE_STATUS, &success));
+    if (!success) {
+        GL_CALL(glGetShaderInfoLog(vertex, 1024, NULL, infoLog));
+        std::cout << "fail to compile vertex shader" << infoLog << std::endl;
     }
     // 编译源码
-    glCompileShader(fragment);
+    GL_CALL(glCompileShader(fragment));
     // 检查
-    glGetShaderiv(fragment,GL_COMPILE_STATUS,&success);
-    if (!success){
-        glGetShaderInfoLog(fragment,1024,NULL,infoLog);
-        std::cout << "fail to compile fragment shader" <<infoLog<< std::endl;
+    GL_CALL(glGetShaderiv(fragment, GL_COMPILE_STATUS, &success));
+    if (!success) {
+        GL_CALL(glGetShaderInfoLog(fragment, 1024, NULL, infoLog));
+        std::cout << "fail to compile fragment shader" << infoLog << std::endl;
     }
 
     // 链接
     // 创建程序壳子
-    program = glCreateProgram();
+    GL_CALL(program = glCreateProgram());
     // 编译结果放入pro
-    glAttachShader(program,vertex);
-    glAttachShader(program,fragment);
+    GL_CALL(glAttachShader(program, vertex));
+    GL_CALL(glAttachShader(program, fragment));
     // 链接操作
-    glLinkProgram(program);
+    GL_CALL(glLinkProgram(program));
     // 检查链接错误
-    glGetProgramiv(program,GL_LINK_STATUS,&success);
-    if (!success){
-        glGetProgramInfoLog(program,1024,NULL,infoLog);
-        std::cout << "fail to link program" <<infoLog<< std::endl;
+    GL_CALL(glGetProgramiv(program, GL_LINK_STATUS, &success));
+    if (!success) {
+        GL_CALL(glGetProgramInfoLog(program, 1024, NULL, infoLog));
+        std::cout << "fail to link program" << infoLog << std::endl;
     }
 
     // 扫尾工作
-    glDeleteShader(vertex);
-    glDeleteShader(fragment);
+    GL_CALL(glDeleteShader(vertex));
+    GL_CALL(glDeleteShader(fragment));
 }
 
 // 渲染
-void render(){
+void render() {
     // 画布清理
     GL_CALL(glClear(GL_COLOR_BUFFER_BIT));
     // 绑定program
-    glUseProgram(program);
+    GL_CALL(glUseProgram(program));
+    // uniform变量设置  设置时间变量，并且每一帧都设置，这样才能让time变量变化
+    GLint location = glGetUniformLocation(program, "time");
+    GL_CALL(glUniform1f(location, glfwGetTime()));
     // 绑定vao
-    glBindVertexArray(vao);
+    GL_CALL(glBindVertexArray(vao));
     // 绘制
-    glDrawArrays(GL_TRIANGLES,0,3);
+    // glDrawArrays(GL_TRIANGLES,0,4); // 有EBO就不能用这个函数了    indices:EBO内部偏移量，也可以在这里输入数组表示EBO，但效率低
+    GL_CALL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
     // 解绑
-    glBindVertexArray(0);
-    glUseProgram(0);
+    GL_CALL(glBindVertexArray(0));
+    GL_CALL(glUseProgram(0));
 }
 
-int main()
-{
+int main() {
     // 初始化GLFW
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -154,26 +183,30 @@ int main()
     // 设置当前窗口为绘制台
     glfwMakeContextCurrent(window);
     // 设置监听(类似qt的connect)
-    glfwSetFramebufferSizeCallback(window,frameBufferSizeCallBack); // 绑定监听处理函数
+    glfwSetFramebufferSizeCallback(window, frameBufferSizeCallBack); // 绑定监听处理函数
 
     // 使用glad加载opengl函数的具体实现
-    if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::cout << "fail to init glad";
         return -1;
     }
     // shader程序
     shaderLearn();
     // viewport 视口，表示渲染的范围
-    glViewport(0,0,800,600);
+    GL_CALL(glViewport(0, 0, 800, 600));
     // 设置清理颜色
-    glClearColor(0.2f,0.3f,0.3f,1.0f);
+    GL_CALL(glClearColor(0.2f, 0.3f, 0.3f, 1.0f));
     // 创建VBO和VAO
     learnVBO();
+    // 添加下边两行代码才能让颜色rgba的a（透明度）生效
+    // 开启混合功能
+//    GL_CALL(glEnable(GL_BLEND));
+    // 设置混合因子
+//    GL_CALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
     // 窗口循环
-    while(!glfwWindowShouldClose(window)){
-
+    while (!glfwWindowShouldClose(window)) {
         // 接收并分发窗口消息
-        glfwPollEvents();
+        GL_CALL(glfwPollEvents());
         // 渲染
         render();
         // 更换双缓存
