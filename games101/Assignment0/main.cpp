@@ -39,10 +39,22 @@ int main(){
     // matrix output
     std::cout << "Example of output \n";
     std::cout << i << std::endl;
+    std::cout << j << std::endl;
     // matrix add i + j
     // matrix scalar multiply i * 2.0
     // matrix multiply i * j
     // matrix multiply vector i * v
+
+    // 作业0实现
+    std::cout << "作业0实现" << std::endl;
+    Eigen::Vector3f point(2, 1, 1);
+    Eigen::Matrix3f rotate;
+    std::cout << "转换矩阵" << std::endl;
+    rotate <<  std::cos(45.0/180.0*acos(-1)),-std::sin(45.0/180.0*acos(-1)),1,std::sin(45.0/180.0* acos(-1)),std::cos(45.0/180.0*acos(-1)),2,0,0,1;
+    std::cout << rotate << std::endl;
+    Eigen::Vector3f res = rotate*point;
+    std::cout << "结果" << std::endl;
+    std::cout << res << std::endl;
 
     return 0;
 }
