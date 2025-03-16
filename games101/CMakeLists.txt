@@ -6,11 +6,11 @@ set(CMAKE_CXX_STANDARD 17)
 if(WIN32)
     # window配置
     set(OpenCV_DIR "D:/context/opencv/opencv/cmakeBuild/install")
-    include_directories(eigen3-win)
+    include_directories(thirdParty/eigen3-win)
 elseif(APPLE)
     # mac配置
     set(OpenCV_DIR "/opt/homebrew/Cellar/opencv/4.11.0_1")
-    include_directories(eigen3-mac)
+    include_directories(thirdParty/eigen3-mac)
 endif()
 
 find_package(OpenCV REQUIRED)
