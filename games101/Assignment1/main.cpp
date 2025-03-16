@@ -44,6 +44,7 @@ Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio,
     float t = std::tan(fov_y / 2.0f) * zNear;
     float r = aspect_ratio * t;
 
+    // 透视投影公式
     projection(0, 0) = zNear / r;
     projection(1, 1) = zNear / t;
     projection(2, 2) = -(zFar + zNear) / (zFar - zNear);
