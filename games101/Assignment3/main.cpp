@@ -133,12 +133,10 @@ Eigen::Vector3f texture_fragment_shader(const fragment_shader_payload& payload)
     Eigen::Vector3f normal = payload.normal;
 
     Eigen::Vector3f result_color = {0, 0, 0};
-    // 计算环境光
-    Eigen::Vector3f ambient = ka.cwiseProduct(amb_light_intensity);
-    result_color += ambient;
+
     for (auto& light : lights)
     {
-        // TODO: For each light source in the code, calculate what the *ambient*, *diffuse*, and *specular* 
+        // TODO: For each light source in the code, calculate what the *ambient*, *diffuse*, and *specular*
         // components are. Then, accumulate that result on the *result_color* object.
         // 计算点到光源的向量
         Eigen::Vector3f light_vec = light.position - point;
@@ -157,7 +155,7 @@ Eigen::Vector3f texture_fragment_shader(const fragment_shader_payload& payload)
         Eigen::Vector3f halfVector = (light_dir + view_dir).normalized();
         Eigen::Vector3f specular = ks.cwiseProduct(light.intensity / (r * r)) * std::pow(std::max(0.0f, normal.dot(halfVector)), p);
 
-        result_color += (diffuse + specular);
+        result_color += (diffuse + specular + ka.cwiseProduct(amb_light_intensity));
 
     }
 
@@ -188,10 +186,6 @@ Eigen::Vector3f phong_fragment_shader(const fragment_shader_payload& payload)
     Eigen::Vector3f normal = payload.normal;
 
     Eigen::Vector3f result_color = {0, 0, 0};
-    // 计算环境光
-    Eigen::Vector3f ambient = ka.cwiseProduct(amb_light_intensity);
-    result_color += ambient;
-
     for (auto& light : lights)
     {
         // 计算点到光源的向量
@@ -211,7 +205,7 @@ Eigen::Vector3f phong_fragment_shader(const fragment_shader_payload& payload)
         Eigen::Vector3f halfVector = (light_dir + view_dir).normalized();
         Eigen::Vector3f specular = ks.cwiseProduct(light.intensity / (r * r)) * std::pow(std::max(0.0f, normal.dot(halfVector)), p);
 
-        result_color += (diffuse + specular);
+        result_color += (diffuse + specular + ka.cwiseProduct(amb_light_intensity));
     }
 
     return result_color * 255.f;
@@ -221,7 +215,7 @@ Eigen::Vector3f phong_fragment_shader(const fragment_shader_payload& payload)
 
 Eigen::Vector3f displacement_fragment_shader(const fragment_shader_payload& payload)
 {
-    
+
     Eigen::Vector3f ka = Eigen::Vector3f(0.005, 0.005, 0.005);
     Eigen::Vector3f kd = payload.color;
     Eigen::Vector3f ks = Eigen::Vector3f(0.7937, 0.7937, 0.7937);
@@ -235,12 +229,12 @@ Eigen::Vector3f displacement_fragment_shader(const fragment_shader_payload& payl
 
     float p = 150;
 
-    Eigen::Vector3f color = payload.color; 
+    Eigen::Vector3f color = payload.color;
     Eigen::Vector3f point = payload.view_pos;
     Eigen::Vector3f normal = payload.normal;
 
     float kh = 0.2, kn = 0.1;
-    
+
     // TODO: Implement displacement mapping here
     // Let n = normal = (x, y, z)
     // Vector t = (x*y/sqrt(x*x+z*z),sqrt(x*x+z*z),z*y/sqrt(x*x+z*z))
@@ -257,7 +251,7 @@ Eigen::Vector3f displacement_fragment_shader(const fragment_shader_payload& payl
 
     for (auto& light : lights)
     {
-        // TODO: For each light source in the code, calculate what the *ambient*, *diffuse*, and *specular* 
+        // TODO: For each light source in the code, calculate what the *ambient*, *diffuse*, and *specular*
         // components are. Then, accumulate that result on the *result_color* object.
 
 
@@ -269,7 +263,7 @@ Eigen::Vector3f displacement_fragment_shader(const fragment_shader_payload& payl
 
 Eigen::Vector3f bump_fragment_shader(const fragment_shader_payload& payload)
 {
-    
+
     Eigen::Vector3f ka = Eigen::Vector3f(0.005, 0.005, 0.005);
     Eigen::Vector3f kd = payload.color;
     Eigen::Vector3f ks = Eigen::Vector3f(0.7937, 0.7937, 0.7937);
@@ -283,7 +277,7 @@ Eigen::Vector3f bump_fragment_shader(const fragment_shader_payload& payload)
 
     float p = 150;
 
-    Eigen::Vector3f color = payload.color; 
+    Eigen::Vector3f color = payload.color;
     Eigen::Vector3f point = payload.view_pos;
     Eigen::Vector3f normal = payload.normal;
 
@@ -311,7 +305,7 @@ int main(int argc, const char** argv)
 {
     std::vector<Triangle*> TriangleList;
 
-    float angle = 60;
+    float angle = 140.0;
     bool command_line = false;
 
     std::string filename = "output.png";
@@ -337,12 +331,12 @@ int main(int argc, const char** argv)
     // 在此之前获取到了一个模型的所有三角形的顶点坐标、法线、纹理坐标信息
     rst::rasterizer r(700, 700);
 
-    auto texture_path = "spot_texture.png";
+    auto texture_path = "hmap.jpg";
     r.set_texture(Texture(obj_path + texture_path));
 
     // 定义一个输入为fragment_shader_payload，输入为Vector3f的函数，指向phong_fragment_shader的实现
 //    std::function<Eigen::Vector3f(fragment_shader_payload)> active_shader = phong_fragment_shader;
-    std::function<Eigen::Vector3f(fragment_shader_payload)> active_shader = texture_fragment_shader;
+    std::function<Eigen::Vector3f(fragment_shader_payload)> active_shader = phong_fragment_shader;
 
     if (argc >= 2)
     {
