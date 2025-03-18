@@ -49,21 +49,32 @@ Eigen::Matrix4f get_model_matrix(float angle)
 
 Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio, float zNear, float zFar)
 {
-    // TODO: Use the same projection matrix from the previous assignments
+    float n = zNear;
+    float f = zFar;
     Eigen::Matrix4f projection = Eigen::Matrix4f::Identity();
+    float t = -tan((eye_fov/360)*MY_PI)*(abs(n)); //top
+    float r = t/aspect_ratio;
 
-    float fov_y = eye_fov * (M_PI / 180.0f);
-    float t = std::tan(fov_y / 2.0f) * zNear;
-    float r = aspect_ratio * t;
-
-    // 透视投影公式
-    projection(0, 0) = zNear / r;
-    projection(1, 1) = zNear / t;
-    projection(2, 2) = -(zFar + zNear) / (zFar - zNear);
-    projection(2, 3) = -2 * zFar * zNear / (zFar - zNear);
-    projection(3, 2) = -1;
-    projection(3, 3) = 0;
-
+    Eigen::Matrix4f Mp;//透视矩阵
+    Mp <<
+       n, 0, 0,   0,
+            0, n, 0,   0,
+            0, 0, n+f, -n*f,
+            0, 0, 1,   0;
+    Eigen::Matrix4f Mo_tran;//平移矩阵
+    Mo_tran <<
+            1, 0, 0, 0,
+            0, 1, 0, 0,  //b=-t;
+            0, 0, 1, -(n+f)/2 ,
+            0, 0, 0, 1;
+    Eigen::Matrix4f Mo_scale;//缩放矩阵
+    Mo_scale <<
+             1/r,     0,       0,       0,
+            0,       1/t,     0,       0,
+            0,       0,       2/(n-f), 0,
+            0,       0,       0,       1;
+    projection = (Mo_scale*Mo_tran)* Mp;//投影矩阵
+    //这里一定要注意顺序，先透视再正交;正交里面先平移再缩放；否则做出来会是一条直线！
     return projection;
 }
 
@@ -98,6 +109,7 @@ Eigen::Vector3f texture_fragment_shader(const fragment_shader_payload& payload)
     if (payload.texture)
     {
         // TODO: Get the texture value at the texture coordinates of the current fragment
+        return_color = payload.texture->getColor(payload.tex_coords.x(),payload.tex_coords.y());
 
     }
     Eigen::Vector3f texture_color;
@@ -121,11 +133,31 @@ Eigen::Vector3f texture_fragment_shader(const fragment_shader_payload& payload)
     Eigen::Vector3f normal = payload.normal;
 
     Eigen::Vector3f result_color = {0, 0, 0};
-
+    // 计算环境光
+    Eigen::Vector3f ambient = ka.cwiseProduct(amb_light_intensity);
+    result_color += ambient;
     for (auto& light : lights)
     {
         // TODO: For each light source in the code, calculate what the *ambient*, *diffuse*, and *specular* 
         // components are. Then, accumulate that result on the *result_color* object.
+        // 计算点到光源的向量
+        Eigen::Vector3f light_vec = light.position - point;
+        // 计算点到光源的距离
+        float r = light_vec.norm();
+        // 归一化从点到光源的向量
+        Eigen::Vector3f light_dir = light_vec.normalized();
+
+        // 漫反射
+        Eigen::Vector3f diffuse = kd.cwiseProduct(light.intensity / (r * r)) * std::max(0.0f, normal.dot(light_dir));
+
+        // 高光反射
+        // 计算从表面点到观察者的向量
+        Eigen::Vector3f view_dir = (eye_pos - point).normalized();
+        // 计算半程向量
+        Eigen::Vector3f halfVector = (light_dir + view_dir).normalized();
+        Eigen::Vector3f specular = ks.cwiseProduct(light.intensity / (r * r)) * std::pow(std::max(0.0f, normal.dot(halfVector)), p);
+
+        result_color += (diffuse + specular);
 
     }
 
@@ -279,7 +311,7 @@ int main(int argc, const char** argv)
 {
     std::vector<Triangle*> TriangleList;
 
-    float angle = 140.0;
+    float angle = 60;
     bool command_line = false;
 
     std::string filename = "output.png";
@@ -305,12 +337,12 @@ int main(int argc, const char** argv)
     // 在此之前获取到了一个模型的所有三角形的顶点坐标、法线、纹理坐标信息
     rst::rasterizer r(700, 700);
 
-    auto texture_path = "hmap.jpg";
+    auto texture_path = "spot_texture.png";
     r.set_texture(Texture(obj_path + texture_path));
 
     // 定义一个输入为fragment_shader_payload，输入为Vector3f的函数，指向phong_fragment_shader的实现
 //    std::function<Eigen::Vector3f(fragment_shader_payload)> active_shader = phong_fragment_shader;
-    std::function<Eigen::Vector3f(fragment_shader_payload)> active_shader = phong_fragment_shader;
+    std::function<Eigen::Vector3f(fragment_shader_payload)> active_shader = texture_fragment_shader;
 
     if (argc >= 2)
     {
