@@ -331,12 +331,12 @@ int main(int argc, const char** argv)
     // 在此之前获取到了一个模型的所有三角形的顶点坐标、法线、纹理坐标信息
     rst::rasterizer r(700, 700);
 
-    auto texture_path = "hmap.jpg";
+    auto texture_path = "spot_texture.png";
     r.set_texture(Texture(obj_path + texture_path));
 
     // 定义一个输入为fragment_shader_payload，输入为Vector3f的函数，指向phong_fragment_shader的实现
 //    std::function<Eigen::Vector3f(fragment_shader_payload)> active_shader = phong_fragment_shader;
-    std::function<Eigen::Vector3f(fragment_shader_payload)> active_shader = phong_fragment_shader;
+    std::function<Eigen::Vector3f(fragment_shader_payload)> active_shader = texture_fragment_shader;
 
     if (argc >= 2)
     {

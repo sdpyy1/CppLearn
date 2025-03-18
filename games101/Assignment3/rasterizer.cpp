@@ -280,7 +280,7 @@ void rst::rasterizer::rasterize_triangle(const Triangle& t, const std::array<Eig
                 float w_reciprocal = 1.0/(alpha / t.v[0].w() + beta / t.v[1].w() + gamma / t.v[2].w());
                 float z_interpolated = alpha * t.v[0].z() / t.v[0].w() + beta * t.v[1].z() / t.v[1].w() + gamma * t.v[2].z() / t.v[2].w();
                 z_interpolated *= w_reciprocal;
-                if(-z_interpolated < depth_buf[get_index(i,j)]){
+                if (depth_buf[get_index(i, j)] > z_interpolated){
                     //color interpolate
                     auto interpolated_color = interpolate(alpha,beta,gamma,t.color[0],t.color[1],t.color[2],1);
                     //normal vector interpolate
@@ -293,7 +293,7 @@ void rst::rasterizer::rasterize_triangle(const Triangle& t, const std::array<Eig
                     fragment_shader_payload payload( interpolated_color, interpolated_normal.normalized(), interpolated_texcoords, texture ? &*texture : nullptr);
                     payload.view_pos = interpolated_shadingcoords;
                     //update depth buffer
-                    depth_buf[get_index(i,j)] = -z_interpolated;
+                    depth_buf[get_index(i,j)] = z_interpolated;
                     //update frame buffer  把该位置插值后的信息通过fragment_shader处理后获得的颜色进行缓存
                     frame_buf[get_index(i,j)] = fragment_shader(payload);
                     set_pixel({i,j},frame_buf[get_index(i,j)]);
