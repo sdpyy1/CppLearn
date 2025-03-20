@@ -235,30 +235,42 @@ Eigen::Vector3f displacement_fragment_shader(const fragment_shader_payload& payl
 
     float kh = 0.2, kn = 0.1;
 
-    // TODO: Implement displacement mapping here
-    // Let n = normal = (x, y, z)
-    // Vector t = (x*y/sqrt(x*x+z*z),sqrt(x*x+z*z),z*y/sqrt(x*x+z*z))
-    // Vector b = n cross product t
-    // Matrix TBN = [t b n]
-    // dU = kh * kn * (h(u+1/w,v)-h(u,v))
-    // dV = kh * kn * (h(u,v+1/h)-h(u,v))
-    // Vector ln = (-dU, -dV, 1)
-    // Position p = p + kn * n * h(u,v)
-    // Normal n = normalize(TBN * ln)
-
-
+    float x = normal.x();
+    float y = normal.y();
+    float z = normal.z();
+    Eigen::Vector3f t{ x * y / std::sqrt(x * x + z * z), std::sqrt(x * x + z * z), z*y / std::sqrt(x * x + z * z) };
+    Eigen::Vector3f b = normal.cross(t);
+    Eigen::Matrix3f TBN;
+    TBN <<  t.x(), b.x(), normal.x(),
+            t.y(), b.y(), normal.y(),
+            t.z(), b.z(), normal.z();
+    float u = payload.tex_coords.x();
+    float v = payload.tex_coords.y();
+    float w = payload.texture->width;
+    float h = payload.texture->height;
+    float dU = kh * kn * (payload.texture->getColor(u + 1 / w , v).norm() - payload.texture->getColor(u, v).norm());
+    float dV = kh * kn * (payload.texture->getColor(u, v + 1 / h).norm() - payload.texture->getColor(u, v).norm());
+    Eigen::Vector3f ln{-dU, -dV, 1};
+    //与凹凸贴图的区别就在于这句话
+    point += (kn * normal * payload.texture->getColor(u , v).norm());
+    normal = (TBN * ln).normalized();
     Eigen::Vector3f result_color = {0, 0, 0};
 
     for (auto& light : lights)
     {
-        // TODO: For each light source in the code, calculate what the *ambient*, *diffuse*, and *specular*
-        // components are. Then, accumulate that result on the *result_color* object.
-
-
+        Eigen::Vector3f l = (light.position - point).normalized();      // 光
+        Eigen::Vector3f v = (eye_pos - point).normalized();		        // 眼
+        Eigen::Vector3f h = (l + v).normalized();                       // 半程向量
+        double r_2 = (light.position - point).dot(light.position - point);
+        Eigen::Vector3f Ld = kd.cwiseProduct(light.intensity / r_2) * std::max(0.0f, normal.dot(l));    //cwiseProduct()函数允许Matrix直接进行点对点乘法,而不用转换至Array。
+        Eigen::Vector3f Ls = ks.cwiseProduct(light.intensity / r_2) * std::pow(std::max(0.0f, normal.dot(h)), p);
+        result_color += (Ld + Ls);
     }
-
+    Eigen::Vector3f La = ka.cwiseProduct(amb_light_intensity);
+    result_color += La;
     return result_color * 255.f;
 }
+
 
 
 Eigen::Vector3f bump_fragment_shader(const fragment_shader_payload& payload)
@@ -283,23 +295,27 @@ Eigen::Vector3f bump_fragment_shader(const fragment_shader_payload& payload)
 
 
     float kh = 0.2, kn = 0.1;
-
-    // TODO: Implement bump mapping here
-    // Let n = normal = (x, y, z)
-    // Vector t = (x*y/sqrt(x*x+z*z),sqrt(x*x+z*z),z*y/sqrt(x*x+z*z))
-    // Vector b = n cross product t
-    // Matrix TBN = [t b n]
-    // dU = kh * kn * (h(u+1/w,v)-h(u,v))
-    // dV = kh * kn * (h(u,v+1/h)-h(u,v))
-    // Vector ln = (-dU, -dV, 1)
-    // Normal n = normalize(TBN * ln)
-
-
-    Eigen::Vector3f result_color = {0, 0, 0};
-    result_color = normal;
-
+    // 这个地方是为了后面用局部坐标系，让n始终朝向001，课上讲过
+    float x = normal.x();
+    float y = normal.y();
+    float z = normal.z();
+    Eigen::Vector3f t{ x * y / std::sqrt(x * x + z * z), std::sqrt(x * x + z * z), z*y / std::sqrt(x * x + z * z) };
+    Eigen::Vector3f b = normal.cross(t);
+    Eigen::Matrix3f TBN;
+    TBN <<  t.x(), b.x(), normal.x(),
+            t.y(), b.y(), normal.y(),
+            t.z(), b.z(), normal.z();
+    float u = payload.tex_coords.x();
+    float v = payload.tex_coords.y();
+    float w = payload.texture->width;
+    float h = payload.texture->height;
+    float dU = kh * kn * (payload.texture->getColor(u + 1 / w , v).norm() - payload.texture->getColor(u, v).norm());
+    float dV = kh * kn * (payload.texture->getColor(u, v + 1 / h).norm() - payload.texture->getColor(u, v).norm());
+    Eigen::Vector3f ln{-dU, -dV, 1};
+    Eigen::Vector3f result_color = (TBN * ln).normalized();
     return result_color * 255.f;
 }
+
 
 int main(int argc, const char** argv)
 {
@@ -331,12 +347,14 @@ int main(int argc, const char** argv)
     // 在此之前获取到了一个模型的所有三角形的顶点坐标、法线、纹理坐标信息
     rst::rasterizer r(700, 700);
 
-    auto texture_path = "spot_texture.png";
+    auto texture_path = "hmap.jpg";
     r.set_texture(Texture(obj_path + texture_path));
 
     // 定义一个输入为fragment_shader_payload，输入为Vector3f的函数，指向phong_fragment_shader的实现
 //    std::function<Eigen::Vector3f(fragment_shader_payload)> active_shader = phong_fragment_shader;
-    std::function<Eigen::Vector3f(fragment_shader_payload)> active_shader = texture_fragment_shader;
+//    std::function<Eigen::Vector3f(fragment_shader_payload)> active_shader = texture_fragment_shader;
+//    std::function<Eigen::Vector3f(fragment_shader_payload)> active_shader = bump_fragment_shader;
+    std::function<Eigen::Vector3f(fragment_shader_payload)> active_shader = displacement_fragment_shader;
 
     if (argc >= 2)
     {
