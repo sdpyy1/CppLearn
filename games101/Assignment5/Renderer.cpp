@@ -173,7 +173,7 @@ Vector3f castRay(
                 hitColor = castRay(reflectionRayOrig, reflectionDirection, scene, depth + 1) * kr;
                 break;
             }
-            // BPhong光照模型了进行默认
+            // BPhong光照模型了进行默认，这里重点要看一下阴影是如何产生的
             default:
             {
                 // [comment]
@@ -195,9 +195,10 @@ Vector3f castRay(
                     lightDir = normalize(lightDir);
                     float LdotN = std::max(0.f, dotProduct(lightDir, N));
                     // is the point in shadow, and is the nearest occluding object closer to the object than the light itself?
+                    // 在一个只考虑光照模型的hitpoint上，以这个点为起始点，向光源方向发出光线，查看是否被遮挡，如果遮挡物距离比光影距离近，则生成阴影
                     auto shadow_res = trace(shadowPointOrig, lightDir, scene.get_objects());
                     bool inShadow = shadow_res && (shadow_res->tNear * shadow_res->tNear < lightDistance2);
-
+                    // 如果被遮挡，则漫反射贡献将变为0
                     lightAmt += inShadow ? 0 : light->intensity * LdotN;
                     Vector3f reflectionDirection = reflect(-lightDir, N);
 
