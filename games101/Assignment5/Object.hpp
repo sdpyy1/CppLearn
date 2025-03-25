@@ -16,7 +16,7 @@ public:
     {}
 
     virtual ~Object() = default;
-
+    // 返回光线与Object是否有交点
     virtual bool intersect(const Vector3f&, const Vector3f&, float&, uint32_t&, Vector2f&) const = 0;
 
     virtual void getSurfaceProperties(const Vector3f&, const Vector3f&, const uint32_t&, const Vector2f&, Vector3f&,
