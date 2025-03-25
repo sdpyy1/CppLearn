@@ -31,6 +31,7 @@ bool rayTriangleIntersect(const Vector3f& v0, const Vector3f& v1, const Vector3f
 class MeshTriangle : public Object
 {
 public:
+    // 参数为顶点数组、索引数组、三角形数量、对应的纹理坐标
     MeshTriangle(const Vector3f* verts, const uint32_t* vertsIndex, const uint32_t& numTris, const Vector2f* st)
     {
         uint32_t maxIndex = 0;
@@ -46,7 +47,7 @@ public:
         stCoordinates = std::unique_ptr<Vector2f[]>(new Vector2f[maxIndex]);
         memcpy(stCoordinates.get(), st, sizeof(Vector2f) * maxIndex);
     }
-
+    // 求交 就是上边实现的功能
     bool intersect(const Vector3f& orig, const Vector3f& dir, float& tnear, uint32_t& index,
                    Vector2f& uv) const override
     {
@@ -78,13 +79,15 @@ public:
         const Vector3f& v2 = vertices[vertexIndex[index * 3 + 2]];
         Vector3f e0 = normalize(v1 - v0);
         Vector3f e1 = normalize(v2 - v1);
+        // 直接用了顶点法线作为内部的法线
         N = normalize(crossProduct(e0, e1));
         const Vector2f& st0 = stCoordinates[vertexIndex[index * 3]];
         const Vector2f& st1 = stCoordinates[vertexIndex[index * 3 + 1]];
         const Vector2f& st2 = stCoordinates[vertexIndex[index * 3 + 2]];
+        // 插值出来的纹理坐标
         st = st0 * (1 - uv.x - uv.y) + st1 * uv.x + st2 * uv.y;
     }
-
+    // 生成一个缩放后的棋盘格纹理，颜色在橙色和黄色之间交替
     Vector3f evalDiffuseColor(const Vector2f& st) const override
     {
         float scale = 5;

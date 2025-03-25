@@ -11,7 +11,7 @@ public:
         , radius(r)
         , radius2(r * r)
     {}
-
+    // 实现求交 就是光线的方程与球的隐式方程联立求解
     bool intersect(const Vector3f& orig, const Vector3f& dir, float& tnear, uint32_t&, Vector2f&) const override
     {
         // analytic solution
@@ -31,9 +31,11 @@ public:
         return true;
     }
 
+    // 返回的是法线
     void getSurfaceProperties(const Vector3f& P, const Vector3f&, const uint32_t&, const Vector2f&,
                               Vector3f& N, Vector2f&) const override
     {
+        // 球表面一点的法线就是这一点与圆心连接的线
         N = normalize(P - center);
     }
 

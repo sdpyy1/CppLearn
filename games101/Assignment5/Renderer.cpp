@@ -136,24 +136,33 @@ Vector3f castRay(
         Vector3f hitPoint = orig + dir * payload->tNear;
         Vector3f N; // normal
         Vector2f st; // st coordinates
+        // 获取该点位的法线和纹理坐标
         payload->hit_obj->getSurfaceProperties(hitPoint, dir, payload->index, payload->uv, N, st);
+        // 根据材质不同进行不同的处理
         switch (payload->hit_obj->materialType) {
+            // 反射+折射
             case REFLECTION_AND_REFRACTION:
             {
+                // 获得反射方向
                 Vector3f reflectionDirection = normalize(reflect(dir, N));
+                // 获得折射方向
                 Vector3f refractionDirection = normalize(refract(dir, N, payload->hit_obj->ior));
+                // 当光线击中物体表面后，反射光线的起点如果直接使用 hitPoint（命中点），由于浮点数精度限制，新光线可能会误判为与同一物体再次相交（即“自交”），导致渲染错误（如表面黑斑或无限递归）。 根据反射方向与表面法线 N 的关系，将起点沿法线方向 ‌轻微偏移‌，使其略微离开原始表面，避免自交。
                 Vector3f reflectionRayOrig = (dotProduct(reflectionDirection, N) < 0) ?
                                              hitPoint - N * scene.epsilon :
                                              hitPoint + N * scene.epsilon;
                 Vector3f refractionRayOrig = (dotProduct(refractionDirection, N) < 0) ?
                                              hitPoint - N * scene.epsilon :
                                              hitPoint + N * scene.epsilon;
+                // 递归计算这次反射和折射后映射到该位置的颜色
                 Vector3f reflectionColor = castRay(reflectionRayOrig, reflectionDirection, scene, depth + 1);
                 Vector3f refractionColor = castRay(refractionRayOrig, refractionDirection, scene, depth + 1);
+                // 菲涅尔效应（Fresnel Effect）动态混合反射和折射颜色。菲涅尔效应表明，光线与表面交互时，反射和折射的比例取决于入射角：当光线 ‌垂直入射‌（入射角接近 0°）时，反射比例 kr 较小，折射占主导。
                 float kr = fresnel(dir, N, payload->hit_obj->ior);
                 hitColor = reflectionColor * kr + refractionColor * (1 - kr);
                 break;
             }
+            // 只有反射
             case REFLECTION:
             {
                 float kr = fresnel(dir, N, payload->hit_obj->ior);
@@ -164,6 +173,7 @@ Vector3f castRay(
                 hitColor = castRay(reflectionRayOrig, reflectionDirection, scene, depth + 1) * kr;
                 break;
             }
+            // BPhong光照模型了进行默认
             default:
             {
                 // [comment]
@@ -200,7 +210,6 @@ Vector3f castRay(
             }
         }
     }
-
     return hitColor;
 }
 
