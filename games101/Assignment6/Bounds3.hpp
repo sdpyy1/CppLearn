@@ -89,47 +89,97 @@ class Bounds3
 };
 
 
-
+// 这个方法有点垃圾
+//inline bool Bounds3::IntersectP(const Ray& ray, const Vector3f& invDir,
+//                                const std::array<int, 3>& dirIsNeg) const
+//{
+//    // invDir: ray direction(x,y,z), invDir=(1.0/x,1.0/y,1.0/z), use this because Multiply is faster that Division
+//    // dirIsNeg: ray direction(x,y,z), dirIsNeg=[int(x>0),int(y>0),int(z>0)], use this to simplify your logic
+//    // TODO test if ray bound intersects
+//    // xyz方向的法向量
+//    Vector3f nX(1,0,0);
+//    Vector3f nY(0,1,0);
+//    Vector3f nZ(0,0,1);
+//    // x方向两个t
+//    float tx1 = dotProduct(pMin-ray.origin,nX)/ dotProduct(ray.direction,nX);
+//    float tx2 = dotProduct(pMax-ray.origin,nX)/ dotProduct(ray.direction,nX);
+//    // y方向两个t
+//    float ty1 = dotProduct(pMin-ray.origin,nY)/ dotProduct(ray.direction,nY);
+//    float ty2 = dotProduct(pMax-ray.origin,nY)/ dotProduct(ray.direction,nY);
+//    // z方向两个t
+//    float tz1 = dotProduct(pMin-ray.origin,nZ)/ dotProduct(ray.direction,nZ);
+//    float tz2 = dotProduct(pMax-ray.origin,nZ)/ dotProduct(ray.direction,nZ);
+//    // 保证1<2
+//    if (tx1 > tx2){
+//        float temp = tx1;
+//        tx1 = tx2;
+//        tx2 = temp;
+//    }
+//    if (ty1 > ty2){
+//        float temp = ty1;
+//        ty1 = ty2;
+//        ty2 = temp;
+//    }
+//    if (tz1 > tz2){
+//        float temp = tz1;
+//        tz1 = tz2;
+//        tz2 = temp;
+//    }
+//    float maxEnter = std::max(tx1,std::max(ty1,tz1));
+//    float minExit = std::min(tx2,std::min(ty2,tz2));
+//    return minExit > 0 && maxEnter <= minExit;
+//}
 inline bool Bounds3::IntersectP(const Ray& ray, const Vector3f& invDir,
                                 const std::array<int, 3>& dirIsNeg) const
 {
     // invDir: ray direction(x,y,z), invDir=(1.0/x,1.0/y,1.0/z), use this because Multiply is faster that Division
-    // dirIsNeg: ray direction(x,y,z), dirIsNeg=[int(x>0),int(y>0),int(z>0)], use this to simplify your logic
-    // TODO test if ray bound intersects
-    // xyz方向的法向量
-    Vector3f nX(1,0,0);
-    Vector3f nY(0,1,0);
-    Vector3f nZ(0,0,1);
-    // x方向两个t
-    float tx1 = dotProduct(pMin-ray.origin,nX)/ dotProduct(ray.direction,nX);
-    float tx2 = dotProduct(pMax-ray.origin,nX)/ dotProduct(ray.direction,nX);
-    // y方向两个t
-    float ty1 = dotProduct(pMin-ray.origin,nY)/ dotProduct(ray.direction,nY);
-    float ty2 = dotProduct(pMax-ray.origin,nY)/ dotProduct(ray.direction,nY);
-    // z方向两个t
-    float tz1 = dotProduct(pMin-ray.origin,nZ)/ dotProduct(ray.direction,nZ);
-    float tz2 = dotProduct(pMax-ray.origin,nZ)/ dotProduct(ray.direction,nZ);
-    // 保证1<2
-    if (tx1 > tx2){
-        float temp = tx1;
-        tx1 = tx2;
-        tx2 = temp;
-    }
-    if (ty1 > ty2){
-        float temp = ty1;
-        ty1 = ty2;
-        ty2 = temp;
-    }
-    if (tz1 > tz2){
-        float temp = tz1;
-        tz1 = tz2;
-        tz2 = temp;
-    }
-    float maxEnter = std::max(tx1,std::max(ty1,tz1));
-    float minExit = std::min(tx2,std::min(ty2,tz2));
-    return minExit > 0 && maxEnter <= minExit;
-}
+    // 计算进入x,y,z截面的最早和最晚时间
 
+    float t_min_x = (pMin.x - ray.origin.x) * invDir[0];
+    float t_min_y = (pMin.y - ray.origin.y) * invDir[1];
+    float t_min_z = (pMin.z - ray.origin.z) * invDir[2];
+    float t_max_x = (pMax.x - ray.origin.x) * invDir[0];
+    float t_max_y = (pMax.y - ray.origin.y) * invDir[1];
+    float t_max_z = (pMax.z - ray.origin.z) * invDir[2];
+    // dirIsNeg: ray direction(x,y,z), dirIsNeg=[int(x>0),int(y>0),int(z>0)], use this to simplify your logic
+    // 如果方向是负的，就交换最早和最晚时间
+
+    if (!dirIsNeg[0])
+    {
+        float t = t_min_x;
+        t_min_x = t_max_x;
+        t_max_x = t;
+    }
+
+    if (!dirIsNeg[1])
+    {
+        float t = t_min_y;
+        t_min_y = t_max_y;
+        t_max_y = t;
+    }
+
+    if (!dirIsNeg[2])
+    {
+        float t = t_min_z;
+        t_min_z = t_max_z;
+        t_max_z = t;
+    }
+
+    // 小小取其大，大大取其小
+    float t_enter = std::max(t_min_x, std::max(t_min_y, t_min_z));
+    float t_exit = std::min(t_max_x, std::min(t_max_y, t_max_z));
+
+    // TODO test if ray bound intersects
+    // 检测包围盒是否存在
+    if (t_exit>=0&&t_enter<t_exit)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
 inline Bounds3 Union(const Bounds3& b1, const Bounds3& b2)
 {
     Bounds3 ret;

@@ -25,14 +25,17 @@ BVHAccel::BVHAccel(std::vector<Object*> p, int maxPrimsInNode,
         hrs, mins, secs);
 }
 
+// 构建BVH树
 BVHBuildNode* BVHAccel::recursiveBuild(std::vector<Object*> objects)
 {
     BVHBuildNode* node = new BVHBuildNode();
 
     // Compute bounds of all primitives in BVH node
     Bounds3 bounds;
+    // 获取当前层所有物体的包围盒
     for (int i = 0; i < objects.size(); ++i)
         bounds = Union(bounds, objects[i]->getBounds());
+    // 只有一个物体了，就设置叶子节点
     if (objects.size() == 1) {
         // Create leaf _BVHBuildNode_
         node->bounds = objects[0]->getBounds();
@@ -41,6 +44,7 @@ BVHBuildNode* BVHAccel::recursiveBuild(std::vector<Object*> objects)
         node->right = nullptr;
         return node;
     }
+    // 有两个物体，就设置左右两个叶子节点
     else if (objects.size() == 2) {
         node->left = recursiveBuild(std::vector{objects[0]});
         node->right = recursiveBuild(std::vector{objects[1]});
@@ -48,6 +52,7 @@ BVHBuildNode* BVHAccel::recursiveBuild(std::vector<Object*> objects)
         node->bounds = Union(node->left->bounds, node->right->bounds);
         return node;
     }
+    // 正常情况就找中间的物体，然后分成左右两部分，再进行递归
     else {
         Bounds3 centroidBounds;
         for (int i = 0; i < objects.size(); ++i)
@@ -105,5 +110,19 @@ Intersection BVHAccel::Intersect(const Ray& ray) const
 Intersection BVHAccel::getIntersection(BVHBuildNode* node, const Ray& ray) const
 {
     // TODO Traverse the BVH to find intersection
-
+    std::array<int,3> dirIsNeg;
+    dirIsNeg[0] = (ray.direction[0]>0);
+    dirIsNeg[1] = (ray.direction[1]>0);
+    dirIsNeg[2] = (ray.direction[2]>0);
+    Intersection inter;
+    if (!node->bounds.IntersectP(ray, ray.direction_inv, dirIsNeg)){
+        return inter;
+    }
+    if(node->left == nullptr && node->right == nullptr){
+        return node->object->getIntersection(ray);
+    }
+    Intersection leftInter = getIntersection(node->left, ray);
+    Intersection rightInter = getIntersection(node->right, ray);
+    // 返回离光源最近的
+    return leftInter.distance < rightInter.distance ? leftInter : rightInter;
 }
