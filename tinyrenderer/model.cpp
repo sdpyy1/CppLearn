@@ -32,6 +32,7 @@ Model::Model(const char *filename) : verts_(), faces_() {
         }
     }
     std::cerr << "顶点个数： " << verts_.size() << " 三角形数："  << faces_.size() << std::endl;
+
     for (const auto &item: faces_){
         std::vector<Eigen::Vector3f> coordinate;
         for (int i = 0; i < 3; ++i){

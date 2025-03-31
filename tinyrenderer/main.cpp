@@ -2,6 +2,8 @@
 #include "model.h"
 #include <vector>
 #include <Eigen/Eigen>
+#include <cmath>
+
 constexpr TGAColor white   = {255, 255, 255, 255};
 constexpr TGAColor green   = {  0, 255,   0, 255};
 constexpr TGAColor red     = {  255,   0, 0, 255};
