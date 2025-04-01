@@ -1,5 +1,5 @@
 #include "Triangle.h"
-
+#include "iostream"
 Triangle::Triangle() {
     globalCoords[0] << 0,0,0,1;
     globalCoords[1] << 0,0,0,1;
@@ -23,20 +23,19 @@ void Triangle::setNormal(int ind, Vector3f n){
 void Triangle::setTexCoord(int ind, Vector2f uv) {
     texCoords[ind] = uv;
 }
-//void Triangle::setScreenCoords(const Eigen::Matrix4f& transMatrix,Eigen::Matrix4f & viewportMatrix){
-//    for (int i = 0; i < 3; ++i){
-//        screenCoords[i] = viewportMatrix *transMatrix*globalCoords[i];
-//        screenCoords[i].x() /= screenCoords[i].w();
-//        screenCoords[i].y() /= screenCoords[i].w();
-//        screenCoords[i].z() /= screenCoords[i].w();
-//    }
-//}
-void Triangle::setScreenCoords(const Eigen::Matrix4f& transMatrix,Eigen::Matrix4f & viewportMatrix){
+
+void Triangle::setScreenCoords(const Eigen::Matrix4f& transMatrix,int width,int height){
     for (int i = 0; i < 3; ++i){
+        std::cout << "FIRST : " << globalCoords[i].transpose() << std::endl;
         screenCoords[i] = transMatrix*globalCoords[i];
-        screenCoords[i] = viewportMatrix * screenCoords[i];
+        std::cout << "MVP after" << screenCoords[i].transpose() << std::endl;
         screenCoords[i].x() /= screenCoords[i].w();
         screenCoords[i].y() /= screenCoords[i].w();
         screenCoords[i].z() /= screenCoords[i].w();
+        std::cout << "/W after" << screenCoords[i].transpose() << std::endl;
+        screenCoords[i].x() = 0.5*width*(screenCoords[i].x()+1);
+        screenCoords[i].y() = 0.5*height*(screenCoords[i].y()+1);
+        std::cout << "SCREEN" << screenCoords[i].transpose() << std::endl;
+
     }
 }

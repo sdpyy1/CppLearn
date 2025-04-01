@@ -75,7 +75,6 @@ int main() {
     model.setModelTransformation(angleX, angleY, angleZ, tx, ty, tz, sx, sy, sz);
     model.setViewTransformation(eye_pos,eye_dir,up);
     model.setProjectionTransformation(fovY, aspectRatio, near, far);
-    model.setViewPortMatrix(width, height);
 
     // 获取所有变换矩阵
     Eigen::Matrix4f mvp = model.getMVP();
@@ -83,11 +82,10 @@ int main() {
     // 遍历obj文件中的每个三角形
     for (Triangle triangle : model.triangleList) {
         // 坐标投影
-        triangle.setScreenCoords(mvp,model.viewportMatrix);
+        triangle.setScreenCoords(mvp,width,height);
         // 绘制三角形
         drawTriangle(triangle, framebuffer, zBuffer, model.texture);
     }
-    framebuffer.flip_vertically();
     framebuffer.write_tga_file("framebuffer.tga");
     return 0;
 }

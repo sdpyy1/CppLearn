@@ -6,7 +6,6 @@ Model::Model(const char * objFileName,const char * texFileName) : texture(texFil
     this->modelMatrix = Eigen::Matrix4f::Identity();
     this->viewMatrix = Eigen::Matrix4f::Identity();
     this->projectionMatrix = Eigen::Matrix4f::Identity();
-    this->viewportMatrix = Eigen::Matrix4f::Identity();
     for (const auto &mesh: Loader.LoadedMeshes){
         for(int i=0;i<mesh.Vertices.size();i+=3)
         {
@@ -90,30 +89,31 @@ Eigen::Matrix4f get_view_matrix(Eigen::Vector3f eye_pos, Eigen::Vector3f target,
     return view;
 }
 Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio, float n, float f) {
+
     Eigen::Matrix4f projection = Eigen::Matrix4f::Identity();
+    float t = -tan((eye_fov/360)*M_PI)*(abs(n)); //top
+    float r = t/aspect_ratio;
 
-    float fov_rad = eye_fov * M_PI / 180.0f;
-    float t = tan(fov_rad / 2.0f) * n;
-    float r = aspect_ratio * t;
-
-    // 1. 透视到正交的变换（挤压视锥体）
-    Eigen::Matrix4f persp_to_ortho = Eigen::Matrix4f::Zero();
-    persp_to_ortho(0, 0) = n;
-    persp_to_ortho(1, 1) = n;
-    persp_to_ortho(2, 2) = n + f;
-    persp_to_ortho(2, 3) = -n * f;
-    persp_to_ortho(3, 2) = 1;
-
-    // 2. 正交投影到 NDC
-    Eigen::Matrix4f ortho = Eigen::Matrix4f::Identity();
-    ortho(0, 0) = 1 / r;      // X 缩放至 [-1, 1]
-    ortho(1, 1) = 1 / t;      // Y 缩放至 [-1, 1]
-    ortho(2, 2) = -2 / (f - n);  // Z 缩放至 [-1, 1]
-    ortho(2, 3) = -(f + n) / (f - n); // Z 平移
-
-    // 组合矩阵：正交投影 × 透视到正交
-    projection = ortho * persp_to_ortho;
-
+    Eigen::Matrix4f Mp;//透视矩阵
+    Mp <<
+       n, 0, 0,   0,
+            0, n, 0,   0,
+            0, 0, n+f, -n*f,
+            0, 0, 1,   0;
+    Eigen::Matrix4f Mo_tran;//平移矩阵
+    Mo_tran <<
+            1, 0, 0, 0,
+            0, 1, 0, 0,  //b=-t;
+            0, 0, 1, -(n+f)/2 ,
+            0, 0, 0, 1;
+    Eigen::Matrix4f Mo_scale;//缩放矩阵
+    Mo_scale <<
+             1/r,     0,       0,       0,
+            0,       1/t,     0,       0,
+            0,       0,       2/(n-f), 0,
+            0,       0,       0,       1;
+    projection = (Mo_scale*Mo_tran)* Mp;//投影矩阵
+    //这里一定要注意顺序，先透视再正交;正交里面先平移再缩放；否则做出来会是一条直线！
     return projection;
 }
 void Model::setModelTransformation(float angleX, float angleY, float angleZ, float tx, float ty, float tz, float sx, float sy, float sz){
@@ -135,17 +135,7 @@ void Model::setViewTransformation(Eigen::Vector3f eye_pos, Eigen::Vector3f targe
 void Model::setProjectionTransformation(float fovY, float aspectRatio, float near, float far) {
     projectionMatrix = get_projection_matrix(fovY, aspectRatio, near, far);
 }
-// 生成视口变换矩阵（NDC → 屏幕坐标）
-void Model::setViewPortMatrix(int width, int height) {
-    Eigen::Matrix4f viewport = Eigen::Matrix4f::Identity();
-    viewport(0, 0) = width / 2.0f;
-    viewport(0, 3) = width / 2.0f;
-    viewport(1, 1) = height / 2.0f;
-    viewport(1, 3) = height / 2.0f;
-    viewport(2, 2) = 0.5f;
-    viewport(2, 3) = 0.5f;
-    this->viewportMatrix = viewport;
-}
+
 Matrix4f Model::getMVP(){
     return projectionMatrix * viewMatrix * modelMatrix;
 }
