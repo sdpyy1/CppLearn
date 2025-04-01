@@ -1,8 +1,8 @@
 #include "thirdParty/tgaimage.h"
 #include "model.h"
 #include <vector>
-#include <Eigen/Eigen>
 #include <cmath>
+#include <iostream>
 
 constexpr TGAColor white   = {255, 255, 255, 255};
 constexpr TGAColor green   = {  0, 255,   0, 255};
@@ -81,45 +81,54 @@ double signed_triangle_area(int ax, int ay, int bx, int by, int cx, int cy) {
     return .5*((by-ay)*(bx+ax) + (cy-by)*(cx+bx) + (ay-cy)*(ax+cx));
 }
 // 绘制一个三角形
-void drawTriangle(int ax, int ay, int bx, int by, int cx, int cy, TGAImage &framebuffer, std::vector<std::vector<float>> * zBuffer,TGAColor color) {
-    int bbminx = std::min(std::min(ax, bx), cx);
-    int bbminy = std::min(std::min(ay, by), cy);
-    int bbmaxx = std::max(std::max(ax, bx), cx);
-    int bbmaxy = std::max(std::max(ay, by), cy);
-    double total_area = signed_triangle_area(ax, ay, bx, by, cx, cy);
-    if (total_area<1) return; // backface culling + discarding triangles that cover less than a pixel
+void drawTriangle(Triangle triangle, TGAImage &framebuffer, std::vector<std::vector<float>> * zBuffer,Texture &texture) {
+    float ax = triangle.screenCoords[0].x();
+    float ay = triangle.screenCoords[0].y();
+    float bx = triangle.screenCoords[1].x();
+    float by = triangle.screenCoords[1].y();
+    float cx = triangle.screenCoords[2].x();
+    float cy = triangle.screenCoords[2].y();
+    float bbminx = std::min(std::min(ax, bx), cx);
+    float bbminy = std::min(std::min(ay, by), cy);
+    float bbmaxx = std::max(std::max(ax, bx), cx);
+    float bbmaxy = std::max(std::max(ay, by), cy);
 
-#pragma omp parallel for
+    // 如果面积为负数，背对屏幕，被裁剪
+    double total_area = signed_triangle_area(ax, ay, bx, by, cx, cy);
+    if (total_area<1) return;
+
+    #pragma omp parallel for
     for (int x=bbminx; x<=bbmaxx; x++) {
         for (int y=bbminy; y<=bbmaxy; y++) {
             double alpha = signed_triangle_area(x, y, bx, by, cx, cy) / total_area;
             double beta  = signed_triangle_area(x, y, cx, cy, ax, ay) / total_area;
             double gamma = signed_triangle_area(x, y, ax, ay, bx, by) / total_area;
-            if (alpha<0 || beta<0 || gamma<0) continue;
-            if
-            framebuffer.set(x, y, color);
+            if (alpha<0 || beta<0 || gamma<0) continue; // 说明当前像素不在三角形内部
+            float barycentricZ = alpha*triangle.screenCoords[0].z() + beta*triangle.screenCoords[1].z() + gamma*triangle.screenCoords[2].z();
+            float texU = alpha*triangle.texCoords[0].x() + beta*triangle.texCoords[1].x() + gamma*triangle.texCoords[2].x();
+            float texV = alpha*triangle.texCoords[0].y() + beta*triangle.texCoords[1].y() + gamma*triangle.texCoords[2].y();
+            // zbuffer中缓存的渲染物体距离小于当前渲染物体的距离时，才覆盖渲染
+            if (x<width && y < height && zBuffer->at(x).at(y) < barycentricZ){
+                zBuffer->at(x).at(y) = barycentricZ;
+                framebuffer.set(x,y,texture.getColor(texU,texV));
+            }
         }
     }
 }
-// 简单实现正交投影
-Vec3f world2screen(Vec3f v) {
-    return Vec3f(int((v.x+1.)*width/2.+.5), int((v.y+1.)*height/2.+.5), v.z);
-}
+
 int main() {
-    Model * model = new Model("./obj/african_head/african_head.obj");
+    auto * model = new Model("./obj/african_head/african_head.obj","./obj/african_head/african_head_diffuse.tga");
     TGAImage framebuffer(width, height, TGAImage::RGB);
     // 定义一个zBuffer,并设置全部数据为最小负数
-    std::vector<std::vector<float>> * zBuffer = new std::vector<std::vector<float>>(width, std::vector<float>(height,-std::numeric_limits<float>::max()));
-
+    auto * zBuffer = new std::vector<std::vector<float>>(width, std::vector<float>(height,std::numeric_limits<float>::lowest()));
     // 遍历obj文件中的每个三角形
-    for (int i=0; i<model->nfaces(); i++) {
-        std::vector<int> face = model->face(i);
-        Vec3f curTriangle[3];
+    for (Triangle triangle : model->triangleList) {
         // 将当前三角形的三个顶点都投影到屏幕
-        for (int i=0; i<3; i++) curTriangle[i] = world2screen(model->vert(face[i]));
-        drawTriangle(curTriangle, framebuffer, zBuffer, TGAColor(rand()%255, rand()%255, rand()%255, 255));
+        for (int i = 0; i < 3; ++i) triangle.setScreenCoord(i,width,height);
+        // 绘制三角形
+        drawTriangle(triangle, framebuffer, zBuffer, model->texture);
     }
-    framebuffer.flip_vertically();
+//    framebuffer.flip_vertically();
     framebuffer.write_tga_file("framebuffer.tga");
     return 0;
 }

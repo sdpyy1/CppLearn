@@ -1,44 +1,23 @@
-#include <iostream>
-#include <string>
-#include <fstream>
-#include <sstream>
-#include <vector>
 #include "model.h"
-
+#include "thirdParty/OBJ_Loader.h"
 // 加载模型就直接用教程的代码了！
-Model::Model(const char *filename) : verts_(), faces_() {
-    std::ifstream in;
-    in.open (filename, std::ifstream::in);
-    if (in.fail()) return;
-    std::string line;
-    while (!in.eof()) {
-        std::getline(in, line);
-        std::istringstream iss(line.c_str());
-        char trash;
-        if (!line.compare(0, 2, "v ")) {
-            iss >> trash;
-            Eigen::Vector3f v;
-            for (int i=0;i<3;i++) iss >> v[i];
-            verts_.push_back(v);
-        } else if (!line.compare(0, 2, "f ")) {
-            std::vector<int> f;
-            int itrash, idx;
-            iss >> trash;
-            while (iss >> idx >> trash >> itrash >> trash >> itrash) {
-                idx--; // in wavefront obj all indices start at 1, not zero
-                f.push_back(idx);
-            }
-            faces_.push_back(f);
-        }
-    }
-    std::cerr << "顶点个数： " << verts_.size() << " 三角形数："  << faces_.size() << std::endl;
+Model::Model(const char *objFileName,const char * texFileName) : texture(texFileName){
+    objl::Loader Loader;
+    Loader.LoadFile(objFileName);
 
-    for (const auto &item: faces_){
-        std::vector<Eigen::Vector3f> coordinate;
-        for (int i = 0; i < 3; ++i){
-            coordinate.push_back(verts_[item[i]]);
+    for (const auto &mesh: Loader.LoadedMeshes){
+        for(int i=0;i<mesh.Vertices.size();i+=3)
+        {
+
+            Triangle * t = new Triangle;
+            for(int j=0;j<3;j++)
+            {
+                t->setGlobalCoords(j, Vector4f(mesh.Vertices[i + j].Position.X, mesh.Vertices[i + j].Position.Y,mesh.Vertices[i + j].Position.Z, 1.0));
+                t->setNormal(j,Vector3f(mesh.Vertices[i+j].Normal.X,mesh.Vertices[i+j].Normal.Y,mesh.Vertices[i+j].Normal.Z));
+                t->setTexCoord(j,Vector2f(mesh.Vertices[i+j].TextureCoordinate.X, mesh.Vertices[i+j].TextureCoordinate.Y));
+            }
+            this->triangleList.push_back(*t);
         }
-        triangles.push_back(new Triangle(coordinate))
     }
 }
 
