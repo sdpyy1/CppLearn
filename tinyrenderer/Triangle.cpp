@@ -14,7 +14,7 @@ Triangle::Triangle() {
     texCoords[2] << 0.0, 0.0;
 }
 
-void Triangle::setGlobalCoords(int ind, Vector4f ver){
+void Triangle::setGlobalCoord(int ind, Vector4f ver){
     globalCoords[ind] = ver;
 }
 void Triangle::setNormal(int ind, Vector3f n){
@@ -23,10 +23,11 @@ void Triangle::setNormal(int ind, Vector3f n){
 void Triangle::setTexCoord(int ind, Vector2f uv) {
     texCoords[ind] = uv;
 }
-// 简单实现正交投影
-Vector3f world2screen(Vector4f globalCoord,int width,int height) {
-    return Vector3f(int((globalCoord.x()+1.)*width/2.+.5), int((globalCoord.y()+1.)*height/2.+.5), globalCoord.z());
-}
-void Triangle::setScreenCoord(int ind,int width,int height) {
-    screenCoords[ind] = world2screen(this->globalCoords[ind],width,height);
+void Triangle::setScreenCoords(const Eigen::Matrix4f& transMatrix){
+    for (int i = 0; i < 3; ++i){
+        screenCoords[i] = transMatrix*globalCoords[i];
+        screenCoords[i].x() /= screenCoords[i].w();
+        screenCoords[i].y() /= screenCoords[i].w();
+        screenCoords[i].z() /= screenCoords[i].w();
+    }
 }

@@ -20,6 +20,7 @@ public:
 
     int width, height;
 
+    // TODO:此处可拓展各种插值方式，当前为就近插值
     TGAColor getColor(float u, float v)
     {
         auto u_img = u * width;
@@ -27,6 +28,7 @@ public:
         TGAColor color = texture.get(u_img, v_img);
         return color;
     }
+
 
 };
 
