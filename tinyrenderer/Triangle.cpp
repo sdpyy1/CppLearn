@@ -23,9 +23,18 @@ void Triangle::setNormal(int ind, Vector3f n){
 void Triangle::setTexCoord(int ind, Vector2f uv) {
     texCoords[ind] = uv;
 }
-void Triangle::setScreenCoords(const Eigen::Matrix4f& transMatrix){
+//void Triangle::setScreenCoords(const Eigen::Matrix4f& transMatrix,Eigen::Matrix4f & viewportMatrix){
+//    for (int i = 0; i < 3; ++i){
+//        screenCoords[i] = viewportMatrix *transMatrix*globalCoords[i];
+//        screenCoords[i].x() /= screenCoords[i].w();
+//        screenCoords[i].y() /= screenCoords[i].w();
+//        screenCoords[i].z() /= screenCoords[i].w();
+//    }
+//}
+void Triangle::setScreenCoords(const Eigen::Matrix4f& transMatrix,Eigen::Matrix4f & viewportMatrix){
     for (int i = 0; i < 3; ++i){
         screenCoords[i] = transMatrix*globalCoords[i];
+        screenCoords[i] = viewportMatrix * screenCoords[i];
         screenCoords[i].x() /= screenCoords[i].w();
         screenCoords[i].y() /= screenCoords[i].w();
         screenCoords[i].z() /= screenCoords[i].w();

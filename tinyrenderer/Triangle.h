@@ -14,7 +14,7 @@ public:
     void setGlobalCoord(int ind, Eigen::Vector4f ver);
     void setNormal(int ind, Eigen::Vector3f n);
     void setTexCoord(int ind,Eigen::Vector2f uv);
-    void setScreenCoords(const Eigen::Matrix4f& transMatrix);
+    void setScreenCoords(const Matrix4f &transMatrix, Matrix4f &viewportMatrix);
 };
 
 #endif //TINYRENDERER_TRIANGLE_H

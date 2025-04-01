@@ -54,7 +54,6 @@ Eigen::Matrix4f rotation(float angleX, float angleY, float angleZ) {
 
     // 组合三个旋转矩阵，这里假设旋转顺序为 Z -> Y -> X
     Eigen::Matrix4f modelMatrix = rotationX * rotationY * rotationZ;
-
     return modelMatrix;
 }
 // 生成平移变换矩阵
@@ -65,7 +64,6 @@ Eigen::Matrix4f translation(float tx, float ty, float tz) {
     translationMatrix(2, 3) = tz;
     return translationMatrix;
 }
-
 // 生成缩放变换矩阵
 Eigen::Matrix4f scaling(float sx, float sy, float sz) {
     Eigen::Matrix4f scalingMatrix = Eigen::Matrix4f::Identity();
@@ -75,27 +73,47 @@ Eigen::Matrix4f scaling(float sx, float sy, float sz) {
     return scalingMatrix;
 }
 // 视图变换矩阵
-Eigen::Matrix4f get_view_matrix(const Eigen::Vector3f& eye, const Eigen::Vector3f& center, const Eigen::Vector3f& up) {
-    Eigen::Vector3f z = (eye - center).normalized();
-    Eigen::Vector3f x = up.cross(z).normalized();
-    Eigen::Vector3f y = z.cross(x);
 
-    Eigen::Matrix4f view;
-    view << x[0], x[1], x[2], -x.dot(eye),
-            y[0], y[1], y[2], -y.dot(eye),
-            z[0], z[1], z[2], -z.dot(eye),
-            0, 0, 0, 1;
+
+Eigen::Matrix4f get_view_matrix(Eigen::Vector3f eye_pos, Eigen::Vector3f target, Eigen::Vector3f up) {
+    // TODO:目前只支持摄像机沿z轴移动
+    Eigen::Matrix4f view = Eigen::Matrix4f::Identity();
+
+    Eigen::Matrix4f translate;
+    translate << 1,0,0,-eye_pos[0],
+            0,1,0,-eye_pos[1],
+            0,0,1,-eye_pos[2],
+            0,0,0,1;
+
+    view = translate*view;
 
     return view;
 }
-// 生成透视变换矩阵，左乘后直接到 NDC 标准坐标
-Eigen::Matrix4f get_projection_matrix(float fovY, float aspectRatio, float near, float far) {
-    float f = 1.0f / std::tan(deg2rad(fovY) / 2.0f);
-    Eigen::Matrix4f projection;
-    projection << f / aspectRatio, 0, 0, 0,
-            0, f, 0, 0,
-            0, 0, -(far + near) / (far - near), -2 * far * near / (far - near),
-            0, 0, -1, 0;
+Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio, float n, float f) {
+    Eigen::Matrix4f projection = Eigen::Matrix4f::Identity();
+
+    float fov_rad = eye_fov * M_PI / 180.0f;
+    float t = tan(fov_rad / 2.0f) * n;
+    float r = aspect_ratio * t;
+
+    // 1. 透视到正交的变换（挤压视锥体）
+    Eigen::Matrix4f persp_to_ortho = Eigen::Matrix4f::Zero();
+    persp_to_ortho(0, 0) = n;
+    persp_to_ortho(1, 1) = n;
+    persp_to_ortho(2, 2) = n + f;
+    persp_to_ortho(2, 3) = -n * f;
+    persp_to_ortho(3, 2) = 1;
+
+    // 2. 正交投影到 NDC
+    Eigen::Matrix4f ortho = Eigen::Matrix4f::Identity();
+    ortho(0, 0) = 1 / r;      // X 缩放至 [-1, 1]
+    ortho(1, 1) = 1 / t;      // Y 缩放至 [-1, 1]
+    ortho(2, 2) = -2 / (f - n);  // Z 缩放至 [-1, 1]
+    ortho(2, 3) = -(f + n) / (f - n); // Z 平移
+
+    // 组合矩阵：正交投影 × 透视到正交
+    projection = ortho * persp_to_ortho;
+
     return projection;
 }
 void Model::setModelTransformation(float angleX, float angleY, float angleZ, float tx, float ty, float tz, float sx, float sy, float sz){
@@ -110,8 +128,8 @@ void Model::setModelTransformation(float angleX, float angleY, float angleZ, flo
     modelMatrix = translationMatrix * rotationMatrix * scalingMatrix;
 }
 // 应用视图变换的函数
-void Model::setViewTransformation(const Eigen::Vector3f& eye, const Eigen::Vector3f& center, const Eigen::Vector3f& up) {
-    viewMatrix = get_view_matrix(eye, center, up);
+void Model::setViewTransformation(Eigen::Vector3f eye_pos, Eigen::Vector3f target, Eigen::Vector3f up) {
+    viewMatrix = get_view_matrix(eye_pos,target,up);
 }
 // 应用透视变换的函数
 void Model::setProjectionTransformation(float fovY, float aspectRatio, float near, float far) {
@@ -124,10 +142,12 @@ void Model::setViewPortMatrix(int width, int height) {
     viewport(0, 3) = width / 2.0f;
     viewport(1, 1) = height / 2.0f;
     viewport(1, 3) = height / 2.0f;
+    viewport(2, 2) = 0.5f;
+    viewport(2, 3) = 0.5f;
     this->viewportMatrix = viewport;
 }
-Matrix4f Model::getAllTransMatrix(){
-    return viewportMatrix * projectionMatrix * viewMatrix * modelMatrix;
+Matrix4f Model::getMVP(){
+    return projectionMatrix * viewMatrix * modelMatrix;
 }
 
 

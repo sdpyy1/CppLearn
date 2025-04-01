@@ -58,35 +58,36 @@ int main() {
     auto * zBuffer = new std::vector<std::vector<float>>(width, std::vector<float>(height,std::numeric_limits<float>::lowest()));
     float angleX = 0.0f;
     float angleY = 0.0f;
-    float angleZ = 120.0f;
+    float angleZ = 0.0f;
     float tx = 0.0f;
     float ty = 0.0f;
     float tz = 0.0f;
     float sx = 1.0f;
     float sy = 1.0f;
     float sz = 1.0f;
-    Eigen::Vector3f eye(0.0f, 0.0f, 5.0f);
-    Eigen::Vector3f center(0.0f, 0.0f, 0.0f);
+    Eigen::Vector3f eye_pos(0.0f, 0.0f, 5.0f);
+    Eigen::Vector3f eye_dir(0.0f, 0.0f, -1.0f);
     Eigen::Vector3f up(0.0f, 1.0f, 0.0f);
     float fovY = 45.0f;
     float aspectRatio = 1.0f;
     float near = 0.1f;
     float far = 100.0f;
     model.setModelTransformation(angleX, angleY, angleZ, tx, ty, tz, sx, sy, sz);
-    model.setViewTransformation(eye, center, up);
+    model.setViewTransformation(eye_pos,eye_dir,up);
     model.setProjectionTransformation(fovY, aspectRatio, near, far);
     model.setViewPortMatrix(width, height);
 
     // 获取所有变换矩阵
-    Eigen::Matrix4f allMatrix = model.getAllTransMatrix();
+    Eigen::Matrix4f mvp = model.getMVP();
 
     // 遍历obj文件中的每个三角形
     for (Triangle triangle : model.triangleList) {
         // 坐标投影
-        triangle.setScreenCoords(allMatrix);
+        triangle.setScreenCoords(mvp,model.viewportMatrix);
         // 绘制三角形
         drawTriangle(triangle, framebuffer, zBuffer, model.texture);
     }
+    framebuffer.flip_vertically();
     framebuffer.write_tga_file("framebuffer.tga");
     return 0;
 }

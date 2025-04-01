@@ -11,10 +11,10 @@ public:
     Model(const char * objFileName,const char * texFileName);
 
     void setModelTransformation(float angleX, float angleY, float angleZ, float tx, float ty, float tz, float sx, float sy, float sz);
-    void setViewTransformation(const Eigen::Vector3f& eye, const Eigen::Vector3f& center, const Eigen::Vector3f& up);
+    void setViewTransformation(Eigen::Vector3f eye_pos, Eigen::Vector3f target, Eigen::Vector3f up);
     void setProjectionTransformation(float fovY, float aspectRatio, float near, float far);
     void setViewPortMatrix(int width, int height);
-    Matrix4f getAllTransMatrix();
+    Matrix4f getMVP();
     ~Model();
 
 

@@ -2,6 +2,7 @@
 // Created by 刘卓昊 on 2025/4/1.
 //
 #include "thirdParty/tgaimage.h"
+#include "cmath"
 // 画线尝试1
 void drawLine_first(int ax, int ay, int bx, int by, TGAImage &img, TGAColor color){
     for(float t = 0;t<=1;t+=0.02){
