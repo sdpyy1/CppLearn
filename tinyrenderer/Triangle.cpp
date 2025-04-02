@@ -26,16 +26,16 @@ void Triangle::setTexCoord(int ind, Vector2f uv) {
 
 void Triangle::setScreenCoords(const Eigen::Matrix4f& transMatrix,int width,int height){
     for (int i = 0; i < 3; ++i){
-        std::cout << "FIRST : " << globalCoords[i].transpose() << std::endl;
+//        std::cout << "FIRST : " << globalCoords[i].transpose() << std::endl;
         screenCoords[i] = transMatrix*globalCoords[i];
-        std::cout << "MVP after" << screenCoords[i].transpose() << std::endl;
+//        std::cout << "MVP after" << screenCoords[i].transpose() << std::endl;
         screenCoords[i].x() /= screenCoords[i].w();
         screenCoords[i].y() /= screenCoords[i].w();
         screenCoords[i].z() /= screenCoords[i].w();
-        std::cout << "/W after" << screenCoords[i].transpose() << std::endl;
+//        std::cout << "/W after" << screenCoords[i].transpose() << std::endl;
         screenCoords[i].x() = 0.5*width*(screenCoords[i].x()+1);
         screenCoords[i].y() = 0.5*height*(screenCoords[i].y()+1);
-        std::cout << "SCREEN" << screenCoords[i].transpose() << std::endl;
+//        std::cout << "SCREEN" << screenCoords[i].transpose() << std::endl;
 
     }
 }

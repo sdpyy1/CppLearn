@@ -1,5 +1,6 @@
 #include "model.h"
 #include "thirdParty/OBJ_Loader.h"
+#include "cmath"
 Model::Model(const char * objFileName,const char * texFileName) : texture(texFileName){
     objl::Loader Loader;
     Loader.LoadFile(objFileName);
@@ -25,7 +26,7 @@ Model::Model(const char * objFileName,const char * texFileName) : texture(texFil
 }
 // 将角度转换为弧度
 constexpr float deg2rad(float degrees) {
-    return degrees * M_PI / 180.0f;
+    return degrees * 3.1415 / 180.0f;
 }
 // 生成绕 x, y, z 轴旋转的变换矩阵
 Eigen::Matrix4f rotation(float angleX, float angleY, float angleZ) {
@@ -72,26 +73,27 @@ Eigen::Matrix4f scaling(float sx, float sy, float sz) {
     return scalingMatrix;
 }
 // 视图变换矩阵
-
-
 Eigen::Matrix4f get_view_matrix(Eigen::Vector3f eye_pos, Eigen::Vector3f target, Eigen::Vector3f up) {
-    // TODO:目前只支持摄像机沿z轴移动
-    Eigen::Matrix4f view = Eigen::Matrix4f::Identity();
-
+    // TODO:还没理解怎么换的
+    // 观察方向
+    Vector3f z = (eye_pos - target).normalized();
+    // 叉乘得右方向
+    Vector3f r = z.cross(up).normalized();
+    // 叉乘得上方向
+    Vector3f u = z.cross(r).normalized();
     Eigen::Matrix4f translate;
-    translate << 1,0,0,-eye_pos[0],
-            0,1,0,-eye_pos[1],
-            0,0,1,-eye_pos[2],
-            0,0,0,1;
+    translate << r.x(),r.y(),r.z(),-r.dot(eye_pos),
+                u.x(),u.y(),u.z(),-u.dot(eye_pos),
+                -z.x(),-z.y(),-z.z(),z.dot(eye_pos),
+                0,0,0,1;
+    // 效果是将摄像机作为原点情况下各个点的坐标
+    return translate;
 
-    view = translate*view;
-
-    return view;
 }
 Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio, float n, float f) {
 
     Eigen::Matrix4f projection = Eigen::Matrix4f::Identity();
-    float t = -tan((eye_fov/360)*M_PI)*(abs(n)); //top
+    float t = -tan((eye_fov/360)*3.1415)*(abs(n)); //top
     float r = t/aspect_ratio;
 
     Eigen::Matrix4f Mp;//透视矩阵
@@ -118,7 +120,7 @@ Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio, float n
 }
 void Model::setModelTransformation(float angleX, float angleY, float angleZ, float tx, float ty, float tz, float sx, float sy, float sz){
     if (triangleList.empty()){
-        std::cout << "模型未导入！"<<std::endl;
+        std::cout << "model import error"<<std::endl;
         return;
     }
     Eigen::Matrix4f rotationMatrix = rotation(angleX, angleY, angleZ);

@@ -65,7 +65,7 @@ int main() {
     float sx = 1.0f;
     float sy = 1.0f;
     float sz = 1.0f;
-    Eigen::Vector3f eye_pos(0.0f, 0.0f, 5.0f);
+    Eigen::Vector3f eye_pos(0.0f, 0.0f, 3.0f);
     Eigen::Vector3f eye_dir(0.0f, 0.0f, -1.0f);
     Eigen::Vector3f up(0.0f, 1.0f, 0.0f);
     float fovY = 45.0f;
@@ -87,6 +87,7 @@ int main() {
         drawTriangle(triangle, framebuffer, zBuffer, model.texture);
     }
     framebuffer.write_tga_file("framebuffer.tga");
+    delete(zBuffer);
     return 0;
 }
 
