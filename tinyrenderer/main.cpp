@@ -42,10 +42,11 @@ void drawTriangle(Triangle triangle, TGAImage &framebuffer, std::vector<std::vec
             float barycentricZ = alpha*triangle.screenCoords[0].z() + beta*triangle.screenCoords[1].z() + gamma*triangle.screenCoords[2].z();
             float texU = alpha*triangle.texCoords[0].x() + beta*triangle.texCoords[1].x() + gamma*triangle.texCoords[2].x();
             float texV = alpha*triangle.texCoords[0].y() + beta*triangle.texCoords[1].y() + gamma*triangle.texCoords[2].y();
+            Eigen::Vector3f barycentricColor = alpha*triangle.color[0] + beta*triangle.color[1] + gamma*triangle.color[2];
             // zbuffer中缓存的渲染物体距离小于当前渲染物体的距离时，才覆盖渲染
             if (zBuffer->at(x).at(y) < barycentricZ){
                 zBuffer->at(x).at(y) = barycentricZ;
-                framebuffer.set(x,y,texture.getColor(texU,texV));
+                framebuffer.set(x,y,TGAColor(barycentricColor.x(), barycentricColor.y(), barycentricColor.z()));
             }
         }
     }
@@ -78,11 +79,13 @@ int main() {
 
     // 获取所有变换矩阵
     Eigen::Matrix4f mvp = model.getMVP();
-
+    Eigen::Vector3f lightDir(1,-1,1);
     // 遍历obj文件中的每个三角形
     for (Triangle triangle : model.triangleList) {
         // 坐标投影
         triangle.setScreenCoords(mvp,width,height);
+        // 利用法线和光线的夹角来cos来*颜色获得不同方向的颜色，夹角越大，颜色樾暗
+        triangle.setShadingColor(lightDir);
         // 绘制三角形
         drawTriangle(triangle, framebuffer, zBuffer, model.texture);
     }

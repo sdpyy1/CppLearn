@@ -15,6 +15,7 @@ public:
     void setNormal(int ind, Eigen::Vector3f n);
     void setTexCoord(int ind,Eigen::Vector2f uv);
     void setScreenCoords(const Eigen::Matrix4f& transMatrix,int width,int height);
+    void setShadingColor(Eigen::Vector3f lightDir);
 };
 
 #endif //TINYRENDERER_TRIANGLE_H

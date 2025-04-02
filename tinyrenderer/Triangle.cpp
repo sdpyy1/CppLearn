@@ -39,3 +39,13 @@ void Triangle::setScreenCoords(const Eigen::Matrix4f& transMatrix,int width,int 
 
     }
 }
+
+void Triangle::setShadingColor(Eigen::Vector3f lightDir) {
+    lightDir.normalize();
+    Vector3f basecolor = Vector3f(255,255,255);
+    for (int i = 0; i < 3; ++i) {
+        // 确保法线已归一化，并限制点积结果非负
+        float intensity = std::max(0.0f, normal[i].normalized().dot(lightDir));
+        color[i] = basecolor * intensity;
+    }
+}
