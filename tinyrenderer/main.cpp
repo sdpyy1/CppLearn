@@ -4,8 +4,8 @@
 #include <cmath>
 #include "iostream"
 
-constexpr static int width  = 800;
-constexpr static int height = 800;
+constexpr static int width  = 1000;
+constexpr static int height = 1000;
 
 // 计算三角形面积，可能返回负数，表示背对屏幕
 double signed_triangle_area(int ax, int ay, int bx, int by, int cx, int cy) {
@@ -19,14 +19,10 @@ void drawTriangle(Triangle triangle, TGAImage &framebuffer, std::vector<std::vec
     float by = triangle.screenCoords[1].y();
     float cx = triangle.screenCoords[2].x();
     float cy = triangle.screenCoords[2].y();
-    float bbminx = std::min(std::min(ax, bx), cx);
-    float bbminy = std::min(std::min(ay, by), cy);
-    float bbmaxx = std::max(std::max(ax, bx), cx);
-    float bbmaxy = std::max(std::max(ay, by), cy);
-    // 如果包围盒完全在屏幕范围之外，直接返回
-    if (bbmaxx < 0 || bbminx >= width || bbmaxy < 0 || bbminy >= height) {
-        return;
-    }
+    int bbminx = std::floor(std::min(std::min(ax, bx), cx));
+    int bbminy = std::ceil(std::min(std::min(ay, by), cy));
+    int bbmaxx = std::floor(std::max(std::max(ax, bx), cx));
+    int bbmaxy = std::ceil(std::max(std::max(ay, by), cy));
 
     // 如果面积为负数，背对屏幕，被裁剪
     double total_area = signed_triangle_area(ax, ay, bx, by, cx, cy);
@@ -35,6 +31,10 @@ void drawTriangle(Triangle triangle, TGAImage &framebuffer, std::vector<std::vec
     #pragma omp parallel for
     for (int x=bbminx; x<=bbmaxx; x++) {
         for (int y=bbminy; y<=bbmaxy; y++) {
+            // 虽然可以把整个三角形直接剔除，但是我希望只是把屏幕外的像素剔除
+            if (x<0||x>=width || y<0||y>=height){
+                continue;
+            }
             double alpha = signed_triangle_area(x, y, bx, by, cx, cy) / total_area;
             double beta  = signed_triangle_area(x, y, cx, cy, ax, ay) / total_area;
             double gamma = signed_triangle_area(x, y, ax, ay, bx, by) / total_area;

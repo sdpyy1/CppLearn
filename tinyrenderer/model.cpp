@@ -26,7 +26,7 @@ Model::Model(const char * objFileName,const char * texFileName) : texture(texFil
 }
 // 将角度转换为弧度
 constexpr float deg2rad(float degrees) {
-    return degrees * 3.1415 / 180.0f;
+    return degrees * M_PI / 180.0f;
 }
 // 生成绕 x, y, z 轴旋转的变换矩阵
 Eigen::Matrix4f rotation(float angleX, float angleY, float angleZ) {
@@ -93,7 +93,7 @@ Eigen::Matrix4f get_view_matrix(Eigen::Vector3f eye_pos, Eigen::Vector3f target,
 Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio, float n, float f) {
 
     Eigen::Matrix4f projection = Eigen::Matrix4f::Identity();
-    float t = -tan((eye_fov/360)*3.1415)*(abs(n)); //top
+    float t = -tan((eye_fov/360)*M_PI)*(abs(n)); //top
     float r = t/aspect_ratio;
 
     Eigen::Matrix4f Mp;//透视矩阵
@@ -115,7 +115,6 @@ Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio, float n
             0,       0,       2/(n-f), 0,
             0,       0,       0,       1;
     projection = (Mo_scale*Mo_tran)* Mp;//投影矩阵
-    //这里一定要注意顺序，先透视再正交;正交里面先平移再缩放；否则做出来会是一条直线！
     return projection;
 }
 void Model::setModelTransformation(float angleX, float angleY, float angleZ, float tx, float ty, float tz, float sx, float sy, float sz){
