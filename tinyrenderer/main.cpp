@@ -28,9 +28,9 @@ TGAColor Vector3fToTGAColor(const Eigen::Vector3f& vectorColor) {
     return TGAColor(r, g, b);
 }
 // blinnPhongShading
-TGAColor blinnPhongShading(const TGAColor & kdColor,const Vector3f & point,const Vector3f & normal) {
+TGAColor blinnPhongShading(const TGAColor & textureColor, const Vector3f & point, const Vector3f & normal) {
     Eigen::Vector3f ka = Eigen::Vector3f(0.005, 0.005, 0.005);
-    Eigen::Vector3f kd = TGAColorToVector3f(kdColor);
+    Eigen::Vector3f kd = TGAColorToVector3f(textureColor);
     Eigen::Vector3f ks = Eigen::Vector3f(0.7937, 0.7937, 0.7937);
     // 环境光强度
     Eigen::Vector3f amb_light_intensity{10, 10, 10};
