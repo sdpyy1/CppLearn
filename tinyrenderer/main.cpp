@@ -43,10 +43,14 @@ TGAColor Vector3fToTGAColor(const Eigen::Vector3f& vectorColor) {
     return TGAColor(r, g, b);
 }
 // blinnPhongShading
-TGAColor blinnPhongShading(const TGAColor & textureColor, const Vector3f & point, const Vector3f & normal) {
+TGAColor blinnPhongShading(const TGAColor & textureColor, const Vector3f & point, const Vector3f & normal,TGAColor specKd) {
+    // 环境光系数
     Eigen::Vector3f ka = Eigen::Vector3f(0.005, 0.005, 0.005);
+    // 漫反射系数（来自材质贴图）
     Eigen::Vector3f kd = TGAColorToVector3f(textureColor);
-    Eigen::Vector3f ks = Eigen::Vector3f(0.7937, 0.7937, 0.7937);
+    // 高光系数（来自高光贴图）
+    Eigen::Vector3f ks = TGAColorToVector3f(specKd);
+
     // 环境光强度
     Eigen::Vector3f amb_light_intensity{10, 10, 10};
     // 高光的指数，越大对角度越敏感
@@ -77,7 +81,7 @@ float interpolate(float v0, float v1, float v2, float alpha, float beta, float g
 }
 
 // 绘制一个三角形
-void drawTriangle(Triangle &triangle, TGAImage &framebuffer, std::vector<std::vector<float>> * zBuffer,Texture &texture,Texture &nm) {
+void drawTriangle(Triangle &triangle, TGAImage &framebuffer, std::vector<std::vector<float>> * zBuffer,Texture &texture,Texture &nm ,Texture &spec) {
     float ax = triangle.screenCoords[0].x();
     float ay = triangle.screenCoords[0].y();
     float bx = triangle.screenCoords[1].x();
@@ -112,6 +116,8 @@ void drawTriangle(Triangle &triangle, TGAImage &framebuffer, std::vector<std::ve
 //            Eigen::Vector3f barycentricNorm = interpolate(triangle.normal[0], triangle.normal[1], triangle.normal[2], alpha, beta, gamma);
             // 法线来自法线贴图
             Eigen::Vector3f barycentricNorm = TGAColorToVector3f(nm.getColor(texU,texV))*2-Vector3f{1,1,1};
+            // 高光系数来自高光贴图
+            TGAColor specKd = spec.getColor(texU,texV);
             // zbuffer中缓存的渲染物体距离小于当前渲染物体的距离时，才覆盖渲染
             if (zBuffer->at(x).at(y) < barycentricZ){
                 zBuffer->at(x).at(y) = barycentricZ;
@@ -122,12 +128,7 @@ void drawTriangle(Triangle &triangle, TGAImage &framebuffer, std::vector<std::ve
                 // 直接使用法线贴图
 //                framebuffer.set(x,y, nm.getColor(texU,texV));
                 // 使用法线贴图的法线配合phongshading
-                framebuffer.set(x,y, blinnPhongShading(texColor,barycentricGlobalCoord,barycentricNorm));
-
-
-
-
-
+                framebuffer.set(x,y, blinnPhongShading(texColor,barycentricGlobalCoord,barycentricNorm,specKd));
             }
         }
     }
@@ -140,6 +141,7 @@ int main() {
     auto * zBuffer = new std::vector<std::vector<float>>(width, std::vector<float>(height,std::numeric_limits<float>::lowest()));
     // 获取法线贴图
     Texture nm("./obj/diablo3_pose/diablo3_pose_nm.tga");
+    Texture spec("./obj/diablo3_pose/diablo3_pose_spec.tga");
 
     model.setModelTransformation(angleX, angleY, angleZ, tx, ty, tz, sx, sy, sz);
     model.setViewTransformation(eye_pos,eye_dir,up);
@@ -153,7 +155,7 @@ int main() {
         // 坐标投影
         triangle.setScreenCoords(mvp,width,height);
         // 绘制三角形
-        drawTriangle(triangle, framebuffer, zBuffer, model.texture,nm);
+        drawTriangle(triangle, framebuffer, zBuffer, model.texture,nm,spec);
     }
     framebuffer.write_tga_file("framebuffer.tga");
     delete(zBuffer);
