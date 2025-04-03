@@ -6,7 +6,7 @@
 using namespace std;
 constexpr static int width  = 1000;
 constexpr static int height = 1000;
-float angleX = 0.0f;
+float angleX = 30.0f;
 float angleY = 0.0f;
 float angleZ = 0.0f;
 float tx = 0.0f;
@@ -16,13 +16,13 @@ float sx = 1.0f;
 float sy = 1.0f;
 float sz = 1.0f;
 Eigen::Vector3f eye_pos{0,0,3};
-Eigen::Vector3f eye_dir(0.0f, 0.0f, -1.0f);
+Eigen::Vector3f center(0.0f, 0.0f, 0.0f);
 Eigen::Vector3f up(0.0f, 1.0f, 0.0f);
 float fovY = 45.0f;
 float aspectRatio = 1.0f;
 float near = 0.1f;
 float far = 100.0f;
-Eigen::Vector3f lightDir{1,1,0};
+Eigen::Vector3f lightDir{1,1,1};
 Eigen::Vector3f lightIntensity{5,5,5};
 // 计算三角形面积，可能返回负数，表示背对屏幕
 float signed_triangle_area(float ax, float ay, float bx, float by, float cx, float cy) {
@@ -185,9 +185,9 @@ void drawTriangle(Triangle &triangle, TGAImage &framebuffer, std::vector<std::ve
             float texU = interpolate(triangle.texCoords[0].x(), triangle.texCoords[1].x(),triangle.texCoords[2].x(), alpha, beta, gamma);
             float texV = interpolate(triangle.texCoords[0].y(), triangle.texCoords[1].y(),triangle.texCoords[2].y(), alpha, beta, gamma);
             TGAColor texColor = texture.getColor(texU, texV);
-            Eigen::Vector3f barycentricNorm = interpolate(triangle.normal[0], triangle.normal[1],triangle.normal[2], alpha, beta, gamma);
+//            Eigen::Vector3f barycentricNorm = interpolate(triangle.normal[0], triangle.normal[1],triangle.normal[2], alpha, beta, gamma);
             // 法线来自法线贴图
-//            Eigen::Vector3f barycentricNorm = TGAColorToVector3f(nm.getColor(texU,texV))*2-Vector3f{1,1,1};
+            Eigen::Vector3f barycentricNorm = TGAColorToVector3f(nm.getColor(texU,texV))*2-Vector3f{1,1,1};
             // 切线法线贴图
 //                Eigen::Vector3f barycentricNmTangent =TGAColorToVector3f(nm_tangent.getColor(texU, texV)) * 2 - Vector3f{1, 1, 1};
 //                barycentricNmTangent = getNormalFromTangent(triangle, barycentricNmTangent, barycentricNorm);
@@ -238,7 +238,7 @@ void drawTriangle(Triangle &triangle, TGAImage &framebuffer, std::vector<std::ve
 
         // 首先先从光源位置渲染，来赋值shadowBuffer
         model.setModelTransformation(angleX, angleY, angleZ, tx, ty, tz, sx, sy, sz);
-        model.setViewTransformation(lightDir*2, eye_dir, up);
+        model.setViewTransformation(lightDir*3, center, up);
         model.setProjectionTransformation(fovY, aspectRatio, near, far);
         // 获取所有变换矩阵
         Eigen::Matrix4f mvpForShadow = model.getMVP();
@@ -252,7 +252,7 @@ void drawTriangle(Triangle &triangle, TGAImage &framebuffer, std::vector<std::ve
 
         // 转回正常视角，进行渲染
         model.setModelTransformation(angleX, angleY, angleZ, tx, ty, tz, sx, sy, sz);
-        model.setViewTransformation(eye_pos, eye_dir, up);
+        model.setViewTransformation(eye_pos, center, up);
         model.setProjectionTransformation(fovY, aspectRatio, near, far);
         // 获取所有变换矩阵
         Eigen::Matrix4f mvp = model.getMVP();
