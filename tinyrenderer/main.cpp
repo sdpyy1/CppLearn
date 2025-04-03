@@ -43,16 +43,16 @@ TGAColor Vector3fToTGAColor(const Eigen::Vector3f& vectorColor) {
     return TGAColor(r, g, b);
 }
 // blinnPhongShading
-TGAColor blinnPhongShading(const TGAColor & textureColor, const Vector3f & point, const Vector3f & normal,TGAColor specKd) {
+TGAColor blinnPhongShading(const TGAColor & textureColor, const Vector3f & point, const Vector3f & normal,TGAColor specKd,bool isShadow) {
     // 环境光系数
     Eigen::Vector3f ka = Eigen::Vector3f(0.005, 0.005, 0.005);
     // 漫反射系数（来自材质贴图）
     Eigen::Vector3f kd = TGAColorToVector3f(textureColor);
     // 高光系数（来自高光贴图）
     Eigen::Vector3f ks = TGAColorToVector3f(specKd);
+    Eigen::Vector3f amb_light_intensity{10, 10, 10};
 
     // 环境光强度
-    Eigen::Vector3f amb_light_intensity{10, 10, 10};
     // 高光的指数，越大对角度越敏感
     float p = 150;
     // 计算点到光源的向量
@@ -70,6 +70,9 @@ TGAColor blinnPhongShading(const TGAColor & textureColor, const Vector3f & point
     Eigen::Vector3f halfVector = (light_dir + view_dir).normalized();
     Eigen::Vector3f specular = ks.cwiseProduct(lightIntensity / (r * r)) * std::pow(std::max(0.0f, normal.dot(halfVector)), p);
     Eigen::Vector3f all = diffuse + specular + ka.cwiseProduct(amb_light_intensity);
+    if (isShadow){
+        return Vector3fToTGAColor(all*0.3);
+    }
     return Vector3fToTGAColor(all);
 }
 // 插值函数
@@ -114,10 +117,44 @@ Eigen::Vector3f getNormalFromTangent(const Triangle& triangle, const Eigen::Vect
     return TBN * tangentSpaceNormal;
 }
 
+void shadow(Triangle &triangle,std::vector<std::vector<float>> *shadowBuffer){
+    float ax = triangle.screenCoords[0].x();
+    float ay = triangle.screenCoords[0].y();
+    float bx = triangle.screenCoords[1].x();
+    float by = triangle.screenCoords[1].y();
+    float cx = triangle.screenCoords[2].x();
+    float cy = triangle.screenCoords[2].y();
+    int bbminx = std::floor(std::min(std::min(ax, bx), cx));
+    int bbminy = std::ceil(std::min(std::min(ay, by), cy));
+    int bbmaxx = std::floor(std::max(std::max(ax, bx), cx));
+    int bbmaxy = std::ceil(std::max(std::max(ay, by), cy));
+    float total_area = signed_triangle_area(ax, ay, bx, by, cx, cy);
+
+    for (int x = bbminx; x <= bbmaxx; x++) {
+        for (int y = bbminy; y <= bbmaxy; y++) {
+            // 虽然可以把整个三角形直接剔除，但是我希望只是把屏幕外的像素剔除
+            if (x < 0 || x >= width || y < 0 || y >= height) {
+                continue;
+            }
+            float alpha = signed_triangle_area(x, y, bx, by, cx, cy) / total_area;
+            float beta = signed_triangle_area(x, y, cx, cy, ax, ay) / total_area;
+            float gamma = signed_triangle_area(x, y, ax, ay, bx, by) / total_area;
+            if (alpha < 0 || beta < 0 || gamma < 0) continue; // 说明当前像素不在三角形内部
+            float barycentricZ = interpolate(triangle.screenCoords[0].z(), triangle.screenCoords[1].z(),triangle.screenCoords[2].z(), alpha, beta, gamma);
+            if (shadowBuffer->at(x).at(y) < barycentricZ) {
+                shadowBuffer->at(x).at(y) = barycentricZ;
+            }
+        }
+    }
+}
+
+
+
+
+
 // 绘制一个三角形
-    void
-    drawTriangle(Triangle &triangle, TGAImage &framebuffer, std::vector<std::vector<float>> *zBuffer, Texture &texture,
-                 Texture &nm, Texture &spec, Texture &nm_tangent) {
+    void drawTriangle(Triangle &triangle, TGAImage &framebuffer, std::vector<std::vector<float>> *zBuffer, std::vector<std::vector<float>> *shadowBuffer,Texture &texture,
+                 Texture &nm, Texture &spec, Texture &nm_tangent,Eigen::Matrix4f mvpForShadow) {
         float ax = triangle.screenCoords[0].x();
         float ay = triangle.screenCoords[0].y();
         float bx = triangle.screenCoords[1].x();
@@ -144,42 +181,45 @@ Eigen::Vector3f getNormalFromTangent(const Triangle& triangle, const Eigen::Vect
                 float beta = signed_triangle_area(x, y, cx, cy, ax, ay) / total_area;
                 float gamma = signed_triangle_area(x, y, ax, ay, bx, by) / total_area;
                 if (alpha < 0 || beta < 0 || gamma < 0) continue; // 说明当前像素不在三角形内部
-                float barycentricZ = interpolate(triangle.screenCoords[0].z(), triangle.screenCoords[1].z(),
-                                                 triangle.screenCoords[2].z(), alpha, beta, gamma);
-                Eigen::Vector3f barycentricGlobalCoord = interpolate(triangle.globalCoords[0].head<3>(),
-                                                                     triangle.globalCoords[1].head<3>(),
-                                                                     triangle.globalCoords[2].head<3>(), alpha, beta,
-                                                                     gamma);
-                float texU = interpolate(triangle.texCoords[0].x(), triangle.texCoords[1].x(),
-                                         triangle.texCoords[2].x(), alpha, beta, gamma);
-                float texV = interpolate(triangle.texCoords[0].y(), triangle.texCoords[1].y(),
-                                         triangle.texCoords[2].y(), alpha, beta, gamma);
+                float barycentricZ = interpolate(triangle.screenCoords[0].z(), triangle.screenCoords[1].z(),triangle.screenCoords[2].z(), alpha, beta, gamma);
+                Eigen::Vector3f barycentricGlobalCoord = interpolate(triangle.globalCoords[0].head<3>(),triangle.globalCoords[1].head<3>(),triangle.globalCoords[2].head<3>(), alpha, beta,gamma);
+                float texU = interpolate(triangle.texCoords[0].x(), triangle.texCoords[1].x(),triangle.texCoords[2].x(), alpha, beta, gamma);
+                float texV = interpolate(triangle.texCoords[0].y(), triangle.texCoords[1].y(),triangle.texCoords[2].y(), alpha, beta, gamma);
                 TGAColor texColor = texture.getColor(texU, texV);
-                Eigen::Vector3f barycentricNorm = interpolate(triangle.normal[0], triangle.normal[1],
-                                                              triangle.normal[2], alpha, beta, gamma);
+                Eigen::Vector3f barycentricNorm = interpolate(triangle.normal[0], triangle.normal[1],triangle.normal[2], alpha, beta, gamma);
                 // 法线来自法线贴图
 //            Eigen::Vector3f barycentricNorm = TGAColorToVector3f(nm.getColor(texU,texV))*2-Vector3f{1,1,1};
                 // 切线法线贴图
-                Eigen::Vector3f barycentricNmTangent =
-                        TGAColorToVector3f(nm_tangent.getColor(texU, texV)) * 2 - Vector3f{1, 1, 1};
-                barycentricNmTangent = getNormalFromTangent(triangle, barycentricNmTangent, barycentricNorm);
+//                Eigen::Vector3f barycentricNmTangent =TGAColorToVector3f(nm_tangent.getColor(texU, texV)) * 2 - Vector3f{1, 1, 1};
+//                barycentricNmTangent = getNormalFromTangent(triangle, barycentricNmTangent, barycentricNorm);
                 // 高光系数来自高光贴图
                 TGAColor specKd = spec.getColor(texU, texV);
                 // zbuffer中缓存的渲染物体距离小于当前渲染物体的距离时，才覆盖渲染
                 if (zBuffer->at(x).at(y) < barycentricZ) {
                     zBuffer->at(x).at(y) = barycentricZ;
+                    // 阴影处理
+                    // 1. 找到该像素对应物体在原空间的位置
+                    Eigen::Vector4f locationInShaowBuffer = mvpForShadow * (barycentricGlobalCoord.homogeneous());
+                    locationInShaowBuffer.x() /= locationInShaowBuffer.w();
+                    locationInShaowBuffer.y() /= locationInShaowBuffer.w();
+                    locationInShaowBuffer.z() /= locationInShaowBuffer.w();
+                    locationInShaowBuffer.x() = 0.5*width*(locationInShaowBuffer.x()+1);
+                    locationInShaowBuffer.y() = 0.5*height*(locationInShaowBuffer.y()+1);
+                    bool isShadow = false;
+                    // 在阴影中
+                    if (locationInShaowBuffer.z() < shadowBuffer->at(locationInShaowBuffer.x()).at(locationInShaowBuffer.y())){
+                        isShadow = true;
+                    }
                     // 直接使用贴图
 //                framebuffer.set(x,y, texture.getColor(texU,texV));
                     // 使用phongshading光照模型
-//                framebuffer.set(x,y, blinnPhongShading(texColor,barycentricGlobalCoord,barycentricNorm));
+                    framebuffer.set(x,y, blinnPhongShading(texColor,barycentricGlobalCoord,barycentricNorm,specKd,isShadow));
                     // 直接使用法线贴图
 //                framebuffer.set(x,y, nm.getColor(texU,texV));
                     // 使用法线贴图的法线配合phongshading
 //                framebuffer.set(x,y, blinnPhongShading(texColor,barycentricGlobalCoord,barycentricNorm,specKd));
                     // 使用切线法线贴图配合phongshaing
-                    framebuffer.set(x, y,
-                                    blinnPhongShading(texColor, barycentricGlobalCoord, barycentricNmTangent, specKd));
-
+//                    framebuffer.set(x, y,blinnPhongShading(texColor, barycentricGlobalCoord, barycentricNmTangent, specKd));
                 }
             }
         }
@@ -189,17 +229,32 @@ Eigen::Vector3f getNormalFromTangent(const Triangle& triangle, const Eigen::Vect
         Model model("./obj/diablo3_pose/diablo3_pose.obj", "./obj/diablo3_pose/diablo3_pose_diffuse.tga");
         TGAImage framebuffer(width, height, TGAImage::RGB);
         // 定义一个zBuffer,并设置全部数据为最小负数
-        auto *zBuffer = new std::vector<std::vector<float>>(width, std::vector<float>(height,
-                                                                                      std::numeric_limits<float>::lowest()));
+        auto *zBuffer = new std::vector<std::vector<float>>(width, std::vector<float>(height,std::numeric_limits<float>::lowest()));
+        // 用于shadow
+        auto *shadowBuffer = new std::vector<std::vector<float>>(width, std::vector<float>(height,std::numeric_limits<float>::lowest()));
         // 获取法线贴图
         Texture nm("./obj/diablo3_pose/diablo3_pose_nm.tga");
         Texture spec("./obj/diablo3_pose/diablo3_pose_spec.tga");
         Texture nm_tangent("./obj/diablo3_pose/diablo3_pose_nm_tangent.tga");
 
+        // 首先先从光源位置渲染，来赋值shadowBuffer
+        model.setModelTransformation(angleX, angleY, angleZ, tx, ty, tz, sx, sy, sz);
+        model.setViewTransformation(lightDir*2, eye_dir, up);
+        model.setProjectionTransformation(fovY, aspectRatio, near, far);
+        // 获取所有变换矩阵
+        Eigen::Matrix4f mvpForShadow = model.getMVP();
+        for (Triangle triangle: model.triangleList) {
+            // 坐标投影
+            triangle.setScreenCoords(mvpForShadow, width, height);
+            // 绘制三角形
+            shadow(triangle, shadowBuffer);
+        }
+
+
+        // 转回正常视角，进行渲染
         model.setModelTransformation(angleX, angleY, angleZ, tx, ty, tz, sx, sy, sz);
         model.setViewTransformation(eye_pos, eye_dir, up);
         model.setProjectionTransformation(fovY, aspectRatio, near, far);
-
         // 获取所有变换矩阵
         Eigen::Matrix4f mvp = model.getMVP();
 
@@ -207,10 +262,13 @@ Eigen::Vector3f getNormalFromTangent(const Triangle& triangle, const Eigen::Vect
         for (Triangle triangle: model.triangleList) {
             // 坐标投影
             triangle.setScreenCoords(mvp, width, height);
+            // 摄像机空间点转光源空间点的矩阵
+            Eigen::Matrix4f viewToLightTrans = mvpForShadow * (mvp.inverse());
             // 绘制三角形
-            drawTriangle(triangle, framebuffer, zBuffer, model.texture, nm, spec, nm_tangent);
+            drawTriangle(triangle, framebuffer, zBuffer,shadowBuffer, model.texture, nm, spec, nm_tangent,mvpForShadow);
         }
         framebuffer.write_tga_file("framebuffer.tga");
         delete (zBuffer);
+        delete (shadowBuffer);
         return 0;
     }
