@@ -224,50 +224,50 @@ void drawTriangle(Triangle &triangle, TGAImage &framebuffer, std::vector<std::ve
     }
 }
 
-    int main() {
-        Model model("./obj/diablo3_pose/diablo3_pose.obj", "./obj/diablo3_pose/diablo3_pose_diffuse.tga");
-        TGAImage framebuffer(width, height, TGAImage::RGB);
-        // 定义一个zBuffer,并设置全部数据为最小负数
-        auto *zBuffer = new std::vector<std::vector<float>>(width, std::vector<float>(height,std::numeric_limits<float>::lowest()));
-        // 用于shadow
-        auto *shadowBuffer = new std::vector<std::vector<float>>(width, std::vector<float>(height,std::numeric_limits<float>::lowest()));
-        // 获取法线贴图
-        Texture nm("./obj/diablo3_pose/diablo3_pose_nm.tga");
-        Texture spec("./obj/diablo3_pose/diablo3_pose_spec.tga");
-        Texture nm_tangent("./obj/diablo3_pose/diablo3_pose_nm_tangent.tga");
+int main() {
+    Model model("./obj/diablo3_pose/diablo3_pose.obj", "./obj/diablo3_pose/diablo3_pose_diffuse.tga");
+    TGAImage framebuffer(width, height, TGAImage::RGB);
+    // 定义一个zBuffer,并设置全部数据为最小负数
+    auto *zBuffer = new std::vector<std::vector<float>>(width, std::vector<float>(height,std::numeric_limits<float>::lowest()));
+    // 用于shadow
+    auto *shadowBuffer = new std::vector<std::vector<float>>(width, std::vector<float>(height,std::numeric_limits<float>::lowest()));
+    // 获取法线贴图
+    Texture nm("./obj/diablo3_pose/diablo3_pose_nm.tga");
+    Texture spec("./obj/diablo3_pose/diablo3_pose_spec.tga");
+    Texture nm_tangent("./obj/diablo3_pose/diablo3_pose_nm_tangent.tga");
 
-        // 首先先从光源位置渲染，来赋值shadowBuffer
-        model.setModelTransformation(angleX, angleY, angleZ, tx, ty, tz, sx, sy, sz);
-        model.setViewTransformation(lightDir*3, center, up);
-        model.setProjectionTransformation(fovY, aspectRatio, near, far);
-        // 获取所有变换矩阵
-        Eigen::Matrix4f mvpForShadow = model.getMVP();
-        for (Triangle triangle: model.triangleList) {
-            // 坐标投影
-            triangle.setScreenCoords(mvpForShadow, width, height);
-            // 绘制三角形
-            shadow(triangle, shadowBuffer);
-        }
-
-
-        // 转回正常视角，进行渲染
-        model.setModelTransformation(angleX, angleY, angleZ, tx, ty, tz, sx, sy, sz);
-        model.setViewTransformation(eye_pos, center, up);
-        model.setProjectionTransformation(fovY, aspectRatio, near, far);
-        // 获取所有变换矩阵
-        Eigen::Matrix4f mvp = model.getMVP();
-
-        // 遍历obj文件中的每个三角形
-        for (Triangle triangle: model.triangleList) {
-            // 坐标投影
-            triangle.setScreenCoords(mvp, width, height);
-            // 摄像机空间点转光源空间点的矩阵
-            Eigen::Matrix4f viewToLightTrans = mvpForShadow * (mvp.inverse());
-            // 绘制三角形
-            drawTriangle(triangle, framebuffer, zBuffer,shadowBuffer, model.texture, nm, spec, nm_tangent,mvpForShadow);
-        }
-        framebuffer.write_tga_file("framebuffer.tga");
-        delete (zBuffer);
-        delete (shadowBuffer);
-        return 0;
+    // 首先先从光源位置渲染，来赋值shadowBuffer
+    model.setModelTransformation(angleX, angleY, angleZ, tx, ty, tz, sx, sy, sz);
+    model.setViewTransformation(lightDir*3, center, up);
+    model.setProjectionTransformation(fovY, aspectRatio, near, far);
+    // 获取所有变换矩阵
+    Eigen::Matrix4f mvpForShadow = model.getMVP();
+    for (Triangle triangle: model.triangleList) {
+        // 坐标投影
+        triangle.setScreenCoords(mvpForShadow, width, height);
+        // 绘制三角形
+        shadow(triangle, shadowBuffer);
     }
+
+
+    // 转回正常视角，进行渲染
+    model.setModelTransformation(angleX, angleY, angleZ, tx, ty, tz, sx, sy, sz);
+    model.setViewTransformation(eye_pos, center, up);
+    model.setProjectionTransformation(fovY, aspectRatio, near, far);
+    // 获取所有变换矩阵
+    Eigen::Matrix4f mvp = model.getMVP();
+
+    // 遍历obj文件中的每个三角形
+    for (Triangle triangle: model.triangleList) {
+        // 坐标投影
+        triangle.setScreenCoords(mvp, width, height);
+        // 摄像机空间点转光源空间点的矩阵
+        Eigen::Matrix4f viewToLightTrans = mvpForShadow * (mvp.inverse());
+        // 绘制三角形
+        drawTriangle(triangle, framebuffer, zBuffer,shadowBuffer, model.texture, nm, spec, nm_tangent,mvpForShadow);
+    }
+    framebuffer.write_tga_file("framebuffer.tga");
+    delete (zBuffer);
+    delete (shadowBuffer);
+    return 0;
+}
