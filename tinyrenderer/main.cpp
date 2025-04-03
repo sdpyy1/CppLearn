@@ -6,9 +6,24 @@
 using namespace std;
 constexpr static int width  = 1000;
 constexpr static int height = 1000;
+float angleX = 0.0f;
+float angleY = 0.0f;
+float angleZ = 0.0f;
+float tx = 0.0f;
+float ty = 0.0f;
+float tz = 0.0f;
+float sx = 1.0f;
+float sy = 1.0f;
+float sz = 1.0f;
+Eigen::Vector3f eye_pos{0,0,3};
+Eigen::Vector3f eye_dir(0.0f, 0.0f, -1.0f);
+Eigen::Vector3f up(0.0f, 1.0f, 0.0f);
+float fovY = 45.0f;
+float aspectRatio = 1.0f;
+float near = 0.1f;
+float far = 100.0f;
 Eigen::Vector3f lightDir{1,1,0};
 Eigen::Vector3f lightIntensity{5,5,5};
-Eigen::Vector3f viewDir{0,0,5};
 // 计算三角形面积，可能返回负数，表示背对屏幕
 float signed_triangle_area(float ax, float ay, float bx, float by, float cx, float cy) {
     return .5f*((by-ay)*(bx+ax) + (cy-by)*(cx+bx) + (ay-cy)*(ax+cx));
@@ -46,7 +61,7 @@ TGAColor blinnPhongShading(const TGAColor & textureColor, const Vector3f & point
     Eigen::Vector3f diffuse = kd.cwiseProduct(lightIntensity / (r * r)) * std::max(0.0f, normal.dot(light_dir));
     // 高光反射
     // 计算从表面点到观察者的向量
-    Eigen::Vector3f view_dir = (viewDir - point).normalized();
+    Eigen::Vector3f view_dir = (eye_pos - point).normalized();
     // 计算半程向量
     Eigen::Vector3f halfVector = (light_dir + view_dir).normalized();
     Eigen::Vector3f specular = ks.cwiseProduct(lightIntensity / (r * r)) * std::pow(std::max(0.0f, normal.dot(halfVector)), p);
@@ -62,7 +77,7 @@ float interpolate(float v0, float v1, float v2, float alpha, float beta, float g
 }
 
 // 绘制一个三角形
-void drawTriangle(Triangle &triangle, TGAImage &framebuffer, std::vector<std::vector<float>> * zBuffer,Texture &texture) {
+void drawTriangle(Triangle &triangle, TGAImage &framebuffer, std::vector<std::vector<float>> * zBuffer,Texture &texture,Texture &nm) {
     float ax = triangle.screenCoords[0].x();
     float ay = triangle.screenCoords[0].y();
     float bx = triangle.screenCoords[1].x();
@@ -90,16 +105,29 @@ void drawTriangle(Triangle &triangle, TGAImage &framebuffer, std::vector<std::ve
             float gamma = signed_triangle_area(x, y, ax, ay, bx, by) / total_area;
             if (alpha<0 || beta<0 || gamma<0) continue; // 说明当前像素不在三角形内部
             float barycentricZ = interpolate(triangle.screenCoords[0].z(), triangle.screenCoords[1].z(), triangle.screenCoords[2].z(), alpha, beta, gamma);
-            Eigen::Vector3f barycentricNorm = interpolate(triangle.normal[0], triangle.normal[1], triangle.normal[2], alpha, beta, gamma);
             Eigen::Vector3f barycentricGlobalCoord = interpolate(triangle.globalCoords[0].head<3>(), triangle.globalCoords[1].head<3>(), triangle.globalCoords[2].head<3>(), alpha, beta, gamma);
             float texU = interpolate(triangle.texCoords[0].x() ,triangle.texCoords[1].x() ,triangle.texCoords[2].x(),alpha,beta,gamma);
             float texV = interpolate(triangle.texCoords[0].y() ,triangle.texCoords[1].y() ,triangle.texCoords[2].y(),alpha,beta,gamma);
             TGAColor texColor = texture.getColor(texU, texV);
-
+//            Eigen::Vector3f barycentricNorm = interpolate(triangle.normal[0], triangle.normal[1], triangle.normal[2], alpha, beta, gamma);
+            // 法线来自法线贴图
+            Eigen::Vector3f barycentricNorm = TGAColorToVector3f(nm.getColor(texU,texV))*2-Vector3f{1,1,1};
             // zbuffer中缓存的渲染物体距离小于当前渲染物体的距离时，才覆盖渲染
             if (zBuffer->at(x).at(y) < barycentricZ){
                 zBuffer->at(x).at(y) = barycentricZ;
+                // 直接使用贴图
+//                framebuffer.set(x,y, texture.getColor(texU,texV));
+                // 使用phongshading光照模型
+//                framebuffer.set(x,y, blinnPhongShading(texColor,barycentricGlobalCoord,barycentricNorm));
+                // 直接使用法线贴图
+//                framebuffer.set(x,y, nm.getColor(texU,texV));
+                // 使用法线贴图的法线配合phongshading
                 framebuffer.set(x,y, blinnPhongShading(texColor,barycentricGlobalCoord,barycentricNorm));
+
+
+
+
+
             }
         }
     }
@@ -112,22 +140,7 @@ int main() {
     auto * zBuffer = new std::vector<std::vector<float>>(width, std::vector<float>(height,std::numeric_limits<float>::lowest()));
     // 获取法线贴图
     Texture nm("./obj/diablo3_pose/diablo3_pose_nm.tga");
-    float angleX = 0.0f;
-    float angleY = 0.0f;
-    float angleZ = 0.0f;
-    float tx = 0.0f;
-    float ty = 0.0f;
-    float tz = 0.0f;
-    float sx = 1.0f;
-    float sy = 1.0f;
-    float sz = 1.0f;
-    Eigen::Vector3f eye_pos = viewDir;
-    Eigen::Vector3f eye_dir(0.0f, 0.0f, -1.0f);
-    Eigen::Vector3f up(0.0f, 1.0f, 0.0f);
-    float fovY = 45.0f;
-    float aspectRatio = 1.0f;
-    float near = 0.1f;
-    float far = 100.0f;
+
     model.setModelTransformation(angleX, angleY, angleZ, tx, ty, tz, sx, sy, sz);
     model.setViewTransformation(eye_pos,eye_dir,up);
     model.setProjectionTransformation(fovY, aspectRatio, near, far);
@@ -140,7 +153,7 @@ int main() {
         // 坐标投影
         triangle.setScreenCoords(mvp,width,height);
         // 绘制三角形
-        drawTriangle(triangle, framebuffer, zBuffer, model.texture);
+        drawTriangle(triangle, framebuffer, zBuffer, model.texture,nm);
     }
     framebuffer.write_tga_file("framebuffer.tga");
     delete(zBuffer);
