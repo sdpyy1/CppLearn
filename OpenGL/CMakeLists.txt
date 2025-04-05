@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 3.20)
 project(OpenGL)
 set(CMAKE_CXX_STANDARD 20)
 INCLUDE_DIRECTORIES(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/third/include)
-add_executable(OpenGLDemo third/src/glad.c main.cpp Shader.cpp)
+add_executable(OpenGLDemo third/src/glad.c main.cpp
+        camera.h shader.h)
 LINK_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/third/lib)
 if(WIN32)
     # window配置
