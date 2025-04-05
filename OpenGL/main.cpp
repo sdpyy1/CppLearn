@@ -25,6 +25,10 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 GLFWwindow * InitWindowAndFunc();
+GLuint prepareData();
+void prepareTexture(GLuint &texture1, GLuint &texture2, shader &shader);
+
+void setMVP(const shader &ourShader);
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
@@ -41,57 +45,66 @@ float lastFrame = 0.0f;
 
 
 
-int main()
-{
-    float vertices[] = {
-//     ---- 位置 ----       ---- 颜色 ----     - 纹理坐标 -
-            0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // 右上
-            0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // 右下
-            -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // 左下
-            -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // 左上
-    };
-
-    unsigned int indices[] = {
-            // 注意索引从0开始!
-            // 此例的索引(0,1,2,3)就是顶点数组vertices的下标，
-            // 这样可以由下标代表顶点组合成矩形
-
-            0, 1, 3, // 第一个三角形
-            1, 2, 3  // 第二个三角形
-    };
-
+int main(){
+    // 初始化窗口
     GLFWwindow * window = InitWindowAndFunc();
-    // shader
+    // 着色器设置
     shader ourShader("./shader/shader.vs", "./shader/shader.fs");
-    // 创建Object的ID
-    GLuint VBO, VAO, EBO;
-    GL_CALL(glGenVertexArrays(1, &VAO));
-    GL_CALL(glGenBuffers(1, &VBO));
-    GL_CALL(glGenBuffers(1, &EBO));
-    GL_CALL(glBindVertexArray(VAO));
+    // VBO VAO EBO设置
+    GLuint VAO = prepareData();
+    // 纹理设置
+    GLuint texture1;
+    GLuint texture2;
+    prepareTexture(texture1, texture2, ourShader);
 
-    // 绑定到OpenGL上下文中，此时GPU才会真正分配内存
-    GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, VBO));
-    //glBufferData是一个专门用来把用户定义的数据复制到当前绑定缓冲的函数。它的第一个参数是目标缓冲的类型：顶点缓冲对象当前绑定到GL_ARRAY_BUFFER目标上。第二个参数指定传输数据的大小(以字节为单位)；用一个简单的sizeof计算出顶点数据大小就行。第三个参数是我们希望发送的实际数据。
-    GL_CALL(glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW));
-    // EBO
-    GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO));
-    GL_CALL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW));
 
-    // VAO
-    GL_CALL(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0));
-    GL_CALL(glEnableVertexAttribArray(0));
-    GL_CALL(glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float))));
-    GL_CALL(glEnableVertexAttribArray(1));
-    GL_CALL(glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float))));
-    GL_CALL(glEnableVertexAttribArray(2));
 
-    // 纹理部分
-    GLuint texture1, texture2;
+    while (!glfwWindowShouldClose(window))
+    {
+        auto currentFrame = static_cast<float>(glfwGetTime());
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+        processInput(window);
+        // 清理窗口
+        GL_CALL(glClearColor(0.2f, 0.3f, 0.3f, 1.0f));
+        GL_CALL(glClear(GL_COLOR_BUFFER_BIT));
+
+        // 绑定纹理(因为涉及到了两个纹理轮流激活，所以必须写在while中)
+        GL_CALL(glActiveTexture(GL_TEXTURE0));
+        GL_CALL(glBindTexture(GL_TEXTURE_2D, texture1));
+        GL_CALL(glActiveTexture(GL_TEXTURE1));
+        GL_CALL(glBindTexture(GL_TEXTURE_2D, texture2));
+
+        // 设置MVP矩阵
+        setMVP(ourShader);
+        // 绘制
+        GL_CALL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
+        // 事件处理
+        glfwPollEvents();
+        // 双缓冲
+        glfwSwapBuffers(window);
+
+    }
+    glfwTerminate();
+    return 0;
+}
+
+void setMVP(const shader &ourShader) {// 构建MVP矩阵
+    auto model = glm::mat4(1.0f);
+    auto view = glm::mat4(1.0f);
+    auto projection = glm::mat4(1.0f);
+    model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    view = camera.GetViewMatrix();
+    projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+    ourShader.setMat4("model", model);
+    ourShader.setMat4("view", view);
+    ourShader.setMat4("projection", projection);
+}
+
+void prepareTexture(GLuint &texture1, GLuint &texture2,shader &ourShader) {
     // 让加载的图片y轴反转
     stbi_set_flip_vertically_on_load(true);
     // 纹理单元 0
-    GL_CALL(glActiveTexture(GL_TEXTURE0));
     int width, height, nrChannels;
     GL_CALL(glGenTextures(1, &texture1));
     GL_CALL(glBindTexture(GL_TEXTURE_2D, texture1));
@@ -108,7 +121,6 @@ int main()
     stbi_image_free(data1);
 
     // 纹理单元 1
-    GL_CALL(glActiveTexture(GL_TEXTURE1));
     GL_CALL(glGenTextures(1, &texture2));
     GL_CALL(glBindTexture(GL_TEXTURE_2D, texture2));
     GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
@@ -127,51 +139,49 @@ int main()
     // 设置 Uniform（目的是给片段着色器中定义的两个采样器，告诉他们分别对应的是哪个纹理单元）
     GL_CALL(ourShader.setInt("sampler1", 0));
     GL_CALL(ourShader.setInt("sampler2", 1));
+}
 
+GLuint prepareData() {
+    float vertices[] = {
+//     ---- 位置 ----       ---- 颜色 ----     - 纹理坐标 -
+            0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // 右上
+            0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // 右下
+            -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // 左下
+            -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // 左上
+    };
 
+    unsigned int indices[] = {
+            // 注意索引从0开始!
+            // 此例的索引(0,1,2,3)就是顶点数组vertices的下标，
+            // 这样可以由下标代表顶点组合成矩形
 
-    while (!glfwWindowShouldClose(window))
-    {
-        auto currentFrame = static_cast<float>(glfwGetTime());
-        deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;
-        processInput(window);
-        // 清理窗口
-        GL_CALL(glClearColor(0.2f, 0.3f, 0.3f, 1.0f));
-        GL_CALL(glClear(GL_COLOR_BUFFER_BIT));
+            0, 1, 3, // 第一个三角形
+            1, 2, 3  // 第二个三角形
+    };
 
-        // 绑定纹理
-        GL_CALL(glActiveTexture(GL_TEXTURE0));
-        GL_CALL(glBindTexture(GL_TEXTURE_2D, texture1));
-        GL_CALL(glActiveTexture(GL_TEXTURE1));
-        GL_CALL(glBindTexture(GL_TEXTURE_2D, texture2));
-        // 激活着色器
-        GL_CALL(ourShader.use());
+    // 创建Object的ID
+    GLuint VBO, VAO, EBO;
+    GL_CALL(glGenVertexArrays(1, &VAO));
+    GL_CALL(glGenBuffers(1, &VBO));
+    GL_CALL(glGenBuffers(1, &EBO));
+    GL_CALL(glBindVertexArray(VAO));
 
-        // 构建MVP矩阵
-        auto model = glm::mat4(1.0f);
-        auto view = glm::mat4(1.0f);
-        auto projection = glm::mat4(1.0f);
-        model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-        view = camera.GetViewMatrix();
-        projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        ourShader.setMat4("model", model);
-        ourShader.setMat4("view", view);
-        ourShader.setMat4("projection", projection);
-        // 绑定VAO
-        GL_CALL(glBindVertexArray(VAO));
-        // 绘制
-        GL_CALL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
-        // 事件处理
-        glfwPollEvents();
-        // 双缓冲
-        glfwSwapBuffers(window);
-        // 解绑
-        GL_CALL(glBindVertexArray(0));
-        GL_CALL(glUseProgram(0));
-    }
-    glfwTerminate();
-    return 0;
+    // 绑定到OpenGL上下文中，此时GPU才会真正分配内存
+    GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, VBO));
+    //glBufferData是一个专门用来把用户定义的数据复制到当前绑定缓冲的函数。它的第一个参数是目标缓冲的类型：顶点缓冲对象当前绑定到GL_ARRAY_BUFFER目标上。第二个参数指定传输数据的大小(以字节为单位)；用一个简单的sizeof计算出顶点数据大小就行。第三个参数是我们希望发送的实际数据。
+    GL_CALL(glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW));
+    // EBO
+    GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO));
+    GL_CALL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW));
+
+    // VAO
+    GL_CALL(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *) 0));
+    GL_CALL(glEnableVertexAttribArray(0));
+    GL_CALL(glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *) (3 * sizeof(float))));
+    GL_CALL(glEnableVertexAttribArray(1));
+    GL_CALL(glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *) (6 * sizeof(float))));
+    GL_CALL(glEnableVertexAttribArray(2));
+    return VAO;
 }
 
 
@@ -202,12 +212,6 @@ GLFWwindow * InitWindowAndFunc() {
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     return window;
 }
-
-
-
-
-
-
 
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
