@@ -4,32 +4,49 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
-#include <valarray>
-#include "Shader.h"
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height){
-    std::cout << "Failed to create GLFW window" << std::endl;
-    glViewport(0, 0, width, height);
+#include "Shader.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+int SCR_WIDTH = 800;
+int SCR_HEIGHT = 600;
+#define GL_CALL(x) \
+    do { \
+        x; \
+        GLenum error = glGetError(); \
+        if (error != GL_NO_ERROR) { \
+            std::cerr << "OpenGL error: " << error << " at " << __FILE__ << ":" << __LINE__ << std::endl; \
+        } \
+    } while (0)
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+    SCR_WIDTH = width;
+    SCR_HEIGHT = height;
+    GL_CALL(glViewport(0, 0, width, height));
 }
-GLFWwindow * InitWindowAndFunc(){
+
+GLFWwindow * InitWindowAndFunc() {
     glfwInit();
     // 对GLFW的配置 版本号、次版本号、选择核心模式
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     GLFWwindow* window = glfwCreateWindow(800, 600, "LearnOpenGL", nullptr, nullptr);
-    if (window == nullptr){
+    if (window == nullptr) {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
         return nullptr;
     }
     glfwMakeContextCurrent(window);
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return nullptr;
     }
     // 前两个参数控制窗口左下角的位置。第三个和第四个参数控制渲染窗口的宽度和高度（像素）
-    glViewport(0, 0, 800, 600);
+    GL_CALL(glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT));
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     return window;
 }
@@ -37,10 +54,11 @@ GLFWwindow * InitWindowAndFunc(){
 int main()
 {
     float vertices[] = {
-            0.5f, 0.5f, 0.0f,   // 右上角
-            0.5f, -0.5f, 0.0f,  // 右下角
-            -0.5f, -0.5f, 0.0f, // 左下角
-            -0.5f, 0.5f, 0.0f   // 左上角
+//     ---- 位置 ----       ---- 颜色 ----     - 纹理坐标 -
+            0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // 右上
+            0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // 右下
+            -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // 左下
+            -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // 左上
     };
 
     unsigned int indices[] = {
@@ -53,50 +71,115 @@ int main()
     };
 
     GLFWwindow * window = InitWindowAndFunc();
+    // shader
+    Shader ourShader("./shader/shader.vs", "./shader/shader.fs");
+    // 创建Object的ID
+    GLuint VBO, VAO, EBO;
+    GL_CALL(glGenVertexArrays(1, &VAO));
+    GL_CALL(glGenBuffers(1, &VBO));
+    GL_CALL(glGenBuffers(1, &EBO));
+    GL_CALL(glBindVertexArray(VAO));
 
-    // 创建一个ID
-    GLuint VBO;
-    // 此函数会为VBO分配一个未使用的ID（例如 1, 2 等），但此时‌并未实际创建缓冲对象‌，仅预留了标识符
-    glGenBuffers(1, &VBO);
     // 绑定到OpenGL上下文中，此时GPU才会真正分配内存
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, VBO));
     //glBufferData是一个专门用来把用户定义的数据复制到当前绑定缓冲的函数。它的第一个参数是目标缓冲的类型：顶点缓冲对象当前绑定到GL_ARRAY_BUFFER目标上。第二个参数指定传输数据的大小(以字节为单位)；用一个简单的sizeof计算出顶点数据大小就行。第三个参数是我们希望发送的实际数据。
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices),vertices,GL_STATIC_DRAW);
+    GL_CALL(glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW));
+    // EBO
+    GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO));
+    GL_CALL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW));
 
     // VAO
-    GLuint VAO;
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
+    GL_CALL(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0));
+    GL_CALL(glEnableVertexAttribArray(0));
+    GL_CALL(glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float))));
+    GL_CALL(glEnableVertexAttribArray(1));
+    GL_CALL(glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float))));
+    GL_CALL(glEnableVertexAttribArray(2));
 
-    // EBO
-    GLuint EBO;
-    glGenBuffers(1, &EBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    // 纹理部分
+    GLuint texture1, texture2;
+    // 让加载的图片y轴反转
+    stbi_set_flip_vertically_on_load(true);
+    // 纹理单元 0
+    GL_CALL(glActiveTexture(GL_TEXTURE0));
+    int width, height, nrChannels;
+    GL_CALL(glGenTextures(1, &texture1));
+    GL_CALL(glBindTexture(GL_TEXTURE_2D, texture1));
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+    unsigned char *data1 = stbi_load("./assets/container.jpg", &width, &height, &nrChannels, 0);
+    if (!data1){
+        std::cout << "Failed to load texture" << std::endl;
+    }
+    GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data1));
+    GL_CALL(glGenerateMipmap(GL_TEXTURE_2D));
+    stbi_image_free(data1);
 
-    Shader ourShader("./shader/shader.vs", "./shader/shader.fs");
+    // 纹理单元 1
+    GL_CALL(glActiveTexture(GL_TEXTURE1));
+    GL_CALL(glGenTextures(1, &texture2));
+    GL_CALL(glBindTexture(GL_TEXTURE_2D, texture2));
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+    unsigned char *data2 = stbi_load("./assets/awesomeface.png", &width, &height, &nrChannels, 0);
+    if (!data2){
+        std::cout << "Failed to load texture" << std::endl;
+    }
+    GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data2));
+    GL_CALL(glGenerateMipmap(GL_TEXTURE_2D));
+    stbi_image_free(data2);
+
+    ourShader.use();
+    // 设置 Uniform（目的是给片段着色器中定义的两个采样器，告诉他们分别对应的是哪个纹理单元）
+    GL_CALL(ourShader.setInt("sampler1", 0));
+    GL_CALL(ourShader.setInt("sampler2", 1));
 
 
-    while(!glfwWindowShouldClose(window))
+    // 构建MVP矩阵
+    auto model = glm::mat4(1.0f);
+    auto view = glm::mat4(1.0f);
+    auto projection = glm::mat4(1.0f);
+    model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    view  = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+    projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+
+    ourShader.setMat4("model", model);
+    ourShader.setMat4("view", view);
+    ourShader.setMat4("projection", projection);
+
+
+
+    while (!glfwWindowShouldClose(window))
     {
-        // 双缓冲
-        glfwSwapBuffers(window);
+        // 清理窗口
+        GL_CALL(glClearColor(0.2f, 0.3f, 0.3f, 1.0f));
+        GL_CALL(glClear(GL_COLOR_BUFFER_BIT));
+
+        // 绑定纹理
+        GL_CALL(glActiveTexture(GL_TEXTURE0));
+        GL_CALL(glBindTexture(GL_TEXTURE_2D, texture1));
+        GL_CALL(glActiveTexture(GL_TEXTURE1));
+        GL_CALL(glBindTexture(GL_TEXTURE_2D, texture2));
+        // 激活着色器
+        GL_CALL(ourShader.use());
+
+
+        // 绑定VAO
+        GL_CALL(glBindVertexArray(VAO));
+        // 绘制
+        GL_CALL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
         // 事件处理
         glfwPollEvents();
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-        // 更新uniform颜色
-        ourShader.use();
-        float timeValue = glfwGetTime();
-        float greenValue = sin(timeValue) / 2.0f + 0.5f;
-        ourShader.setVec4f("ourColor", 0.0f, greenValue, 0.0f, 1.0f);
-
-        // 通过绑定好的VAO和VBO和EBO画三角形
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        // 双缓冲
+        glfwSwapBuffers(window);
+        // 解绑
+        GL_CALL(glBindVertexArray(0));
+        GL_CALL(glUseProgram(0));
     }
     glfwTerminate();
     return 0;
-
 }

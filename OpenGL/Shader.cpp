@@ -3,6 +3,7 @@
 //
 
 #include "Shader.h"
+#include "cmake-build-debug/third/include/glm/gtc/type_ptr.hpp"
 
 Shader::Shader(const char *vertexPath, const char *fragmentPath) {
     // 1. 从文件路径中获取顶点/片段着色器
@@ -97,4 +98,14 @@ void Shader::setFloat(const std::string &name, float value) const
 
 void Shader::setVec4f(const std::string &name, float v0, float v1, float v2, float v3) const {
     glUniform4f(glGetUniformLocation(ID, name.c_str()), v0, v1, v2, v3);
+}
+
+
+void Shader::setMat4(const std::string &name, const glm::mat4 &mat) const {
+    glUniformMatrix4fv(
+            glGetUniformLocation(ID, name.c_str()), // 获取Uniform位置
+            1,                                      // 上传矩阵数量
+            GL_FALSE,                               // 是否转置（GLM默认列主序，无需转置）
+            glm::value_ptr(mat)                     // 使用GLM提供的指针获取方法
+    );
 }
