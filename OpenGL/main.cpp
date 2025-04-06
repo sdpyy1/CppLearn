@@ -12,14 +12,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include "camera.h"
-#define GL_CALL(x) \
-    do { \
-        x; \
-        GLenum error = glGetError(); \
-        if (error != GL_NO_ERROR) { \
-            std::cerr << "OpenGL error: " << error << " at " << __FILE__ << ":" << __LINE__ << std::endl; \
-        } \
-    } while (0)
+#include "macros.h"
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
@@ -31,7 +25,7 @@ void setMVP(const shader &aShader,glm::mat4 &modelTrans);
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 // camera
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera camera(glm::vec3(0.0f, 0.0f, 5.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -47,15 +41,14 @@ int main(){
     // 初始化窗口
     GLFWwindow * window = InitWindowAndFunc();
     // 着色器设置
-    shader cubeShader("./shader/shader.vs", "./shader/shader.fs");
-    shader lightingShader("./shader/shader.vs", "./shader/light_shader.fs");
+    shader cubeShader("./shader/cube_shader.vert", "./shader/cube_shader.frag");
+    shader lightingShader("./shader/light_shader.vert", "./shader/light_shader.frag");
     // 获取到各种的VAO
     GLuint cubeVAO, lightVAO;
     prepareData(cubeVAO, lightVAO);
 
     // 初始化时启用深度测试
     GL_CALL(glEnable(GL_DEPTH_TEST));
-
 
 
     while (!glfwWindowShouldClose(window))
@@ -68,17 +61,20 @@ int main(){
         GL_CALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
         // 画正方形
+        GL_CALL(glBindVertexArray(cubeVAO));
         cubeShader.use();
-        glBindVertexArray(cubeVAO);
         cubeShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
         cubeShader.setVec3("lightColor",  1.0f, 1.0f, 1.0f);
+        cubeShader.setVec3("lightPos", lightPos);
+        cubeShader.setVec3("viewPos", camera.Position);
+
         auto modelTrans = glm::mat4(1.0f);
         setMVP(cubeShader,modelTrans);
         GL_CALL(glDrawArrays(GL_TRIANGLES, 0, 36));
 
         // 画光源
+        GL_CALL(glBindVertexArray(lightVAO));
         lightingShader.use();
-        glBindVertexArray(lightVAO);
         auto lightModelTrans = glm::mat4(1.0f);
         lightModelTrans = glm::translate(lightModelTrans, lightPos);
         lightModelTrans = glm::scale(lightModelTrans, glm::vec3(0.2f));
@@ -108,74 +104,79 @@ void setMVP(const shader &aShader,glm::mat4 & modelTrans) {
 
 void prepareData(GLuint &cubeVAO, GLuint &lightVAO) {
     float vertices[] = {
-            -0.5f, -0.5f, -0.5f,
-            0.5f, -0.5f, -0.5f,
-            0.5f,  0.5f, -0.5f,
-            0.5f,  0.5f, -0.5f,
-            -0.5f,  0.5f, -0.5f,
-            -0.5f, -0.5f, -0.5f,
+            -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+            0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+            0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+            0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+            -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+            -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 
-            -0.5f, -0.5f,  0.5f,
-            0.5f, -0.5f,  0.5f,
-            0.5f,  0.5f,  0.5f,
-            0.5f,  0.5f,  0.5f,
-            -0.5f,  0.5f,  0.5f,
-            -0.5f, -0.5f,  0.5f,
+            -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+            0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+            0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+            0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+            -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+            -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
 
-            -0.5f,  0.5f,  0.5f,
-            -0.5f,  0.5f, -0.5f,
-            -0.5f, -0.5f, -0.5f,
-            -0.5f, -0.5f, -0.5f,
-            -0.5f, -0.5f,  0.5f,
-            -0.5f,  0.5f,  0.5f,
+            -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+            -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+            -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+            -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+            -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+            -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
 
-            0.5f,  0.5f,  0.5f,
-            0.5f,  0.5f, -0.5f,
-            0.5f, -0.5f, -0.5f,
-            0.5f, -0.5f, -0.5f,
-            0.5f, -0.5f,  0.5f,
-            0.5f,  0.5f,  0.5f,
+            0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+            0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+            0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+            0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+            0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+            0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
 
-            -0.5f, -0.5f, -0.5f,
-            0.5f, -0.5f, -0.5f,
-            0.5f, -0.5f,  0.5f,
-            0.5f, -0.5f,  0.5f,
-            -0.5f, -0.5f,  0.5f,
-            -0.5f, -0.5f, -0.5f,
+            -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+            0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+            0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+            0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+            -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+            -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
 
-            -0.5f,  0.5f, -0.5f,
-            0.5f,  0.5f, -0.5f,
-            0.5f,  0.5f,  0.5f,
-            0.5f,  0.5f,  0.5f,
-            -0.5f,  0.5f,  0.5f,
-            -0.5f,  0.5f, -0.5f,
+            -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+            0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+            0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+            0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+            -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+            -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
     };
 
     // 创建VBO的ID
     GLuint VBO;
-    GL_CALL(glGenVertexArrays(1, &cubeVAO));
-    GL_CALL(glGenVertexArrays(1,&lightVAO));
+
     GL_CALL(glGenBuffers(1, &VBO));
 
     // VBO写入显存
     GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, VBO));
     GL_CALL(glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW));
 
+    // 创建VAO的ID
+    GL_CALL(glGenVertexArrays(1, &cubeVAO));
+    GL_CALL(glGenVertexArrays(1,&lightVAO));
+
+
     // 绑定VAO到正方形
     GL_CALL(glBindVertexArray(cubeVAO));
-    GL_CALL(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *) 0));
+    GL_CALL(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *) 0));
     GL_CALL(glEnableVertexAttribArray(0));
+    GL_CALL(glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float))));
+    GL_CALL(glEnableVertexAttribArray(1));
 
     // 绑定VAO到灯光
-    GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, VBO));
     GL_CALL(glBindVertexArray(lightVAO));
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    GL_CALL(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0));
     GL_CALL(glEnableVertexAttribArray(0));
 
     // 解绑VAO，在渲染循环中，需要哪一个再绑定哪一个
-    glBindVertexArray(0);
+    GL_CALL(glBindVertexArray(0));
     // VBO已经被设置到了VAO，不需要再绑定VBO了
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, 0));
 }
 
 
