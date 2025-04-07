@@ -5,12 +5,11 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
-#include "shader.h"
+#include "Shader.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include "camera.h"
 #include "macros.h"
 
@@ -20,12 +19,12 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 GLFWwindow * InitWindowAndFunc();
 void prepareData(GLuint &cubeVAO, GLuint &lightVAO);
-void setMVP(const shader &aShader,glm::mat4 &modelTrans);
+void setMVP(const Shader &aShader, glm::mat4 &modelTrans);
 GLuint loadTexture(char const * path);
 
-void drawCube(const shader &cubeShader, GLuint cubeVAO, GLuint diffuseTexture, GLuint specularTexture);
+void drawCube(const Shader &cubeShader, GLuint cubeVAO, GLuint diffuseTexture, GLuint specularTexture);
 
-void drawLight(const shader &lightingShader, GLuint lightVAO);
+void drawLight(const Shader &lightingShader, GLuint lightVAO);
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
@@ -46,8 +45,8 @@ int main(){
     // 初始化窗口
     GLFWwindow * window = InitWindowAndFunc();
     // 着色器设置
-    shader cubeShader("./shader/cube_shader.vert", "./shader/cube_shader.frag");
-    shader lightingShader("./shader/light_shader.vert", "./shader/light_shader.frag");
+    Shader cubeShader("./shader/cube_shader.vert", "./shader/cube_shader.frag");
+    Shader lightingShader("./shader/light_shader.vert", "./shader/light_shader.frag");
     // 获取到各种的VAO
     GLuint cubeVAO, lightVAO;
     prepareData(cubeVAO, lightVAO);
@@ -84,7 +83,7 @@ int main(){
     return 0;
 }
 
-void drawLight(const shader &lightingShader, GLuint lightVAO) {// 画光源
+void drawLight(const Shader &lightingShader, GLuint lightVAO) {// 画光源
     // 点光源位置
     glm::vec3 pointLightPositions[] = {
             glm::vec3( 0.7f,  0.2f,  2.0f),
@@ -104,7 +103,7 @@ void drawLight(const shader &lightingShader, GLuint lightVAO) {// 画光源
     }
 }
 
-void drawCube(const shader &cubeShader, GLuint cubeVAO, GLuint diffuseTexture, GLuint specularTexture) {// 画正方形
+void drawCube(const Shader &cubeShader, GLuint cubeVAO, GLuint diffuseTexture, GLuint specularTexture) {// 画正方形
     glm::vec3 cubePositions[] = {
             glm::vec3( 0.0f,  0.0f,  0.0f),
             glm::vec3( 2.0f,  5.0f, -15.0f),
@@ -197,7 +196,7 @@ void drawCube(const shader &cubeShader, GLuint cubeVAO, GLuint diffuseTexture, G
     GL_CALL(glDrawArrays(GL_TRIANGLES, 0, 36));
 }
 
-void setMVP(const shader &aShader,glm::mat4 & modelTrans) {
+void setMVP(const Shader &aShader, glm::mat4 & modelTrans) {
     // 构建MVP矩阵
     auto model = modelTrans;
     auto view = camera.GetViewMatrix();
