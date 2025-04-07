@@ -9,7 +9,8 @@ struct Material {
 };
 // 光源结构体
 struct Light {
-    vec3 position;
+    // vec3 position; // 使用定向光就不再需要了
+    vec3 direction;
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
@@ -31,12 +32,13 @@ uniform Light light;
 
 void main()
 {
+    vec3 lightDir = normalize(-light.direction);
     // 环境光
     vec3 ambient  = light.ambient * texture(material.diffuse, TexCoords).rgb;
 
     // 漫反射
     vec3 norm = normalize(Normal);
-    vec3 lightDir = normalize(light.position - FragPos);
+//    vec3 lightDir = normalize(light.position - FragPos);
     float diff = max(dot(norm, lightDir), 0.0);
     vec3 diffuse = light.diffuse * diff * texture(material.diffuse, TexCoords).rgb;
 

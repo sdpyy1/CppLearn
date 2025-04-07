@@ -23,6 +23,10 @@ void prepareData(GLuint &cubeVAO, GLuint &lightVAO);
 void setMVP(const shader &aShader,glm::mat4 &modelTrans);
 GLuint loadTexture(char const * path);
 
+void drawCube(const shader &cubeShader, GLuint cubeVAO, GLuint diffuseTexture, GLuint specularTexture);
+
+void drawLight(const shader &lightingShader, GLuint lightVAO);
+
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 // camera
@@ -65,37 +69,10 @@ int main(){
         // 清理窗口
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         GL_CALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-
-        // 画正方形
-        GL_CALL(glBindVertexArray(cubeVAO));
-        cubeShader.use();
-        cubeShader.setVec3("viewPos", camera.Position);
-        cubeShader.setVec3("light.position", lightPos);
-        // Material properties
-        GL_CALL(glActiveTexture(GL_TEXTURE0));
-        GL_CALL(glBindTexture(GL_TEXTURE_2D, diffuseTexture));
-        GL_CALL(glActiveTexture(GL_TEXTURE1));
-        GL_CALL(glBindTexture(GL_TEXTURE_2D, specularTexture));
-        cubeShader.setInt("material.diffuse", 0);
-        cubeShader.setInt("material.specular", 1);
-        cubeShader.setFloat("material.shininess", 64.0f);
-        // light properties
-        cubeShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
-        cubeShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
-        cubeShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
-
-        auto modelTrans = glm::mat4(1.0f);
-        setMVP(cubeShader,modelTrans);
-        GL_CALL(glDrawArrays(GL_TRIANGLES, 0, 36));
-
+        // 画箱子
+        drawCube(cubeShader, cubeVAO, diffuseTexture, specularTexture);
         // 画光源
-        GL_CALL(glBindVertexArray(lightVAO));
-        lightingShader.use();
-        auto lightModelTrans = glm::mat4(1.0f);
-        lightModelTrans = glm::translate(lightModelTrans, lightPos);
-        lightModelTrans = glm::scale(lightModelTrans, glm::vec3(0.2f));
-        setMVP(lightingShader,lightModelTrans);
-        GL_CALL(glDrawArrays(GL_TRIANGLES, 0, 36));
+        drawLight(lightingShader, lightVAO);
 
         // 事件处理
         glfwPollEvents();
@@ -105,6 +82,59 @@ int main(){
     }
     glfwTerminate();
     return 0;
+}
+
+void drawLight(const shader &lightingShader, GLuint lightVAO) {// 画光源
+    GL_CALL(glBindVertexArray(lightVAO));
+    lightingShader.use();
+    auto lightModelTrans = glm::mat4(1.0f);
+    lightModelTrans = glm::translate(lightModelTrans, lightPos);
+    lightModelTrans = glm::scale(lightModelTrans, glm::vec3(0.2f));
+    setMVP(lightingShader,lightModelTrans);
+    GL_CALL(glDrawArrays(GL_TRIANGLES, 0, 36));
+}
+
+void drawCube(const shader &cubeShader, GLuint cubeVAO, GLuint diffuseTexture, GLuint specularTexture) {// 画正方形
+    glm::vec3 cubePositions[] = {
+            glm::vec3( 0.0f,  0.0f,  0.0f),
+            glm::vec3( 2.0f,  5.0f, -15.0f),
+            glm::vec3(-1.5f, -2.2f, -2.5f),
+            glm::vec3(-3.8f, -2.0f, -12.3f),
+            glm::vec3( 2.4f, -0.4f, -3.5f),
+            glm::vec3(-1.7f,  3.0f, -7.5f),
+            glm::vec3( 1.3f, -2.0f, -2.5f),
+            glm::vec3( 1.5f,  2.0f, -2.5f),
+            glm::vec3( 1.5f,  0.2f, -1.5f),
+            glm::vec3(-1.3f,  1.0f, -1.5f)
+    };
+    GL_CALL(glBindVertexArray(cubeVAO));
+    cubeShader.use();
+    cubeShader.setVec3("viewPos", camera.Position);
+//    cubeShader.setVec3("light.position", lightPos);
+    // Material properties
+    GL_CALL(glActiveTexture(GL_TEXTURE0));
+    GL_CALL(glBindTexture(GL_TEXTURE_2D, diffuseTexture));
+    GL_CALL(glActiveTexture(GL_TEXTURE1));
+    GL_CALL(glBindTexture(GL_TEXTURE_2D, specularTexture));
+    cubeShader.setInt("material.diffuse", 0);
+    cubeShader.setInt("material.specular", 1);
+    cubeShader.setFloat("material.shininess", 64.0f);
+    // light properties
+    cubeShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
+    cubeShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
+    cubeShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+    cubeShader.setVec3("light.direction", -0.2f, -1.0f, -0.3f);
+
+    for(unsigned int i = 0; i < 10; i++)
+    {
+        glm::mat4 model(1.0f);
+        model = glm::translate(model, cubePositions[i]);
+        float angle = 20.0f * i;
+        model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+        setMVP(cubeShader,model);
+        GL_CALL(glDrawArrays(GL_TRIANGLES, 0, 36));
+    }
+    GL_CALL(glDrawArrays(GL_TRIANGLES, 0, 36));
 }
 
 void setMVP(const shader &aShader,glm::mat4 & modelTrans) {
