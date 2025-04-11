@@ -14,6 +14,8 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 GLFWwindow * InitWindowAndFunc();
 
+void drawModel(Shader &bagShader, Model &model, glm::vec3 translate, glm::vec3 scale) ;// view/projection transformations
+
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 // camera
@@ -30,12 +32,15 @@ int main(){
     // 初始化窗口
     GLFWwindow * window = InitWindowAndFunc();
     stbi_set_flip_vertically_on_load(true);
-    // 初始化时启用深度测试
+    // 启用深度测试
     glEnable(GL_DEPTH_TEST);
+    // 启动模板测试
+    glEnable(GL_STENCIL_TEST);
+    glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);  // 模板和深度都通过时，替换模板缓存的值（GL_REPLACE就表示换成Ref的值）
 
     // 着色器设置
     Shader bagShader("./shader/bag.vert", "./shader/bag.frag");
-
+    Shader layoutShader("./shader/bag.vert", "./shader/baglayout.frag");
     // 模型导入
     Model model = Model("./assets/backpack/backpack.obj");
 
@@ -46,33 +51,55 @@ int main(){
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
         processInput(window);
+
         // 清理窗口
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
-        GL_CALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+        // 启动模板测试
+        glEnable(GL_STENCIL_TEST);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        // 绘制物体
+        glStencilFunc(GL_ALWAYS, 1, 0xFF); // 缓存会与1进行比较，但比较运算这里设置的永远通过
+        glStencilMask(0xFF); // 启用模板缓冲写入
         bagShader.use();
-        // view/projection transformations
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        glm::mat4 view = camera.GetViewMatrix();
-        bagShader.setMat4("projection", projection);
-        bagShader.setMat4("view", view);
+        drawModel(bagShader, model,{1.f,0.f,-3.f},{1.0f,1.0f,1.0f});
+        glDisable(GL_STENCIL_TEST);
+        drawModel(bagShader, model,{0.f,0.f,0.f},{1.0f,1.0f,1.0f});
+        glEnable(GL_STENCIL_TEST);
 
-        // render the loaded model
-        glm::mat4 modelTrans = glm::mat4(1.0f);
-        modelTrans = glm::translate(modelTrans, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
-        modelTrans = glm::scale(modelTrans, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
-        bagShader.setMat4("model", modelTrans);
-        model.Draw(bagShader);
+        // 绘制新的
+        glStencilFunc(GL_NOTEQUAL, 1, 0xFF); // 缓存与1比较，与1不相同才能通过
+        glStencilMask(0x00); // 禁止模板缓冲的写入
+        glDisable(GL_DEPTH_TEST);
+
+        layoutShader.use();
+        drawModel(layoutShader, model,{1.f,0.f,-3.f},{1.1f,1.1f,1.1f});
+        glEnable(GL_DEPTH_TEST);
+        glStencilMask(0xFF);
+
 
         // 事件处理
         glfwPollEvents();
         // 双缓冲
         glfwSwapBuffers(window);
-
     }
     glfwTerminate();
+
     return 0;
 }
 
+void drawModel(Shader &bagShader, Model &model, glm::vec3 translate, glm::vec3 scale) {// view/projection transformations
+    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+    glm::mat4 view = camera.GetViewMatrix();
+    bagShader.setMat4("projection", projection);
+    bagShader.setMat4("view", view);
+
+    // render the loaded model
+    glm::mat4 modelTrans = glm::mat4(1.0f);
+    modelTrans = glm::translate(modelTrans, translate); // translate it down so it's at the center of the scene
+    modelTrans = glm::scale(modelTrans, scale);    // it's a bit too big for our scene, so scale it down
+    bagShader.setMat4("model", modelTrans);
+    model.Draw(bagShader);
+};
 
 
 GLFWwindow * InitWindowAndFunc() {
