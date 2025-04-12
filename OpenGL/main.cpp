@@ -36,7 +36,10 @@ int main(){
     stbi_set_flip_vertically_on_load(true);
     // 启用深度测试
     glEnable(GL_DEPTH_TEST);
-
+    // 启动混合
+    glEnable(GL_BLEND);
+    // 设置F
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     // 着色器设置
     Shader bagShader("./shader/bag.vert", "./shader/bag.frag");
     // 模型导入
@@ -65,7 +68,7 @@ int main(){
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     glBindVertexArray(0);
-    GLuint grassTexture = loadTexture("./assets/grass.png");
+    GLuint grassTexture = loadTexture("./assets/glass.png");
     while (!glfwWindowShouldClose(window))
     {
 
@@ -81,11 +84,14 @@ int main(){
         glBindTexture(GL_TEXTURE_2D, grassTexture);
         glBindVertexArray(grassVAO);
         glm::mat4 modelTrans = glm::mat4(1.0f);
-        modelTrans = glm::translate(modelTrans, {0,0,0});
+        modelTrans = glm::translate(modelTrans, {0,0.5,-1});
         modelTrans = glm::scale(modelTrans, {1,1,1});
         bagShader.setMat4("model", modelTrans);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
+        modelTrans = glm::translate(modelTrans, {0,-0.5,1});
+        bagShader.setMat4("model", modelTrans);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
 
         // 事件处理
         glfwPollEvents();
