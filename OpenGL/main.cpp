@@ -7,7 +7,7 @@
 #include "camera.h"
 #include "macros.h"
 #include "model.h"
-
+GLuint loadCubemap(vector<std::string> faces);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
@@ -38,37 +38,6 @@ int main(){
     glEnable(GL_DEPTH_TEST);
     // 启动面剔除
     glEnable(GL_CULL_FACE);
-    // 启动混合
-    glEnable(GL_BLEND);
-    // 设置F
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    // 创建帧缓冲对象
-    GLuint FBO;
-    glGenFramebuffers(1, &FBO);
-    glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-    // 创建一个纹理附件
-    GLuint texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    // 创建一个空的纹理
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
-    // 渲染缓冲对象RBO
-    GLuint RBO;
-    glGenRenderbuffers(1, &RBO);
-    glBindRenderbuffer(GL_RENDERBUFFER, RBO);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT);
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
-    // 检查帧缓冲是否完整
-    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
 
 
     // 着色器设置
@@ -77,86 +46,18 @@ int main(){
     Model model = Model("./assets/backpack/backpack.obj");
 
 
-    // 临时设置一个玻璃
-    float cubeVertices[] = {
-            // Back face
-            -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // Bottom-left
-            0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right
-            0.5f, -0.5f, -0.5f,  1.0f, 0.0f, // bottom-right
-            0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right
-            -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // bottom-left
-            -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // top-left
-            // Front face
-            -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-left
-            0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // bottom-right
-            0.5f,  0.5f,  0.5f,  1.0f, 1.0f, // top-right
-            0.5f,  0.5f,  0.5f,  1.0f, 1.0f, // top-right
-            -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, // top-left
-            -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-left
-            // Left face
-            -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // top-right
-            -0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-left
-            -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-left
-            -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-left
-            -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-right
-            -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // top-right
-            // Right face
-            0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // top-left
-            0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-right
-            0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right
-            0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-right
-            0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // top-left
-            0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-left
-            // Bottom face
-            -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // top-right
-            0.5f, -0.5f, -0.5f,  1.0f, 1.0f, // top-left
-            0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // bottom-left
-            0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // bottom-left
-            -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-right
-            -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // top-right
-            // Top face
-            -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // top-left
-            0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // bottom-right
-            0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right
-            0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // bottom-right
-            -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // top-left
-            -0.5f,  0.5f,  0.5f,  0.0f, 0.0f  // bottom-left
-    };
-    GLuint grassVBO, grassVAO;
-    glGenBuffers(1, &grassVBO);
-    glGenVertexArrays(1, &grassVAO);
-    glBindVertexArray(grassVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, grassVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), &cubeVertices, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-    glBindVertexArray(0);
-    GLuint grassTexture = loadTexture("./assets/glass.png");
 
-    // 用于离线渲染的正方形
-    float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
-            // positions   // texCoords
-            -1.0f,  1.0f,  0.0f,0.0f, 1.0f,
-            -1.0f, -1.0f,  0.0f,0.0f, 0.0f,
-            1.0f, -1.0f,  0.0f,1.0f, 0.0f,
+    vector<std::string> faces
+            {
+                    "right.jpg",
+                    "left.jpg",
+                    "top.jpg",
+                    "bottom.jpg",
+                    "front.jpg",
+                    "back.jpg"
+            };
+    GLuint cubemapTexture = loadCubemap(faces);
 
-            -1.0f,  1.0f,  0.0f,0.0f, 1.0f,
-            1.0f, -1.0f,  0.0f,1.0f, 0.0f,
-            1.0f,  1.0f,  0.0f,1.0f, 1.0f
-    };
-    unsigned int quadVAO, quadVBO;
-    glGenVertexArrays(1, &quadVAO);
-    glGenBuffers(1, &quadVBO);
-    glBindVertexArray(quadVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-    glBindVertexArray(0);
 
 
 
@@ -165,36 +66,12 @@ int main(){
 
         // 清理窗口
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
-        // 离线渲染
-        glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+
         // 这里开始都是在FBO上渲染
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         // 绘制物体
         drawModel(bagShader, model,{1.f,0.f,-3.f},{1.0f,1.0f,1.0f});
-        // 绘制草
-        glActiveTexture(GL_TEXTURE0);
-        bagShader.setInt("texture_diffuse1",0);
-        glBindTexture(GL_TEXTURE_2D, grassTexture);
-        glBindVertexArray(grassVAO);
-        glm::mat4 modelTrans = glm::mat4(1.0f);
-        modelTrans = glm::translate(modelTrans, {0,0.5,-1});
-        modelTrans = glm::scale(modelTrans, {1,1,1});
-        bagShader.setMat4("model", modelTrans);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
 
-        // 回到0号帧缓冲
-        glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glActiveTexture(GL_TEXTURE0);
-        glBindVertexArray(quadVAO);
-        bagShader.setInt("texture_diffuse1",0);
-        glBindTexture(GL_TEXTURE_2D, texture);
-        bagShader.use();
-        bagShader.setMat4("model", glm::mat4(1.0f));
-        bagShader.setMat4("view", glm::mat4(1.0f));
-        bagShader.setMat4("projection", glm::mat4(1.0f));
-        glDrawArrays(GL_TRIANGLES, 0, 6);
 
         // 事件处理
         glfwPollEvents();
@@ -351,6 +228,37 @@ GLuint loadTexture(char const * path)
         std::cout << "Texture failed to load at path: " << path << std::endl;
         stbi_image_free(data);
     }
+
+    return textureID;
+}
+unsigned int loadCubemap(vector<std::string> faces)
+{
+    unsigned int textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+
+    int width, height, nrChannels;
+    for (unsigned int i = 0; i < faces.size(); i++)
+    {
+        unsigned char *data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
+        if (data)
+        {
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+                         0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data
+            );
+            stbi_image_free(data);
+        }
+        else
+        {
+            std::cout << "Cubemap texture failed to load at path: " << faces[i] << std::endl;
+            stbi_image_free(data);
+        }
+    }
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
     return textureID;
 }
