@@ -38,18 +38,46 @@ int main(){
     glEnable(GL_DEPTH_TEST);
     // 启动面剔除
     glEnable(GL_CULL_FACE);
-    glCullFace(GL_FRONT);
-//    // 启动混合
-//    glEnable(GL_BLEND);
-//    // 设置F
-//    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    // 启动混合
+    glEnable(GL_BLEND);
+    // 设置F
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // 创建帧缓冲对象
+    GLuint FBO;
+    glGenFramebuffers(1, &FBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+    // 创建一个纹理附件
+    GLuint texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    // 创建一个空的纹理
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+    // 渲染缓冲对象RBO
+    GLuint RBO;
+    glGenRenderbuffers(1, &RBO);
+    glBindRenderbuffer(GL_RENDERBUFFER, RBO);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
+    // 检查帧缓冲是否完整
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+
     // 着色器设置
     Shader bagShader("./shader/bag.vert", "./shader/bag.frag");
     // 模型导入
     Model model = Model("./assets/backpack/backpack.obj");
 
 
-    // 临时设置一个草
+    // 临时设置一个玻璃
     float cubeVertices[] = {
             // Back face
             -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // Bottom-left
@@ -106,15 +134,43 @@ int main(){
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     glBindVertexArray(0);
     GLuint grassTexture = loadTexture("./assets/glass.png");
+
+    // 用于离线渲染的正方形
+    float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
+            // positions   // texCoords
+            -1.0f,  1.0f,  0.0f,0.0f, 1.0f,
+            -1.0f, -1.0f,  0.0f,0.0f, 0.0f,
+            1.0f, -1.0f,  0.0f,1.0f, 0.0f,
+
+            -1.0f,  1.0f,  0.0f,0.0f, 1.0f,
+            1.0f, -1.0f,  0.0f,1.0f, 0.0f,
+            1.0f,  1.0f,  0.0f,1.0f, 1.0f
+    };
+    unsigned int quadVAO, quadVBO;
+    glGenVertexArrays(1, &quadVAO);
+    glGenBuffers(1, &quadVBO);
+    glBindVertexArray(quadVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glBindVertexArray(0);
+
+
+
     while (!glfwWindowShouldClose(window))
     {
 
         // 清理窗口
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+        // 离线渲染
+        glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+        // 这里开始都是在FBO上渲染
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         // 绘制物体
         drawModel(bagShader, model,{1.f,0.f,-3.f},{1.0f,1.0f,1.0f});
-
         // 绘制草
         glActiveTexture(GL_TEXTURE0);
         bagShader.setInt("texture_diffuse1",0);
@@ -126,6 +182,19 @@ int main(){
         bagShader.setMat4("model", modelTrans);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
+        // 回到0号帧缓冲
+        glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glActiveTexture(GL_TEXTURE0);
+        glBindVertexArray(quadVAO);
+        bagShader.setInt("texture_diffuse1",0);
+        glBindTexture(GL_TEXTURE_2D, texture);
+        bagShader.use();
+        bagShader.setMat4("model", glm::mat4(1.0f));
+        bagShader.setMat4("view", glm::mat4(1.0f));
+        bagShader.setMat4("projection", glm::mat4(1.0f));
+        glDrawArrays(GL_TRIANGLES, 0, 6);
 
         // 事件处理
         glfwPollEvents();
