@@ -11,12 +11,11 @@ uniform sampler2D texture2;
 void main()
 {
     vec3 I = normalize(Position - cameraPos);
-    FragColor = vec4(mix(texture(texture1,texCoords), texture(texture2,texCoords),0.5));
-    if(dot(-I, Normal)>0){
-        float ratio = 1.00 / 1.52;
 
-        vec3 R = refract(I, normalize(Normal), ratio);
-        FragColor = mix(texture(skybox, R), FragColor, 0.5);
+    if(!gl_FrontFacing){
+        FragColor = vec4(mix(texture(texture1,texCoords), texture(texture2,texCoords),0.5));
+    }else{
+        vec3 R = reflect(I, normalize(Normal));
+        FragColor = texture(skybox, R);
     }
-
 }

@@ -7,8 +7,11 @@ out vec3 Normal;
 out vec3 Position;
 out vec2 texCoords;
 uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
+layout (std140) uniform projectionMat
+{
+    mat4 projection;
+    mat4 view;
+};
 
 void main()
 {

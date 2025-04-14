@@ -40,9 +40,34 @@ int main(){
     // 启用深度测试
     glEnable(GL_DEPTH_TEST);
 
+    // 创建ubo
+    GLuint ubo;
+    glGenBuffers(1, &ubo);
+    glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 2, NULL, GL_DYNAMIC_DRAW);
+
+    // 这个绑定点包含ubo所有内容（2个mat4）
+    glBindBufferBase(GL_UNIFORM_BUFFER, 1, ubo);
+    // 这个绑定点只有1个mat，他就是用来表示天空盒的透视矩阵，因为view矩阵，天空盒和别人不一样
+//    glBindBufferRange(GL_UNIFORM_BUFFER, 2, ubo, 0, sizeof(glm::mat4));
+
     // 着色器设置
     Shader cubeShader("./shader/bag.vert", "./shader/bag.frag");
     Shader skyShader("./shader/sky.vert", "./shader/sky.frag");
+
+    // shader的uniform块绑定到绑定点
+    unsigned int projectionMatIndexInCubeShader = glGetUniformBlockIndex(cubeShader.ID, "projectionMat");
+    unsigned int projectionMatIndexInSkyShader = glGetUniformBlockIndex(skyShader.ID, "projectionMat");
+    glUniformBlockBinding(cubeShader.ID,    projectionMatIndexInCubeShader, 1);
+    glUniformBlockBinding(skyShader.ID,    projectionMatIndexInSkyShader, 1);
+
+    // 把投影矩阵插入缓冲中
+    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), &projection[0][0]);
+
+
+
+
 
     GLuint CubeVAO = getCubeVAO();
     GLuint skyVAO = getSkyVAO();
@@ -67,6 +92,12 @@ int main(){
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // 设置视角矩阵的缓冲
+        glm::mat4 view = camera.GetViewMatrix();
+        glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+        glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), &view[0][0]);
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
         // 绘制不透明物体
         // 给物体上反射贴图
         cubeShader.use();
@@ -89,9 +120,9 @@ int main(){
         glDepthFunc(GL_LEQUAL);
         skyShader.use();
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        glm::mat4 view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
+        glm::mat4 viewForSky = glm::mat4(glm::mat3(camera.GetViewMatrix()));
         skyShader.setMat4("projection", projection);
-        skyShader.setMat4("view", view);
+        skyShader.setMat4("view", viewForSky);
         glBindVertexArray(skyVAO);
         glBindTexture(GL_TEXTURE_CUBE_MAP, skyTexture);
         glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -231,11 +262,6 @@ GLuint getCubeVAO() {
 }
 
 void drawModel(Shader &shader, GLuint &VAO, glm::vec3 translate, glm::vec3 scale) {
-
-    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-    glm::mat4 view = camera.GetViewMatrix();
-    shader.setMat4("projection", projection);
-    shader.setMat4("view", view);
     glm::mat4 modelTrans = glm::mat4(1.0f);
     modelTrans = glm::translate(modelTrans, translate);
     modelTrans = glm::scale(modelTrans, scale);
