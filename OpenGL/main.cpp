@@ -34,6 +34,8 @@ int main(){
     stbi_set_flip_vertically_on_load(true);
     // 启用深度测试
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_FRAMEBUFFER_SRGB);
+
     // 加载shader
     Shader shader("./shader/bag.vert","./shader/bag.frag");
     Shader normalShader("./shader/normal.vert","./shader/normal.geom","./shader/normal.frag");
@@ -54,11 +56,11 @@ int main(){
         shader.setMat4("model", glm::mat4(1.0f));
         model.Draw(shader);
 
-        normalShader.use();
-        normalShader.setMat4("projection", projection);
-        normalShader.setMat4("view", view);
-        normalShader.setMat4("model", glm::mat4(1.0f));
-        model.Draw(normalShader);
+//        normalShader.use();
+//        normalShader.setMat4("projection", projection);
+//        normalShader.setMat4("view", view);
+//        normalShader.setMat4("model", glm::mat4(1.0f));
+//        model.Draw(normalShader);
 
 
         // 事件处理
