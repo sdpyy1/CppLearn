@@ -15,17 +15,14 @@ void processInput(GLFWwindow *window);
 GLFWwindow * InitWindowAndFunc();
 GLuint loadTexture(char const * path);
 void drawModel(Shader &shader, GLuint &VAO, glm::vec3 translate, glm::vec3 scale) ;// view/projection transformations
-
 void processFrameTimeForMove();
-
 GLuint getCubeVAO();
-
 GLuint getSkyVAO();
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 // camera
-Camera camera(glm::vec3(0.0f, 0.0f, 8.0f));
+Camera camera(glm::vec3(0.0f, 10.0f, 20.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -39,51 +36,74 @@ int main(){
     stbi_set_flip_vertically_on_load(true);
     // 启用深度测试
     glEnable(GL_DEPTH_TEST);
+    // 加载模型
+    Model rock("./assets/rock/rock.obj");
+    Model planet("./assets/planet/planet.obj");
+    // 加载shader
+    Shader rockShader("./shader/rock.vert", "./shader/rockAndPlanet.frag");
+    Shader planetShader("./shader/planet.vert", "./shader/rockAndPlanet.frag");
+    // 生成实例化数组
+    unsigned int amount = 100000;
+    glm::mat4* modelMatrices;
+    modelMatrices = new glm::mat4[amount];
+    srand(static_cast<unsigned int>(glfwGetTime())); // initialize random seed
+    float radius = 150.0;
+    float offset = 20.f;
+    for (unsigned int i = 0; i < amount; i++)
+    {
+        glm::mat4 model = glm::mat4(1.0f);
+        // 1. translation: displace along circle with 'radius' in range [-offset, offset]
+        float angle = (float)i / (float)amount * 360.0f;
+        float displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+        float x = sin(angle) * radius + displacement;
+        displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+        float y = displacement * 0.4f; // keep height of asteroid field smaller compared to width of x and z
+        displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+        float z = cos(angle) * radius + displacement;
+        model = glm::translate(model, glm::vec3(x, y, z));
 
-    // 创建ubo
-    GLuint ubo;
-    glGenBuffers(1, &ubo);
-    glBindBuffer(GL_UNIFORM_BUFFER, ubo);
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 2, NULL, GL_DYNAMIC_DRAW);
+        // 2. scale: Scale between 0.05 and 0.25f
+        float scale = static_cast<float>((rand() % 20) / 100.0 + 0.05);
+        model = glm::scale(model, glm::vec3(scale));
 
-    // 这个绑定点包含ubo所有内容（2个mat4）
-    glBindBufferBase(GL_UNIFORM_BUFFER, 1, ubo);
-    // 这个绑定点只有1个mat，他就是用来表示天空盒的透视矩阵，因为view矩阵，天空盒和别人不一样
-//    glBindBufferRange(GL_UNIFORM_BUFFER, 2, ubo, 0, sizeof(glm::mat4));
+        // 3. rotation: add random rotation around a (semi)randomly picked rotation axis vector
+        float rotAngle = static_cast<float>((rand() % 360));
+        model = glm::rotate(model, rotAngle, glm::vec3(0.4f, 0.6f, 0.8f));
 
-    // 着色器设置
-    Shader cubeShader("./shader/bag.vert", "./shader/bag.frag");
-    Shader skyShader("./shader/sky.vert", "./shader/sky.frag");
+        // 4. now add to list of matrices
+        modelMatrices[i] = model;
+    }
+    // 数组存入VBO中待用
+    unsigned int buffer;
+    glGenBuffers(1, &buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    glBufferData(GL_ARRAY_BUFFER, amount * sizeof(glm::mat4), &modelMatrices[0], GL_STATIC_DRAW);
+    // 设置rock模型的VAO参数来适应实例更新参数()
+    for (unsigned int i = 0; i < rock.meshes.size(); i++)
+    {
+        unsigned int VAO = rock.meshes[i].VAO;
+        glBindVertexArray(VAO);
+        // set attribute pointers for matrix (4 times vec4)
+        glEnableVertexAttribArray(3);
+        glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
+        glEnableVertexAttribArray(4);
+        glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
+        glEnableVertexAttribArray(5);
+        glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+        glEnableVertexAttribArray(6);
+        glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
 
-    // shader的uniform块绑定到绑定点
-    unsigned int projectionMatIndexInCubeShader = glGetUniformBlockIndex(cubeShader.ID, "projectionMat");
-    unsigned int projectionMatIndexInSkyShader = glGetUniformBlockIndex(skyShader.ID, "projectionMat");
-    glUniformBlockBinding(cubeShader.ID,    projectionMatIndexInCubeShader, 1);
-    glUniformBlockBinding(skyShader.ID,    projectionMatIndexInSkyShader, 1);
+        glVertexAttribDivisor(3, 1);
+        glVertexAttribDivisor(4, 1);
+        glVertexAttribDivisor(5, 1);
+        glVertexAttribDivisor(6, 1);
 
-    // 把投影矩阵插入缓冲中
-    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), &projection[0][0]);
+        glBindVertexArray(0);
+    }
 
 
 
 
-
-    GLuint CubeVAO = getCubeVAO();
-    GLuint skyVAO = getSkyVAO();
-
-    GLuint mutouTexture = loadTexture("./assets/diffuse.png");
-    GLuint awesomeTexture = loadTexture("./assets/awesomeface.png");
-    vector<std::string> faces
-            {
-                    "./assets/skybox/right.jpg",
-                    "./assets/skybox/left.jpg",
-                    "./assets/skybox/top.jpg",
-                    "./assets/skybox/bottom.jpg",
-                    "./assets/skybox/front.jpg",
-                    "./assets/skybox/back.jpg"
-            };
-    GLuint skyTexture = loadCubemap(faces);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -91,42 +111,31 @@ int main(){
         // 清理窗口
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
+        glm::mat4 view = camera.GetViewMatrix();;
+        planetShader.use();
+        planetShader.setMat4("projection", projection);
+        planetShader.setMat4("view", view);
 
-        // 设置视角矩阵的缓冲
-        glm::mat4 view = camera.GetViewMatrix();
-        glBindBuffer(GL_UNIFORM_BUFFER, ubo);
-        glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), &view[0][0]);
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        // draw planet
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, -3.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(4.0f, 4.0f, 4.0f));
+        planetShader.setMat4("model", model);
+        planet.Draw(planetShader);
 
-        // 绘制不透明物体
-        // 给物体上反射贴图
-        cubeShader.use();
-        glBindVertexArray(CubeVAO);
-        cubeShader.setVec3("cameraPos", camera.Position);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, mutouTexture);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, awesomeTexture);
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, skyTexture);
-        cubeShader.setInt("texture1", 0);
-        cubeShader.setInt("texture2", 1);
-        cubeShader.setInt("skybox", 2);
-        drawModel(cubeShader, CubeVAO,{0,0,0},{1,1,1});
 
-        // 渲染透明物体
-
-        // 渲染天空
-        glDepthFunc(GL_LEQUAL);
-        skyShader.use();
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        glm::mat4 viewForSky = glm::mat4(glm::mat3(camera.GetViewMatrix()));
-        skyShader.setMat4("projection", projection);
-        skyShader.setMat4("view", viewForSky);
-        glBindVertexArray(skyVAO);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, skyTexture);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-        glDepthFunc(GL_LESS);
+        // draw meteorites
+        rockShader.use();
+        rockShader.setMat4("projection", projection);
+        rockShader.setMat4("view", view);
+        rockShader.setInt("texture_diffuse1", 0);
+        for (unsigned int i = 0; i < rock.meshes.size(); i++)
+        {
+            glBindVertexArray(rock.meshes[i].VAO);
+            glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(rock.meshes[i].indices.size()), GL_UNSIGNED_INT, 0, amount);
+            glBindVertexArray(0);
+        }
 
         // 事件处理
         glfwPollEvents();
@@ -285,6 +294,7 @@ GLFWwindow * InitWindowAndFunc() {
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
+    glfwWindowHint(GLFW_SAMPLES, 4);
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", nullptr, nullptr);
     if (window == nullptr) {
         std::cout << "Failed to create GLFW window" << std::endl;
