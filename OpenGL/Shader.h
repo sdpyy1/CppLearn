@@ -88,7 +88,7 @@ public:
             // open files
             vShaderFile.open(vertexPath);
             fShaderFile.open(fragmentPath);
-            fShaderFile.open(geometryPath);
+            gShaderFile.open(geometryPath);
             std::stringstream vShaderStream, fShaderStream, gShaderStream;
             // read file's buffer contents into streams
             vShaderStream << vShaderFile.rdbuf();
@@ -102,8 +102,7 @@ public:
             vertexCode = vShaderStream.str();
             fragmentCode = fShaderStream.str();
             geometryCode = gShaderStream.str();
-        }
-        catch (std::ifstream::failure& e)
+        }catch (std::ifstream::failure& e)
         {
             std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ: " << e.what() << std::endl;
         }
