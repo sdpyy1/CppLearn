@@ -18,11 +18,23 @@ set(PROJECT_SOURCES
         mainwindow.h
         mainwindow.ui
 )
-
+include_directories(component page utils openGL)
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(ARender
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
+        component/pushbutton.h component/pushbutton.cpp
+        component/framelesswindow.h component/framelesswindow.cpp
+        utils/logger.h utils/logger.cpp
+        component/lineeditwidget.h component/lineeditwidget.cpp
+        component/pagewidget.h component/pagewidget.cpp
+        component/roundedcornerwidget.h component/roundedcornerwidget.cpp
+        component/scrolllistwidget.h component/scrolllistwidget.cpp
+        component/sidebar.h component/sidebar.cpp
+        component/slider.h component/slider.cpp
+        page/aboutpage.h page/aboutpage.cpp
+        openGL/test.h openGL/test.cpp
+
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET ARender APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
