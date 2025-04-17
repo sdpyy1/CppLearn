@@ -34,6 +34,8 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         component/slider.h component/slider.cpp
         page/aboutpage.h page/aboutpage.cpp
         openGL/test.h openGL/test.cpp
+        mainwindow.qrc
+
 
     )
 # Define target properties for Android with Qt 6 as:

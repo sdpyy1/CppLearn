@@ -21,10 +21,10 @@ public:
     };
 
 public:
-    FramelessWindow(QWidget* parent = 0);
-    FramelessWindow(int cornerRadius, QWidget* parent = 0);
-    FramelessWindow(unsigned int attributes, QWidget* parent = 0);
-    FramelessWindow(int cornerRadius, unsigned int attributes, QWidget* parent = 0);
+    FramelessWindow(QWidget* parent = 0,int width=1600,int height=1200);
+    FramelessWindow(int cornerRadius, QWidget* parent = 0,int width=1600,int height=1200);
+    FramelessWindow(unsigned int attributes, QWidget* parent = 0,int width=1600,int height=1200);
+    FramelessWindow(int cornerRadius, unsigned int attributes, QWidget* parent = 0,int width=1600,int height=1200);
     ~FramelessWindow();
 
 protected:

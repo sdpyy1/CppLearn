@@ -24,5 +24,12 @@ private:
     // Place holder widget for resizing pages
     QWidget* _placeHolderWidget = nullptr;
 
+
+private:
+    void resizePages(QResizeEvent* event);
+
+private:
+    virtual void showEvent(QShowEvent* event) override;
+    virtual bool eventFilter(QObject* object, QEvent* event) override;
 };
 #endif // MAINWINDOW_H
