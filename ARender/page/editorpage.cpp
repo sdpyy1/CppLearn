@@ -65,23 +65,23 @@ EditorPage::EditorPage(QWidget* parent) :
     _modelSetter->setStyleSheet("#ModelSetter { background-color: #f0f0f0; border-radius: 10px; }");
 
     // Connect signals
-    connect(_modelSelector, &ModelSelector::onObjectSelected, _sceneViewer, &SceneViewer::addObject);
-    connect(_sceneViewer, &SceneViewer::onSelect, _modelSetter, &ModelSetter::update);
-    connect(_sceneViewer, &SceneViewer::onUpdate, _modelSetter, &ModelSetter::update);
-    connect(_modelSetter, &ModelSetter::onAdjustStart, _sceneViewer, &SceneViewer::setDragFlag);
-    connect(_modelSetter, &ModelSetter::onAdjustEnd, _sceneViewer, &SceneViewer::clearDragFlag);
-    connect(_modelSetter, &ModelSetter::onAdjust, this, [=]() {
-        _sceneViewer->update();
-    });
-    connect(_modelSetter, &ModelSetter::onDeleteObject, _sceneViewer, &SceneViewer::deleteObject);
+    // connect(_modelSelector, &ModelSelector::onObjectSelected, _sceneViewer, &SceneViewer::addObject);
+    // connect(_sceneViewer, &SceneViewer::onSelect, _modelSetter, &ModelSetter::update);
+    // connect(_sceneViewer, &SceneViewer::onUpdate, _modelSetter, &ModelSetter::update);
+    // connect(_modelSetter, &ModelSetter::onAdjustStart, _sceneViewer, &SceneViewer::setDragFlag);
+    // connect(_modelSetter, &ModelSetter::onAdjustEnd, _sceneViewer, &SceneViewer::clearDragFlag);
+    // connect(_modelSetter, &ModelSetter::onAdjust, this, [=]() {
+    //     _sceneViewer->update();
+    // });
+    // connect(_modelSetter, &ModelSetter::onDeleteObject, _sceneViewer, &SceneViewer::deleteObject);
 }
 
 EditorPage::~EditorPage() {}
 
 void EditorPage::updateSetting(QPair<QString, QString> setting) {
-    if (_sceneViewer != nullptr) {
-        _sceneViewer->updateSetting(setting);
-    }
+    // if (_sceneViewer != nullptr) {
+    //     _sceneViewer->updateSetting(setting);
+    // }
 }
 
 PushButton* EditorPage::getPageIconButton(QWidget* context) {

@@ -4,7 +4,7 @@
 #include <qboxlayout.h>
 #include <qlabel.h>
 
-// #include "renderable.h"
+#include "renderable.h"
 #include "pushbutton.h"
 #include "modelattributeslide.h"
 

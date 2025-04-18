@@ -12,43 +12,46 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 find_package(Qt6 REQUIRED COMPONENTS OpenGLWidgets)
-
+find_package(assimp REQUIRED)
 set(PROJECT_SOURCES
         main.cpp
         mainwindow.cpp
         mainwindow.h
         mainwindow.ui
+        mainwindow.qrc
 )
 INCLUDE_DIRECTORIES(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/third/include)
 file(GLOB OPENGL_SOURCES
     "openGL/*.h"
-    "openGL/*.cpp"
+
     "openGL/*.qrc"
+)
+file(GLOB PAGE_SOURCES
+    "page/*.h"
+    "page/*.cpp"
+    "page/*.qrc"
+)
+file(GLOB COMPONENT_SOURCES
+    "component/*.h"
+    "component/*.cpp"
+    "component/*.qrc"
+)
+file(GLOB UTILS_SOURCES
+    "utils/*.h"
+    "utils/*.cpp"
+    "utils/*.qrc"
 )
 include_directories(component page utils openGL)
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(ARender
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
-        component/pushbutton.h component/pushbutton.cpp
-        component/framelesswindow.h component/framelesswindow.cpp
-        utils/logger.h utils/logger.cpp
-        component/lineeditwidget.h component/lineeditwidget.cpp
-        component/pagewidget.h component/pagewidget.cpp
-        component/roundedcornerwidget.h component/roundedcornerwidget.cpp
-        component/scrolllistwidget.h component/scrolllistwidget.cpp
-        component/sidebar.h component/sidebar.cpp
-        component/slider.h component/slider.cpp
-        page/aboutpage.h page/aboutpage.cpp
-        mainwindow.qrc
-        page/sceneviewer.h page/sceneviewer.cpp
-        page/editorpage.h page/editorpage.cpp
-        page/modelselector.h page/modelselector.cpp
-        page/modelsetter.h page/modelsetter.cpp
-        page/modelselectable.h page/modelselectable.cpp
-        page/modelthumbnailwidget.h page/modelthumbnailwidget.cpp
-        page/modelattributeslide.h page/modelattributeslide.cpp
-        {OPENGL_SOURCES}
+        ${UTILS_SOURCES}
+        ${OPENGL_SOURCES}
+        ${PAGE_SOURCES}
+        ${COMPONENT_SOURCES}
+
+
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET ARender APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
@@ -67,11 +70,17 @@ else()
         )
     endif()
 endif()
+target_compile_definitions(ARender PRIVATE GLM_ENABLE_EXPERIMENTAL)
 
 target_link_libraries(ARender PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_link_libraries(ARender PRIVATE Qt6::OpenGLWidgets)
-# target_link_libraries(ARender ${CMAKE_CURRENT_SOURCE_DIR}/third/lib/libassimp.dll.a)
-# target_link_libraries(ARender ${CMAKE_CURRENT_SOURCE_DIR}/third/lib/glfw3.dll )
+# target_link_libraries(ARender PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/third/lib/libassimp.dll.a)
+target_link_libraries(ARender PRIVATE assimp::assimp)
+
+
+
+
+
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
 # explicit, fixed bundle identifier manually though.
