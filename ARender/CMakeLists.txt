@@ -11,12 +11,19 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+find_package(Qt6 REQUIRED COMPONENTS OpenGLWidgets)
 
 set(PROJECT_SOURCES
         main.cpp
         mainwindow.cpp
         mainwindow.h
         mainwindow.ui
+)
+INCLUDE_DIRECTORIES(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/third/include)
+file(GLOB OPENGL_SOURCES
+    "openGL/*.h"
+    "openGL/*.cpp"
+    "openGL/*.qrc"
 )
 include_directories(component page utils openGL)
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -33,10 +40,15 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         component/sidebar.h component/sidebar.cpp
         component/slider.h component/slider.cpp
         page/aboutpage.h page/aboutpage.cpp
-        openGL/test.h openGL/test.cpp
         mainwindow.qrc
-
-
+        page/sceneviewer.h page/sceneviewer.cpp
+        page/editorpage.h page/editorpage.cpp
+        page/modelselector.h page/modelselector.cpp
+        page/modelsetter.h page/modelsetter.cpp
+        page/modelselectable.h page/modelselectable.cpp
+        page/modelthumbnailwidget.h page/modelthumbnailwidget.cpp
+        page/modelattributeslide.h page/modelattributeslide.cpp
+        {OPENGL_SOURCES}
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET ARender APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
@@ -57,7 +69,9 @@ else()
 endif()
 
 target_link_libraries(ARender PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
-
+target_link_libraries(ARender PRIVATE Qt6::OpenGLWidgets)
+# target_link_libraries(ARender ${CMAKE_CURRENT_SOURCE_DIR}/third/lib/libassimp.dll.a)
+# target_link_libraries(ARender ${CMAKE_CURRENT_SOURCE_DIR}/third/lib/glfw3.dll )
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
 # explicit, fixed bundle identifier manually though.

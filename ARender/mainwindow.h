@@ -5,6 +5,7 @@
 #include <QMainWindow>
 #include "aboutpage.h"
 #include "sidebar.h"
+#include "editorpage.h"
 QT_BEGIN_NAMESPACE
 
 QT_END_NAMESPACE
@@ -21,6 +22,8 @@ private:
     QHBoxLayout* _mainLayout = nullptr;
     SideBar* _sideBar = nullptr;
     AboutPage* _aboutPage = nullptr;
+    EditorPage* _editorPage = nullptr;
+
     // Place holder widget for resizing pages
     QWidget* _placeHolderWidget = nullptr;
 

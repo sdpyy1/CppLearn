@@ -8,7 +8,7 @@
 
 #define MAX_MOUSE_MOVEMENT 300
 
-FramelessWindow::FramelessWindow(int cornerRadius, unsigned int attributes, QWidget* parent,int width,int height)
+FramelessWindow::FramelessWindow(int cornerRadius, unsigned int attributes, QWidget* parent)
     : _cornerRadius(cornerRadius), _attributes((LUI_WINDOW_ATTRIBUTES)attributes), QWidget(parent)
 {
     setAttribute(Qt::WA_TranslucentBackground);
@@ -81,21 +81,19 @@ FramelessWindow::FramelessWindow(int cornerRadius, unsigned int attributes, QWid
     connect(_minimizeBtn, &QPushButton::clicked, this, &QWidget::showMinimized);
     connect(_maximizeBtn, &QPushButton::clicked, this, &FramelessWindow::controlWindowScale);
     connect(_closeBtn, &QPushButton::clicked, this, &QWidget::close);
-
-    setFixedSize(width, height);
 }
 
-FramelessWindow::FramelessWindow(QWidget* parent,int width,int height)
-    : FramelessWindow(0, LUI_WINDOW_ATTRIBUTES::LUI_WINDOW_NO_ATTRIBUTES, parent,width,height)
+FramelessWindow::FramelessWindow(QWidget* parent)
+    : FramelessWindow(0, LUI_WINDOW_ATTRIBUTES::LUI_WINDOW_NO_ATTRIBUTES, parent)
 {
 }
 
-FramelessWindow::FramelessWindow(int cornerRadius, QWidget* parent,int width,int height)
-    : FramelessWindow(cornerRadius, LUI_WINDOW_ATTRIBUTES::LUI_WINDOW_NO_ATTRIBUTES, parent,width,height)
+FramelessWindow::FramelessWindow(int cornerRadius, QWidget* parent)
+    : FramelessWindow(cornerRadius, LUI_WINDOW_ATTRIBUTES::LUI_WINDOW_NO_ATTRIBUTES, parent)
 {
 }
 
-FramelessWindow::FramelessWindow(unsigned int attributes, QWidget* parent,int width,int height)
+FramelessWindow::FramelessWindow(unsigned int attributes, QWidget* parent)
     : FramelessWindow(0, attributes, parent)
 {
 }

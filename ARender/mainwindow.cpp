@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include<QLabel>
+
 //#include <_mingw_mac.h>
 MainWindow::MainWindow(QWidget *parent)
     : FramelessWindow(20, parent)
@@ -37,6 +38,11 @@ MainWindow::MainWindow(QWidget *parent)
     // Add sidebar and placeholder widget to main layout
     _mainLayout->addWidget(_sideBar);
     _mainLayout->addWidget(_placeHolderWidget);
+
+    // Create editor page and connect to side bar
+    _editorPage = new EditorPage(_placeHolderWidget);
+    _editorPage->setMouseTracking(true);
+    _sideBar->addPage(_editorPage);
 
     // Create about page and connect to side bar
     _aboutPage = new AboutPage(_placeHolderWidget);

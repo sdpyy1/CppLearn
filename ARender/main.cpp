@@ -12,7 +12,8 @@ int main(int argc, char *argv[])
     QFontDatabase::addApplicationFont(":/fonts/Dengb.ttf"); // Add Deng Xian Bold font to application
     QFontDatabase::addApplicationFont(":/fonts/Dengl.ttf"); // Add Deng Xian Light font to application
     MainWindow w;
-    // w.setMouseTracking(true);
+    w.setMouseTracking(true);
+    w.resize(1250, 750);
     w.show();
     return a.exec();
 }
