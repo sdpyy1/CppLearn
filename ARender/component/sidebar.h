@@ -13,7 +13,7 @@
 class SideBar : public QWidget
 {
     Q_OBJECT
-
+        
 public:
     SideBar(QWidget* parent = 0);
     ~SideBar();
@@ -35,7 +35,7 @@ private:
     QVBoxLayout* _pageIconButtonLayout = nullptr;   // Layout page icon buttons
     QWidget* _pageTextButtonWidget = nullptr;   // Container for page text buttons
     QVBoxLayout* _pageTextButtonLayout = nullptr;   // Layout page text buttons
-
+    
     // Interaction controls
     bool _expanded = false;
     PageWidget* _currentPage = nullptr;

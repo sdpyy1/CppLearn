@@ -15,13 +15,13 @@ EditorPage::EditorPage(QWidget* parent) :
     _titleLayout->setSpacing(18);
     _titleLayout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
     _contentWidget->setLayout(_titleLayout);
-
+    
     // Construct title
     _titleLabel = new QLabel("EDITOR", _contentWidget);
     _titleLabel->setFont(_titleFont);
     _titleLayout->addWidget(_titleLabel);
     _titleLabel->show();
-
+    
     // Construct main layout
     _mainWidget = new QWidget(_contentWidget);
     _mainWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -42,7 +42,7 @@ EditorPage::EditorPage(QWidget* parent) :
     _editingLayout->setContentsMargins(0, 0, 0, 0);
     _editingLayout->setSpacing(16);
     _mainLayout->addLayout(_editingLayout);
-
+        
     // Generate scene viewer
     _sceneViewerContainer = new RoundedCornerWidget(_mainWidget);
     _sceneViewerContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -65,23 +65,23 @@ EditorPage::EditorPage(QWidget* parent) :
     _modelSetter->setStyleSheet("#ModelSetter { background-color: #f0f0f0; border-radius: 10px; }");
 
     // Connect signals
-    // connect(_modelSelector, &ModelSelector::onObjectSelected, _sceneViewer, &SceneViewer::addObject);
-    // connect(_sceneViewer, &SceneViewer::onSelect, _modelSetter, &ModelSetter::update);
-    // connect(_sceneViewer, &SceneViewer::onUpdate, _modelSetter, &ModelSetter::update);
-    // connect(_modelSetter, &ModelSetter::onAdjustStart, _sceneViewer, &SceneViewer::setDragFlag);
-    // connect(_modelSetter, &ModelSetter::onAdjustEnd, _sceneViewer, &SceneViewer::clearDragFlag);
-    // connect(_modelSetter, &ModelSetter::onAdjust, this, [=]() {
-    //     _sceneViewer->update();
-    // });
-    // connect(_modelSetter, &ModelSetter::onDeleteObject, _sceneViewer, &SceneViewer::deleteObject);
+    connect(_modelSelector, &ModelSelector::onObjectSelected, _sceneViewer, &SceneViewer::addObject);
+    connect(_sceneViewer, &SceneViewer::onSelect, _modelSetter, &ModelSetter::update);
+    connect(_sceneViewer, &SceneViewer::onUpdate, _modelSetter, &ModelSetter::update);
+    connect(_modelSetter, &ModelSetter::onAdjustStart, _sceneViewer, &SceneViewer::setDragFlag);
+    connect(_modelSetter, &ModelSetter::onAdjustEnd, _sceneViewer, &SceneViewer::clearDragFlag);
+    connect(_modelSetter, &ModelSetter::onAdjust, this, [=]() {
+        _sceneViewer->update();
+    });
+    connect(_modelSetter, &ModelSetter::onDeleteObject, _sceneViewer, &SceneViewer::deleteObject);
 }
 
 EditorPage::~EditorPage() {}
 
 void EditorPage::updateSetting(QPair<QString, QString> setting) {
-    // if (_sceneViewer != nullptr) {
-    //     _sceneViewer->updateSetting(setting);
-    // }
+    if (_sceneViewer != nullptr) {
+        _sceneViewer->updateSetting(setting);
+    }
 }
 
 PushButton* EditorPage::getPageIconButton(QWidget* context) {
@@ -89,7 +89,7 @@ PushButton* EditorPage::getPageIconButton(QWidget* context) {
     if (_iconButton != nullptr) {
         return _iconButton;
     }
-
+    
     // Generate new icon button
     _iconButton = new PushButton(nullptr, context);
     _iconButton->setMargin(20, 18, 16, 18);
@@ -101,7 +101,7 @@ PushButton* EditorPage::getPageIconButton(QWidget* context) {
     _iconButtonLabel->setText("\uf304");    // set icon to "pen" icon
     _iconButtonLabel->setAlignment(Qt::AlignLeft);
     _iconButton->setChildWidget(_iconButtonLabel);
-
+    
     // Return newly generated icon
     return _iconButton;
 }
@@ -128,12 +128,12 @@ PushButton* EditorPage::getPageTextButton(QWidget* context) {
     _textButtonIcon->setFont(textButtonFont);
     _textButtonIcon->setText("\uf304");    // set icon to "pen" icon
     _textButtonIcon->setAlignment(Qt::AlignLeft);
-
+    
     _textButtonLabel = new QLabel(_textButtonWidget);
     _textButtonLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
     _textButtonLabel->setText("Editor");
     _textButtonLabel->setAlignment(Qt::AlignLeft);
-
+    
     // Add text button contents to layout
     _textButtonLayout->addWidget(_textButtonIcon);
     _textButtonLayout->addWidget(_textButtonLabel);

@@ -6,7 +6,7 @@
 
 #include "renderable.h"
 #include "pushbutton.h"
-#include "modelattributeslide.h"
+#include "modelattrslide.h"
 
 class ModelSetter : public QWidget
 {
@@ -20,16 +20,16 @@ public:
 private:
     // UI Elemenets
     QHBoxLayout* _mainLayout = nullptr;
-
+    
     QWidget* _objectSettingPanel = nullptr;
     QVBoxLayout* _objectSettingLayout = nullptr;
 
     QWidget* _lightSettingButtons = nullptr;
     QVBoxLayout* _lightSettingsButtonsLayout = nullptr;
-
+    
     QWidget* _lightSettingPanel = nullptr;
     QVBoxLayout* _lightSettingLayout = nullptr;
-
+    
     QWidget* _lightColorSettingPanel = nullptr;
     QVBoxLayout* _lightColorSettingPanelLayout = nullptr;
 

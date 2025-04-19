@@ -12,7 +12,7 @@
 class ModelSelector : public QWidget
 {
     Q_OBJECT
-
+        
 public:
     ModelSelector(QWidget* parent = 0);
     ~ModelSelector();
@@ -29,7 +29,7 @@ private:
 private:
     // Slot functions
     void addNewObject();
-
+    
     // Util functions
     QString getNewObjectPath();
     Model* loadObject(const QString& path);

@@ -24,7 +24,7 @@ public:
     // Getter APIs
     float val() const { return _slider->val(); }
     float lev() const { return _slider->lev(); }
-
+    
     // Setter APIs
     void setLabel(const QString& label);
     void setMin(float min);
@@ -34,7 +34,7 @@ public:
     void setTransformation(std::function<float(float)> transform, std::function<float(float)> inverse);
 
     void setEnabled(bool enable = true);
-
+    
 signals:
     void onChanged(float val);
     void onChangeStart();

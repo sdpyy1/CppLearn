@@ -7,4 +7,16 @@
         <file>Deng.ttf</file>
         <file>corbel.ttf</file>
     </qresource>
+    <qresource prefix="/shaders">
+        <file>shaders/boundfragmentshader.glsl</file>
+        <file>shaders/boundvertexshader.glsl</file>
+        <file>shaders/fragmentshader.glsl</file>
+        <file>shaders/skyboxfragmentshader.glsl</file>
+        <file>shaders/skyboxvertexshader.glsl</file>
+        <file>shaders/terrainfragmentshader.glsl</file>
+        <file>shaders/terrainvertexshader.glsl</file>
+        <file>shaders/thumbnailfragmentshader.glsl</file>
+        <file>shaders/vertexshader.glsl</file>
+        <file>shaders/thumbnailvertexshader.glsl</file>
+    </qresource>
 </RCC>

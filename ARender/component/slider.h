@@ -10,7 +10,7 @@
 class Slider : public QWidget
 {
     Q_OBJECT
-
+        
 public:
     Slider(float min, float max, int step, QWidget* parent = 0);
     ~Slider();
@@ -63,7 +63,7 @@ public:
     void setTransformation(std::function<float(float)> transform, std::function<float(float)> inverse);
 
     void setEnabled(bool enabled = true);
-
+    
 signals:
     void onChanged(float newVal);   // Triggers only when user changes the value
     void onSetValue(float newVal);  // Triggers when user changes the value or setValue() is called

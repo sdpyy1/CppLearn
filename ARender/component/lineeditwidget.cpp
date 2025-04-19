@@ -59,7 +59,7 @@ void LineEditWidget::initializeUI() {
     _indicator = new QWidget(_editorWidget);
     _indicator->setObjectName("indicator");
     _indicator->setStyleSheet("QWidget#indicator{background-color:" + _indicatorColor.name(QColor::HexArgb) + ";"
-                                                                                                              "border-radius:" + QString::number((float)_indicatorWidth / 2) + "px;}");
+        "border-radius:" + QString::number((float)_indicatorWidth / 2) + "px;}");
     _indicator->resize(_indicatorWidth, _indicatorWidth);
     _indicator->move(_editorWidget->width() - _indicatorWidth, _editorWidget->height() - _indicatorWidth - _indicatorSpacing);
     _indicatorEffect = new QGraphicsOpacityEffect(_indicator);
@@ -72,7 +72,7 @@ void LineEditWidget::initializeUI() {
     _backgroundWidget->resize(size());
     _backgroundWidget->setObjectName("backgroundWidget");
     _backgroundWidget->setStyleSheet("QWidget#backgroundWidget{background-color:" + _backgroundColor.name(QColor::HexArgb) + ";"
-                                                                                                                             "border-radius:" + QString::number(_cornerRadius) + "px;}");
+        "border-radius:" + QString::number(_cornerRadius) + "px;}");
     _backgroundWidget->lower();
     _backgroundWidget->show();
 
@@ -97,7 +97,7 @@ void LineEditWidget::startEdit() {
 
     // Set editing flag
     _editing = true;
-
+    
     // Enable qlineedit widget
     _editor->setReadOnly(false);
     _editor->setAttribute(Qt::WA_TransparentForMouseEvents, false);
@@ -122,13 +122,13 @@ void LineEditWidget::startEdit() {
         _editorWidget->height() - _indicatorWidth - _indicatorSpacing,
         _editorWidget->width(),
         _indicatorWidth
-        ));
+    ));
     fadeInAnimation->setStartValue(_indicatorEffect->opacity());
     fadeInAnimation->setEndValue(0.999);
     startEditAnimation->addAnimation(growAnimation);
     startEditAnimation->addAnimation(fadeInAnimation);
     startEditAnimation->start(QAbstractAnimation::DeleteWhenStopped);
-
+    
     // Emit signal
     emit onStartEditing(_editor->text());
 }
@@ -140,7 +140,7 @@ void LineEditWidget::endEdit() {
 
     // Set editing flag
     _editing = false;
-
+    
     // Disable qlineedit widget
     _editor->setReadOnly(true);
     _editor->setAttribute(Qt::WA_TransparentForMouseEvents, true);
@@ -160,13 +160,13 @@ void LineEditWidget::endEdit() {
         _editorWidget->height() - _indicatorWidth - _indicatorSpacing,
         _indicatorWidth,
         _indicatorWidth
-        ));
+    ));
     fadeOutAnimation->setStartValue(_indicatorEffect->opacity());
     fadeOutAnimation->setEndValue(0);
     endEditAnimation->addAnimation(shrinkAnimation);
     endEditAnimation->addAnimation(fadeOutAnimation);
     endEditAnimation->start(QAbstractAnimation::DeleteWhenStopped);
-
+    
     // Emit signal
     emit onEndEditing(_editor->text());
 }
@@ -174,12 +174,12 @@ void LineEditWidget::endEdit() {
 void LineEditWidget::showEvent(QShowEvent* event) {
     // Call on parent
     QWidget::showEvent(event);
-
+    
     // Check initialize state
     if (_initialized) {
         return;
     }
-
+    
     // Initialize size dependent widgets
     _backgroundWidget->resize(size());
     if (_editing) {
@@ -190,7 +190,7 @@ void LineEditWidget::showEvent(QShowEvent* event) {
         _indicator->move(_editorWidget->width() - _indicatorWidth, _editorWidget->height() - _indicatorWidth - _indicatorSpacing);
         _indicator->resize(_indicatorWidth, _indicatorWidth);
     }
-
+    
     // Set initialized flag
     _initialized = true;
 }
@@ -200,10 +200,10 @@ void LineEditWidget::enterEvent(QEnterEvent* event) {
     if (_enabled) {
         setCursor(Qt::PointingHandCursor);
     }
-
+    
     // Change background color
     _backgroundWidget->setStyleSheet("QWidget#backgroundWidget{background-color:" + _hoverColor.name(QColor::HexArgb) + ";"
-                                                                                                                        "border-radius:" + QString::number(_cornerRadius) + "px;}");
+        "border-radius:" + QString::number(_cornerRadius) + "px;}");
 
     // Set hover flag
     _hovered = true;
@@ -214,7 +214,7 @@ void LineEditWidget::leaveEvent(QEvent* event) {
 
     // Change background color
     _backgroundWidget->setStyleSheet("QWidget#backgroundWidget{background-color:" + _backgroundColor.name(QColor::HexArgb) + ";"
-                                                                                                                             "border-radius:" + QString::number(_cornerRadius) + "px;}");
+        "border-radius:" + QString::number(_cornerRadius) + "px;}");
 
     // Set hover flag
     _hovered = false;
@@ -224,7 +224,7 @@ void LineEditWidget::leaveEvent(QEvent* event) {
 void LineEditWidget::mousePressEvent(QMouseEvent* event) {
     // Change background color
     _backgroundWidget->setStyleSheet("QWidget#backgroundWidget{background-color:" + _pressedColor.name(QColor::HexArgb) + ";"
-                                                                                                                          "border-radius:" + QString::number(_cornerRadius) + "px;}");
+        "border-radius:" + QString::number(_cornerRadius) + "px;}");
 
     // Set pressed flag
     _pressed = true;
@@ -233,7 +233,7 @@ void LineEditWidget::mousePressEvent(QMouseEvent* event) {
 void LineEditWidget::mouseReleaseEvent(QMouseEvent* event) {
     // Change background color
     _backgroundWidget->setStyleSheet("QWidget#backgroundWidget{background-color:" + _hoverColor.name(QColor::HexArgb) + ";"
-                                                                                                                        "border-radius:" + QString::number(_cornerRadius) + "px;}");
+        "border-radius:" + QString::number(_cornerRadius) + "px;}");
 
     // Trigger on click
     if (_pressed) {
@@ -267,8 +267,8 @@ void LineEditWidget::focusInEvent(QFocusEvent* event) {
 
     // Change background color
     _backgroundWidget->setStyleSheet("QWidget#backgroundWidget{background-color:" + _hoverColor.name(QColor::HexArgb) + ";"
-                                                                                                                        "border-radius:" + QString::number(_cornerRadius) + "px;}");
-
+        "border-radius:" + QString::number(_cornerRadius) + "px;}");
+    
     // Start edit
     if (!_editing) {
         startEdit();
@@ -281,7 +281,7 @@ void LineEditWidget::focusOutEvent(QFocusEvent* event) {
 
     // Change background color
     _backgroundWidget->setStyleSheet("QWidget#backgroundWidget{background-color:" + _backgroundColor.name(QColor::HexArgb) + ";"
-                                                                                                                             "border-radius:" + QString::number(_cornerRadius) + "px;}");
+        "border-radius:" + QString::number(_cornerRadius) + "px;}");
 
     // End edit
     if (_editing) {
@@ -360,7 +360,7 @@ void LineEditWidget::setBackgroundColor(QColor color) {
     // Check for current state
     if (!_hovered && !_pressed) {
         _backgroundWidget->setStyleSheet("QWidget#backgroundWidget{background-color:" + _backgroundColor.name(QColor::HexArgb) + ";"
-                                                                                                                                 "border-radius:" + QString::number(_cornerRadius) + "px;}");
+            "border-radius:" + QString::number(_cornerRadius) + "px;}");
     }
 }
 
@@ -371,7 +371,7 @@ void LineEditWidget::setHoverColor(QColor color) {
     // Check for current state
     if (_hovered && !_pressed) {
         _backgroundWidget->setStyleSheet("QWidget#backgroundWidget{background-color:" + _hoverColor.name(QColor::HexArgb) + ";"
-                                                                                                                            "border-radius:" + QString::number(_cornerRadius) + "px;}");
+            "border-radius:" + QString::number(_cornerRadius) + "px;}");
     }
 }
 
@@ -382,16 +382,16 @@ void LineEditWidget::setPressedColor(QColor color) {
     // Check for current state
     if (_pressed) {
         _backgroundWidget->setStyleSheet("QWidget#backgroundWidget{background-color:" + _pressedColor.name(QColor::HexArgb) + ";"
-                                                                                                                              "border-radius:" + QString::number(_cornerRadius) + "px;}");
+            "border-radius:" + QString::number(_cornerRadius) + "px;}");
     }
 }
 
 void LineEditWidget::setIndicatorColor(QColor color) {
     // Set indicator color
     _indicatorColor = color;
-
+    
     _indicator->setStyleSheet("QWidget#indicator{background-color:" + _indicatorColor.name(QColor::HexArgb) + ";"
-                                                                                                              "border-radius:" + QString::number(_indicatorWidth) + "px;}");
+        "border-radius:" + QString::number(_indicatorWidth) + "px;}");
 }
 
 void LineEditWidget::setColorScheme(QColor primaryColor) {
@@ -401,19 +401,19 @@ void LineEditWidget::setColorScheme(QColor primaryColor) {
     // Check for current state
     if (!_hovered && !_pressed) {
         _backgroundWidget->setStyleSheet("QWidget#backgroundWidget{background-color:" + _backgroundColor.name(QColor::HexArgb) + ";"
-                                                                                                                                 "border-radius:" + QString::number(_cornerRadius) + "px;}");
+            "border-radius:" + QString::number(_cornerRadius) + "px;}");
     }
     else if (_hovered && !_pressed) {
         _backgroundWidget->setStyleSheet("QWidget#backgroundWidget{background-color:" + _hoverColor.name(QColor::HexArgb) + ";"
-                                                                                                                            "border-radius:" + QString::number(_cornerRadius) + "px;}");
+            "border-radius:" + QString::number(_cornerRadius) + "px;}");
     }
     else if (_pressed) {
         _backgroundWidget->setStyleSheet("QWidget#backgroundWidget{background-color:" + _pressedColor.name(QColor::HexArgb) + ";"
-                                                                                                                              "border-radius:" + QString::number(_cornerRadius) + "px;}");
+            "border-radius:" + QString::number(_cornerRadius) + "px;}");
     }
 
     _indicator->setStyleSheet("QWidget#indicator{background-color:" + _indicatorColor.name(QColor::HexArgb) + ";"
-                                                                                                              "border-radius:" + QString::number(_indicatorWidth) + "px;}");
+        "border-radius:" + QString::number(_indicatorWidth) + "px;}");
 }
 
 QString LineEditWidget::text() const {

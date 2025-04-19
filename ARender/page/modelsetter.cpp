@@ -7,7 +7,7 @@ ModelSetter::ModelSetter(Renderable* object, QWidget* parent) :
 {
     // Set background color and border radius
     setAttribute(Qt::WA_StyledBackground, true);
-
+    
     // Create main layout
     _mainLayout = new QHBoxLayout(this);
     _mainLayout->setContentsMargins(12, 8, 12, 8);
@@ -33,7 +33,7 @@ ModelSetter::ModelSetter(Renderable* object, QWidget* parent) :
         _rotateX = new ModelAttributeSlide("RotateX", 0, 360, 3600, _objectSettingPanel);
         _rotateY = new ModelAttributeSlide("RotateY", 0, 360, 3600, _objectSettingPanel);
         _rotateZ = new ModelAttributeSlide("RotateZ", 0, 360, 3600, _objectSettingPanel);
-
+        
         // Add attribute adjusters to layout
         _objectSettingLayout->addWidget(_scale);
         _objectSettingLayout->addWidget(_rotateX);
@@ -58,7 +58,7 @@ ModelSetter::ModelSetter(Renderable* object, QWidget* parent) :
                 _object->updateBoundary();
             }
         });
-
+        
         connect(_rotateX, &ModelAttributeSlide::onChangeStart, this, &ModelSetter::onAdjustStart);
         connect(_rotateX, &ModelAttributeSlide::onChangeEnd, this, &ModelSetter::onAdjustEnd);
         connect(_rotateX, &ModelAttributeSlide::onChanged, this, [=]() {
@@ -72,7 +72,7 @@ ModelSetter::ModelSetter(Renderable* object, QWidget* parent) :
                 _object->updateBoundary();
             }
         });
-
+        
         connect(_rotateY, &ModelAttributeSlide::onChangeStart, this, &ModelSetter::onAdjustStart);
         connect(_rotateY, &ModelAttributeSlide::onChangeEnd, this, &ModelSetter::onAdjustEnd);
         connect(_rotateY, &ModelAttributeSlide::onChanged, this, [=]() {
@@ -86,7 +86,7 @@ ModelSetter::ModelSetter(Renderable* object, QWidget* parent) :
                 _object->updateBoundary();
             }
         });
-
+        
         connect(_rotateZ, &ModelAttributeSlide::onChangeStart, this, &ModelSetter::onAdjustStart);
         connect(_rotateZ, &ModelAttributeSlide::onChangeEnd, this, &ModelSetter::onAdjustEnd);
         connect(_rotateZ, &ModelAttributeSlide::onChanged, this, [=]() {
@@ -117,7 +117,7 @@ ModelSetter::ModelSetter(Renderable* object, QWidget* parent) :
         _lightSwitchLayout->setAlignment(Qt::AlignCenter);
         _lightSwitchLayout->setSpacing(4);
         _lightSwitchPanel->setLayout(_lightSwitchLayout);
-
+        
         // Create light switches
         _lightSwitch = new PushButton(nullptr, _lightSwitchPanel);
         _lightSwitch->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
@@ -127,7 +127,7 @@ ModelSetter::ModelSetter(Renderable* object, QWidget* parent) :
         _lightSwitchIcon->setText("\uf0eb");
         _lightSwitchIcon->setAlignment(Qt::AlignCenter);
         _lightSwitch->setChildWidget(_lightSwitchIcon);
-
+        
         _lightColorPanel = new PushButton(nullptr, _lightSwitchPanel);
         _lightColorPanel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
         _lightColorPanel->setIndicatorPosition(PushButton::LUI_BTN_POS_BOTTOM);
@@ -181,10 +181,10 @@ ModelSetter::ModelSetter(Renderable* object, QWidget* parent) :
                 _lightG->setValue(_object->originalLight()->lightColor().g * 255.0f);
                 _lightB->setValue(_object->originalLight()->lightColor().b * 255.0f);
                 _lightColorPanel->setColorScheme(QColor(
-                    _object->originalLight()->lightColor().r * 255.0f,
-                    _object->originalLight()->lightColor().g * 255.0f,
+                    _object->originalLight()->lightColor().r * 255.0f, 
+                    _object->originalLight()->lightColor().g * 255.0f, 
                     _object->originalLight()->lightColor().b * 255.0f
-                    ));
+                ));
                 _lightColorPanel->select();
                 _lightDistance->setValue(_object->originalLight()->idealDistance());
                 _lightRotateTheta->setValue(glm::degrees(glm::acos(_object->originalLight()->lightDirection().y)));
@@ -216,7 +216,7 @@ ModelSetter::ModelSetter(Renderable* object, QWidget* parent) :
             }
         });
     }
-
+    
     // Create light setting panel
     {
         // Create container widget
@@ -224,13 +224,13 @@ ModelSetter::ModelSetter(Renderable* object, QWidget* parent) :
         _lightSettingPanel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
         _mainLayout->addWidget(_lightSettingPanel);
         _lightSettingPanel->show();
-
+        
         // Create container widget layout
         _lightSettingLayout = new QVBoxLayout(_lightSettingPanel);
         _lightSettingLayout->setContentsMargins(0, 0, 0, 0);
         _lightSettingLayout->setSpacing(4);
         _lightSettingPanel->setLayout(_lightSettingLayout);
-
+        
         // Create attribute adjusters
         _lightDistance = new ModelAttributeSlide("Distance", 10, 3025, 145, _lightSettingPanel);
         _lightDistance->setTransformation(
@@ -254,11 +254,11 @@ ModelSetter::ModelSetter(Renderable* object, QWidget* parent) :
                 }
                 return x;
             }
-            );
+        );
         _lightRotateTheta = new ModelAttributeSlide("Rotate\u03B8", 0, 360, 3600, _lightSettingPanel);
         _lightRotatePhi = new ModelAttributeSlide("Rotate\u03C6", 0, 360, 3600, _lightSettingPanel);
         _lightCutoffAngle = new ModelAttributeSlide("Cutoff", 0, 180, 1800, _lightSettingPanel);
-
+        
         // Add attribute adjusters to layout
         _lightSettingLayout->addWidget(_lightDistance);
         _lightSettingLayout->addWidget(_lightRotateTheta);
@@ -268,7 +268,7 @@ ModelSetter::ModelSetter(Renderable* object, QWidget* parent) :
         _lightRotateTheta->show();
         _lightRotatePhi->show();
         _lightCutoffAngle->show();
-
+        
         // Connect
         connect(_lightDistance, &ModelAttributeSlide::onChanged, this, [=]() {
             if (_object != nullptr && _object->hasLight()) {
@@ -311,18 +311,18 @@ ModelSetter::ModelSetter(Renderable* object, QWidget* parent) :
         _lightColorSettingPanel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
         _mainLayout->addWidget(_lightColorSettingPanel);
         _lightColorSettingPanel->show();
-
+        
         // Create container widget layout
         _lightColorSettingPanelLayout = new QVBoxLayout(_lightColorSettingPanel);
         _lightColorSettingPanelLayout->setContentsMargins(0, 0, 0, 0);
         _lightColorSettingPanelLayout->setSpacing(8);
         _lightColorSettingPanel->setLayout(_lightColorSettingPanelLayout);
-
+        
         // Create color adjusters
         _lightR = new ModelAttributeSlide("R", 0, 255, 2550, _lightColorSettingPanel);
         _lightG = new ModelAttributeSlide("G", 0, 255, 2550, _lightColorSettingPanel);
         _lightB = new ModelAttributeSlide("B", 0, 255, 2550, _lightColorSettingPanel);
-
+        
         // Add color adjusters to layout
         _lightColorSettingPanelLayout->addWidget(_lightR);
         _lightColorSettingPanelLayout->addWidget(_lightG);
@@ -330,7 +330,7 @@ ModelSetter::ModelSetter(Renderable* object, QWidget* parent) :
         _lightR->show();
         _lightG->show();
         _lightB->show();
-
+        
         // Connect
         connect(_lightR, &ModelAttributeSlide::onChanged, this, [=]() {
             if (_object != nullptr && _object->hasLight()) {
@@ -403,7 +403,7 @@ void ModelSetter::setLightDir() {
         cos(glm::radians(_lightRotateTheta->val())) * sin(glm::radians(_lightRotatePhi->val())),
         sin(glm::radians(_lightRotateTheta->val())),
         cos(glm::radians(_lightRotateTheta->val())) * cos(glm::radians(_lightRotatePhi->val()))
-        )));
+    )));
 }
 
 void ModelSetter::setLightColor() {
@@ -442,7 +442,7 @@ void ModelSetter::update(Renderable* object) {
             _scale->setEnabled();
         }
         _scale->setValue(object->scaleVal().x);
-
+        
         if (_object == nullptr) {
             _rotateX->setEnabled();
             _rotateY->setEnabled();
@@ -466,7 +466,7 @@ void ModelSetter::update(Renderable* object) {
         _rotateX->setValue(x);
         _rotateY->setValue(y);
         _rotateZ->setValue(z);
-
+        
         if (_object == nullptr) {
             _lightSwitch->setEnabled();
         }
@@ -476,7 +476,7 @@ void ModelSetter::update(Renderable* object) {
         else {
             _lightSwitch->deselect();
         }
-
+        
         if (object->hasLight()) {
             if (_object == nullptr || !_object->hasLight()) {
                 // Enable light related settings
@@ -508,10 +508,10 @@ void ModelSetter::update(Renderable* object) {
             _lightB->setValue(object->originalLight()->lightColor().b * 255.0f);
             _lightColorPanel->select();
             _lightColorPanel->setColorScheme(QColor(
-                object->originalLight()->lightColor().r * 255.0f,
-                object->originalLight()->lightColor().g * 255.0f,
+                object->originalLight()->lightColor().r * 255.0f, 
+                object->originalLight()->lightColor().g * 255.0f, 
                 object->originalLight()->lightColor().b * 255.0f
-                ));
+            ));
         }
         else {
             if (_object != nullptr && _object->hasLight()) {
@@ -532,7 +532,7 @@ void ModelSetter::update(Renderable* object) {
         _deleteBtn->setEnabled();
         _deleteBtn->setIndicatorColor(QColor(171, 59, 58, 0));
     }
-
+    
     if (_object != object || _object == nullptr) {
         _colorPaletteOn = false;
         _lightColorSettingPanel->hide();

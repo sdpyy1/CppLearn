@@ -7,9 +7,9 @@
 #include <qpushbutton.h>
 
 class FramelessWindow : public QWidget {
-
+    
     Q_OBJECT
-
+    
 public:
     // Window attributes
     enum LUI_WINDOW_ATTRIBUTES {
@@ -74,7 +74,7 @@ protected:
     virtual void mousePressEvent(QMouseEvent* event) override;
     virtual void mouseReleaseEvent(QMouseEvent* event) override;
     virtual void mouseMoveEvent(QMouseEvent* event) override;
-
+    
 public:
     QWidget* windowWidget() const { return _windowWidget; }
     LUI_WINDOW_ATTRIBUTES getWindowAttributes();

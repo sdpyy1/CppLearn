@@ -1,4 +1,4 @@
-#include "modelattributeslide.h"
+#include "modelattrslide.h"
 
 ModelAttributeSlide::ModelAttributeSlide(const QString& label, float min, float max, int step, QWidget* parent) :
     QWidget(parent)
@@ -8,12 +8,12 @@ ModelAttributeSlide::ModelAttributeSlide(const QString& label, float min, float 
     _stretchLayout->setContentsMargins(0, 0, 0, 0);
     _stretchLayout->setSpacing(0);
     setLayout(_stretchLayout);
-
+    
     // Create Slider
     _slider = new Slider(min, max, step, this);
     _stretchLayout->addWidget(_slider);
     _slider->show();
-
+    
     // Create Label
     _label = new QLabel(label, this);
     _label->setMinimumWidth(56);
@@ -21,7 +21,7 @@ ModelAttributeSlide::ModelAttributeSlide(const QString& label, float min, float 
     _label->show();
     _slider->mainLayout()->insertWidget(0, _label);
     _slider->mainLayout()->insertSpacing(1, 8);
-
+    
     // Create Value label
     _val = new QLabel(this);
     _val->setMinimumWidth(32);
@@ -30,7 +30,7 @@ ModelAttributeSlide::ModelAttributeSlide(const QString& label, float min, float 
     _val->show();
     _slider->mainLayout()->addSpacing(8);
     _slider->mainLayout()->addWidget(_val);
-
+    
     // Connect
     connect(_slider, &Slider::onChanged, this, &ModelAttributeSlide::onChanged);
     connect(_slider, &Slider::onSetValue, this, [=]() {

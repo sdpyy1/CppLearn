@@ -9,13 +9,13 @@ ModelSelectable::ModelSelectable(Model* model, QWidget* parent) :
     // Set size
     setFixedHeight(150);
     setSizeIncrement(QSizePolicy::Expanding, QSizePolicy::Fixed);
-
+    
     // Create stretch layout to hold the main button
     _stretchLayout = new QHBoxLayout(this);
     _stretchLayout->setContentsMargins(0, 0, 0, 0);
     _stretchLayout->setSpacing(0);
     setLayout(_stretchLayout);
-
+    
     // Create main button widget
     _mainBtn = new PushButton(nullptr, this);
     _mainBtn->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -47,10 +47,10 @@ ModelSelectable::ModelSelectable(Model* model, QWidget* parent) :
     _thumbnailContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     _mainLayout->addWidget(_thumbnailContainer);
     _thumbnailContainer->show();
-
+    
     _thumbnailWidget = new ModelThumbnailWidget(_model, _mainBtnChild);
     _thumbnailWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
+    
     _thumbnailContainerLayout = new QHBoxLayout(_thumbnailContainer->mainWidget());
     _thumbnailContainerLayout->setContentsMargins(0, 0, 0, 0);
     _thumbnailContainerLayout->setSpacing(0);

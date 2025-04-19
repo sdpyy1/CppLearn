@@ -16,7 +16,7 @@ FramelessWindow::FramelessWindow(int cornerRadius, unsigned int attributes, QWid
     setFocusPolicy(Qt::StrongFocus);
     setMouseTracking(true);
     setFocus();
-
+    
     // Create and properly set real displayed window widget
     _stretchLayout = new QVBoxLayout(this);
     _stretchLayout->setContentsMargins(30, 30, 30, 30);
@@ -58,11 +58,11 @@ FramelessWindow::FramelessWindow(int cornerRadius, unsigned int attributes, QWid
     _closeBtn->setFixedSize(12, 12);
 
     _minimizeBtn->setStyleSheet("QPushButton{border-radius: 6px; background-color: #c2c2c2;}"
-                                "QPushButton:hover{background-color: #e98b2a;}");
+        "QPushButton:hover{background-color: #e98b2a;}");
     _maximizeBtn->setStyleSheet("QPushButton{border-radius: 6px; background-color: #c2c2c2;}"
-                                "QPushButton:hover{background-color: #2d6d4b;}");
+        "QPushButton:hover{background-color: #2d6d4b;}");
     _closeBtn->setStyleSheet("QPushButton{border-radius: 6px; background-color: #c2c2c2;}"
-                             "QPushButton:hover{background-color: #ab3b3a;}");
+        "QPushButton:hover{background-color: #ab3b3a;}");
 
     _windowBtnLayout->addWidget(_minimizeBtn);
     _windowBtnLayout->addWidget(_maximizeBtn);
@@ -238,25 +238,25 @@ void FramelessWindow::updateMouseState(QMouseEvent* event) {
     }
     // Set cursor shape according to mouse state
     switch (_mouseState) {
-    case MOUSE_STATE_RESIZE_LEFT:
-    case MOUSE_STATE_RESIZE_RIGHT:
-        setCursor(Qt::SizeHorCursor);
-        break;
-    case MOUSE_STATE_RESIZE_TOP:
-    case MOUSE_STATE_RESIZE_BOTTOM:
-        setCursor(Qt::SizeVerCursor);
-        break;
-    case MOUSE_STATE_RESIZE_LEFT | MOUSE_STATE_RESIZE_TOP:
-    case MOUSE_STATE_RESIZE_RIGHT | MOUSE_STATE_RESIZE_BOTTOM:
-        setCursor(Qt::SizeFDiagCursor);
-        break;
-    case MOUSE_STATE_RESIZE_LEFT | MOUSE_STATE_RESIZE_BOTTOM:
-    case MOUSE_STATE_RESIZE_RIGHT | MOUSE_STATE_RESIZE_TOP:
-        setCursor(Qt::SizeBDiagCursor);
-        break;
-    default:
-        setCursor(Qt::ArrowCursor);
-        break;
+        case MOUSE_STATE_RESIZE_LEFT:
+        case MOUSE_STATE_RESIZE_RIGHT:
+            setCursor(Qt::SizeHorCursor);
+            break;
+        case MOUSE_STATE_RESIZE_TOP:
+        case MOUSE_STATE_RESIZE_BOTTOM:
+            setCursor(Qt::SizeVerCursor);
+            break;
+        case MOUSE_STATE_RESIZE_LEFT | MOUSE_STATE_RESIZE_TOP:
+        case MOUSE_STATE_RESIZE_RIGHT | MOUSE_STATE_RESIZE_BOTTOM:
+            setCursor(Qt::SizeFDiagCursor);
+            break;
+        case MOUSE_STATE_RESIZE_LEFT | MOUSE_STATE_RESIZE_BOTTOM:
+        case MOUSE_STATE_RESIZE_RIGHT | MOUSE_STATE_RESIZE_TOP:
+            setCursor(Qt::SizeBDiagCursor);
+            break;
+        default:
+            setCursor(Qt::ArrowCursor);
+            break;
     }
 }
 
@@ -302,45 +302,45 @@ void FramelessWindow::mouseMoveEvent(QMouseEvent* event) {
     else {
         // Resize window according to mouse state
         switch (_mouseState) {
-        case MOUSE_STATE_RESIZE_LEFT:
-            resize(frameGeometry().width() - event->globalPos().x() + frameGeometry().left() + _windowWidget->frameGeometry().left(), frameGeometry().height());
-            move(event->globalPos().x() - _windowWidget->frameGeometry().left(), frameGeometry().top());
-            break;
-        case MOUSE_STATE_RESIZE_RIGHT:
-            resize(event->globalPos().x() - frameGeometry().left() + _windowWidget->frameGeometry().left(), frameGeometry().height());
-            break;
-        case MOUSE_STATE_RESIZE_TOP:
-            resize(frameGeometry().width(), frameGeometry().height() - event->globalPos().y() + frameGeometry().top() + _windowWidget->frameGeometry().top());
-            move(frameGeometry().left(), event->globalPos().y() - _windowWidget->frameGeometry().top());
-            break;
-        case MOUSE_STATE_RESIZE_BOTTOM:
-            resize(frameGeometry().width(), event->globalPos().y() - frameGeometry().top() + _windowWidget->frameGeometry().top());
-            break;
-        case MOUSE_STATE_RESIZE_LEFT | MOUSE_STATE_RESIZE_TOP:
-            resize(frameGeometry().width() - event->globalPos().x() + frameGeometry().left() + _windowWidget->frameGeometry().left(), frameGeometry().height() - event->globalPos().y() + frameGeometry().top() + _windowWidget->frameGeometry().top());
-            move(event->globalPos().x() - _windowWidget->frameGeometry().left(), event->globalPos().y() - _windowWidget->frameGeometry().top());
-            break;
-        case MOUSE_STATE_RESIZE_LEFT | MOUSE_STATE_RESIZE_BOTTOM:
-            resize(frameGeometry().width() - event->globalPos().x() + frameGeometry().left() + _windowWidget->frameGeometry().left(), event->globalPos().y() - frameGeometry().top() + _windowWidget->frameGeometry().top());
-            move(event->globalPos().x() - _windowWidget->frameGeometry().left(), frameGeometry().top());
-            break;
-        case MOUSE_STATE_RESIZE_RIGHT | MOUSE_STATE_RESIZE_TOP:
-            resize(event->globalPos().x() - frameGeometry().left() + _windowWidget->frameGeometry().left(), frameGeometry().height() - event->globalPos().y() + frameGeometry().top() + _windowWidget->frameGeometry().top());
-            move(frameGeometry().left(), event->globalPos().y() - _windowWidget->frameGeometry().top());
-            break;
-        case MOUSE_STATE_RESIZE_RIGHT | MOUSE_STATE_RESIZE_BOTTOM:
-            resize(event->globalPos().x() - frameGeometry().left() + _windowWidget->frameGeometry().left(), event->globalPos().y() - frameGeometry().top() + _windowWidget->frameGeometry().top());
-            break;
-        default:
-            if (_maximized) {
-                qreal wRatio = (qreal)event->pos().x() / (qreal)_windowWidget->width();
-                controlWindowScale();
-                move(event->globalPos().x() - _windowWidget->width() * wRatio, event->globalPos().y() - 52);
-            }
-            else {
-                move(frameGeometry().left() + event->globalPos().x() - _lastMousePosition.x(), frameGeometry().top() + event->globalPos().y() - _lastMousePosition.y());
-            }
-            break;
+            case MOUSE_STATE_RESIZE_LEFT:
+                resize(frameGeometry().width() - event->globalPos().x() + frameGeometry().left() + _windowWidget->frameGeometry().left(), frameGeometry().height());
+                move(event->globalPos().x() - _windowWidget->frameGeometry().left(), frameGeometry().top());
+                break;
+            case MOUSE_STATE_RESIZE_RIGHT:
+                resize(event->globalPos().x() - frameGeometry().left() + _windowWidget->frameGeometry().left(), frameGeometry().height());
+                break;
+            case MOUSE_STATE_RESIZE_TOP:
+                resize(frameGeometry().width(), frameGeometry().height() - event->globalPos().y() + frameGeometry().top() + _windowWidget->frameGeometry().top());
+                move(frameGeometry().left(), event->globalPos().y() - _windowWidget->frameGeometry().top());
+                break;
+            case MOUSE_STATE_RESIZE_BOTTOM:
+                resize(frameGeometry().width(), event->globalPos().y() - frameGeometry().top() + _windowWidget->frameGeometry().top());
+                break;
+            case MOUSE_STATE_RESIZE_LEFT | MOUSE_STATE_RESIZE_TOP:
+                resize(frameGeometry().width() - event->globalPos().x() + frameGeometry().left() + _windowWidget->frameGeometry().left(), frameGeometry().height() - event->globalPos().y() + frameGeometry().top() + _windowWidget->frameGeometry().top());
+                move(event->globalPos().x() - _windowWidget->frameGeometry().left(), event->globalPos().y() - _windowWidget->frameGeometry().top());
+                break;
+            case MOUSE_STATE_RESIZE_LEFT | MOUSE_STATE_RESIZE_BOTTOM:
+                resize(frameGeometry().width() - event->globalPos().x() + frameGeometry().left() + _windowWidget->frameGeometry().left(), event->globalPos().y() - frameGeometry().top() + _windowWidget->frameGeometry().top());
+                move(event->globalPos().x() - _windowWidget->frameGeometry().left(), frameGeometry().top());
+                break;
+            case MOUSE_STATE_RESIZE_RIGHT | MOUSE_STATE_RESIZE_TOP:
+                resize(event->globalPos().x() - frameGeometry().left() + _windowWidget->frameGeometry().left(), frameGeometry().height() - event->globalPos().y() + frameGeometry().top() + _windowWidget->frameGeometry().top());
+                move(frameGeometry().left(), event->globalPos().y() - _windowWidget->frameGeometry().top());
+                break;
+            case MOUSE_STATE_RESIZE_RIGHT | MOUSE_STATE_RESIZE_BOTTOM:
+                resize(event->globalPos().x() - frameGeometry().left() + _windowWidget->frameGeometry().left(), event->globalPos().y() - frameGeometry().top() + _windowWidget->frameGeometry().top());
+                break;
+            default:
+                if (_maximized) {
+                    qreal wRatio = (qreal)event->pos().x() / (qreal)_windowWidget->width();
+                    controlWindowScale();
+                    move(event->globalPos().x() - _windowWidget->width() * wRatio, event->globalPos().y() - 52);
+                }
+                else {
+                    move(frameGeometry().left() + event->globalPos().x() - _lastMousePosition.x(), frameGeometry().top() + event->globalPos().y() - _lastMousePosition.y());
+                }
+                break;
         }
         _lastMousePosition = event->globalPos().toPointF();
     }

@@ -5,7 +5,7 @@
 #include <qboxlayout.h>
 
 class RoundedCornerWidget : public QWidget {
-
+    
     Q_OBJECT
 
 public:
@@ -21,7 +21,7 @@ protected:
     QWidget* _mainWidget = nullptr;
     QVBoxLayout* _mainLayout = nullptr;
     QWidget* _borderWidget = nullptr;
-
+    
     // Initialization mark
     bool _initialized = false;
     void initializeWidgetUI();

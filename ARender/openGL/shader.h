@@ -11,7 +11,7 @@
 class Shader {
 protected:
     unsigned int _shaderId = 0;
-
+    
 public:
     Shader() {}
 
@@ -30,7 +30,7 @@ inline void Shader::dispose() {
 class VertexShader : public Shader {
 public:
     VertexShader(const std::string& sourceFilePath);
-
+    
 protected:
     virtual void compile(const std::string& sourceFilePath) override;
 };
@@ -56,7 +56,7 @@ public:
     static ShaderProgram empty() {
         return ShaderProgram();
     }
-
+    
 private:
     unsigned int _programId = 0;
 
@@ -71,12 +71,12 @@ public:
     ShaderProgram(VertexShader vertexShader, GeometryShader geometryShader);
     ShaderProgram(FragmentShader fragmentShader, GeometryShader geometryShader);
     ShaderProgram(VertexShader vertexShader, FragmentShader fragmentShader, GeometryShader geometryShader);
-
+    
 public:
     inline unsigned int programId() const { return _programId; }
 
     inline void attachShader(const Shader& shader) const;
-
+    
     inline void bind() const;
     inline void unbind() const;
     inline void dispose();

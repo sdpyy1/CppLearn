@@ -7,11 +7,11 @@
 class Logger {
 public:
     enum LogLevel { DEBUG, INFO, WARNING, ERR };
-
+    
 private:
     static LogLevel _level;
     static std::string _previous;
-
+    
 public:
     static void setLogLevel(LogLevel level);
     static void log(LogLevel level, std::string message);

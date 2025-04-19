@@ -2,7 +2,7 @@
 
 #include "aboutpage.h"
 
-AboutPage::AboutPage(QWidget* parent) :
+AboutPage::AboutPage(QWidget* parent) : 
     PageWidget(parent)
 {
     _contentWidget->setMouseTracking(true);
@@ -32,7 +32,7 @@ AboutPage::AboutPage(QWidget* parent) :
     _mainWidget->setLayout(_mainLayout);
     _titleLayout->addWidget(_mainWidget);
     _mainWidget->show();
-
+    
     // Construct contents
     _authorLabel = new LineEditWidget(_mainWidget);
     _authorLabel->mainLayout()->insertWidget(0, new QLabel("Authored by"));
@@ -74,7 +74,7 @@ AboutPage::AboutPage(QWidget* parent) :
     _line->setStyleSheet("background-color: #c2c2c2;");
     _mainLayout->addWidget(_line);
     _line->show();
-
+    
     _skyTerDev = new LineEditWidget(_mainWidget);
     _skyTerDev->mainLayout()->insertWidget(0, new QLabel("Sky & Terrain developer"));
     _skyTerDev->mainLayout()->insertSpacing(1, 8);
@@ -85,7 +85,7 @@ AboutPage::AboutPage(QWidget* parent) :
     _skyTerDev->setEnabled(false);
     _mainLayout->addWidget(_skyTerDev);
     _skyTerDev->show();
-
+    
     _lightingDev = new LineEditWidget(_mainWidget);
     _lightingDev->mainLayout()->insertWidget(0, new QLabel("Lighting developer"));
     _lightingDev->mainLayout()->insertSpacing(1, 8);
@@ -96,7 +96,7 @@ AboutPage::AboutPage(QWidget* parent) :
     _lightingDev->setEnabled(false);
     _mainLayout->addWidget(_lightingDev);
     _lightingDev->show();
-
+    
     _coreDev = new LineEditWidget(_mainWidget);
     _coreDev->mainLayout()->insertWidget(0, new QLabel("Core developer"));
     _coreDev->mainLayout()->insertSpacing(1, 8);
@@ -107,7 +107,7 @@ AboutPage::AboutPage(QWidget* parent) :
     _coreDev->setEnabled(false);
     _mainLayout->addWidget(_coreDev);
     _coreDev->show();
-
+    
     _uiDesigner = new LineEditWidget(_mainWidget);
     _uiDesigner->mainLayout()->insertWidget(0, new QLabel("UI designed by"));
     _uiDesigner->mainLayout()->insertSpacing(1, 8);
@@ -118,7 +118,7 @@ AboutPage::AboutPage(QWidget* parent) :
     _uiDesigner->setEnabled(false);
     _mainLayout->addWidget(_uiDesigner);
     _uiDesigner->show();
-
+    
     // add line break
     _line = new QWidget(_mainWidget);
     _line->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -126,7 +126,7 @@ AboutPage::AboutPage(QWidget* parent) :
     _line->setStyleSheet("background-color: #c2c2c2;");
     _mainLayout->addWidget(_line);
     _line->show();
-
+    
     _license = new LineEditWidget(_mainWidget);
     _license->mainLayout()->insertWidget(0, new QLabel("License"));
     _license->mainLayout()->insertSpacing(1, 8);
@@ -137,7 +137,7 @@ AboutPage::AboutPage(QWidget* parent) :
     _license->setEnabled(false);
     _mainLayout->addWidget(_license);
     _license->show();
-
+    
     _qtVersion = new LineEditWidget(_mainWidget);
     _qtVersion->mainLayout()->insertWidget(0, new QLabel("Qt Version"));
     _qtVersion->mainLayout()->insertSpacing(1, 8);
@@ -148,7 +148,7 @@ AboutPage::AboutPage(QWidget* parent) :
     _qtVersion->setEnabled(false);
     _mainLayout->addWidget(_qtVersion);
     _qtVersion->show();
-
+    
     _usedLibraries = new LineEditWidget(_mainWidget);
     _usedLibraries->mainLayout()->insertWidget(0, new QLabel("Special thanks to"));
     _usedLibraries->mainLayout()->insertSpacing(1, 8);
@@ -159,7 +159,7 @@ AboutPage::AboutPage(QWidget* parent) :
     _usedLibraries->setEnabled(false);
     _mainLayout->addWidget(_usedLibraries);
     _usedLibraries->show();
-
+    
     _githubLink = new LineEditWidget(_mainWidget);
     _githubLink->mainLayout()->insertWidget(0, new QLabel("Opensource Repo"));
     _githubLink->mainLayout()->insertSpacing(1, 8);

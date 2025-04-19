@@ -12,7 +12,7 @@
 #include "modelsetter.h"
 
 class EditorPage : public PageWidget {
-
+    
     Q_OBJECT
 
 public:
@@ -26,12 +26,12 @@ private:
     QHBoxLayout* _textButtonLayout = nullptr;
     QLabel* _textButtonIcon = nullptr;
     QLabel* _textButtonLabel = nullptr;
-
+    
     // UI elements
     QVBoxLayout* _titleLayout = nullptr;
     const QFont _titleFont = QFont("DengXian", 26, QFont::ExtraLight);
     QLabel* _titleLabel = nullptr;
-
+    
     QWidget* _mainWidget = nullptr;
     QHBoxLayout* _mainLayout = nullptr;
 

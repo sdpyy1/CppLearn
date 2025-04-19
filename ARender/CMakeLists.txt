@@ -5,14 +5,16 @@ project(ARender VERSION 0.1 LANGUAGES CXX)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
-
+# 把shader文件夹复制到构建目录
+file(COPY ${CMAKE_SOURCE_DIR}/shaders
+     DESTINATION ${CMAKE_BINARY_DIR})
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
+set(CMAKE_PREFIX_PATH "D:/qt/6.5.3/mingw_64/lib/cmake")
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 find_package(Qt6 REQUIRED COMPONENTS OpenGLWidgets)
-find_package(assimp REQUIRED)
+
 set(PROJECT_SOURCES
         main.cpp
         mainwindow.cpp
@@ -23,7 +25,7 @@ set(PROJECT_SOURCES
 INCLUDE_DIRECTORIES(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/third/include)
 file(GLOB OPENGL_SOURCES
     "openGL/*.h"
-
+    "openGL/*.cpp"
     "openGL/*.qrc"
 )
 file(GLOB PAGE_SOURCES
@@ -41,6 +43,11 @@ file(GLOB UTILS_SOURCES
     "utils/*.cpp"
     "utils/*.qrc"
 )
+file(GLOB SHADER
+
+    "shaders/*.glsl"
+
+)
 include_directories(component page utils openGL)
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(ARender
@@ -50,8 +57,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         ${OPENGL_SOURCES}
         ${PAGE_SOURCES}
         ${COMPONENT_SOURCES}
-
-
+        ${SHADER}
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET ARender APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
@@ -70,16 +76,12 @@ else()
         )
     endif()
 endif()
+# LINK_DIRECTORIES(${PROJECT_SOURCE_DIR}/third/lib)
 target_compile_definitions(ARender PRIVATE GLM_ENABLE_EXPERIMENTAL)
-
 target_link_libraries(ARender PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_link_libraries(ARender PRIVATE Qt6::OpenGLWidgets)
-# target_link_libraries(ARender PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/third/lib/libassimp.dll.a)
-target_link_libraries(ARender PRIVATE assimp::assimp)
-
-
-
-
+target_link_libraries(ARender PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/third/lib/libassimp-5d.dll)
+target_link_libraries(ARender PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/third/lib/libassimpd.dll.a)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an

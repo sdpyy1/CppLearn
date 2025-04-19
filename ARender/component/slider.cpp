@@ -30,38 +30,38 @@ Slider::Slider(float min, float max, int step, QWidget* parent) :
     _slider->setSingleStep(1);
     // Set slider style sheet
     QString grooveStyle = "QSlider::groove:horizontal {"
-                          "height:6px;"
-                          "border-radius:3px;"
-                          "}";
+        "height:6px;"
+        "border-radius:3px;"
+        "}";
     QString sliderStyle = "QSlider::handle:horizontal {"
-                          "width:12px;"
-                          "margin-bottom:-3px;"
-                          "margin-top:-3px;"
-                          "background:" + _handleColor.name(QColor::HexArgb) + ";"
-                                                                 "border-radius:6px;"
-                                                                 "}";
+        "width:12px;"
+        "margin-bottom:-3px;"
+        "margin-top:-3px;"
+        "background:" + _handleColor.name(QColor::HexArgb) + ";"
+        "border-radius:6px;"
+        "}";
     QString sliderHoverStyle = "QSlider::handle:horizontal:hover {"
-                               "width:12px;"
-                               "margin-bottom:-3px;"
-                               "margin-top:-3px;"
-                               "background:" + _hoverColor.name(QColor::HexArgb) + ";"
-                                                                     "border-radius:6px;"
-                                                                     "}";
+        "width:12px;"
+        "margin-bottom:-3px;"
+        "margin-top:-3px;"
+        "background:" + _hoverColor.name(QColor::HexArgb) + ";"
+        "border-radius:6px;"
+        "}";
     QString sliderPressStyle = "QSlider::handle:horizontal:pressed {"
-                               "width:12px;"
-                               "margin-bottom:-3px;"
-                               "margin-top:-3px;"
-                               "background:" + _pressColor.name(QColor::HexArgb) + ";"
-                                                                     "border-radius:6px;"
-                                                                     "}";
+        "width:12px;"
+        "margin-bottom:-3px;"
+        "margin-top:-3px;"
+        "background:" + _pressColor.name(QColor::HexArgb) + ";"
+        "border-radius:6px;"
+        "}";
     QString subStyle = "QSlider::sub-page:horizontal {"
-                       "background:" + _subColor.name(QColor::HexArgb) + ";"
-                                                           "border-radius:3px;"
-                                                           "}";
+        "background:" + _subColor.name(QColor::HexArgb) + ";"
+        "border-radius:3px;"
+        "}";
     QString addStyle = "QSlider::add-page:horizontal {"
-                       "background:" + _addColor.name(QColor::HexArgb) + ";"
-                                                           "border-radius:3px;"
-                                                           "}";
+        "background:" + _addColor.name(QColor::HexArgb) + ";"
+        "border-radius:3px;"
+        "}";
     _slider->setStyleSheet(grooveStyle + sliderStyle + sliderHoverStyle + sliderPressStyle + subStyle + addStyle);
     // Create decrease button
     _decreaseBtn = new PushButton(nullptr, this);
@@ -143,52 +143,52 @@ void Slider::generateColor(QColor schemeColor) {
         _hoverColor.red() * hoverBlendRatio + _handleColor.red() * (1 - hoverBlendRatio),
         _hoverColor.green() * hoverBlendRatio + _handleColor.green() * (1 - hoverBlendRatio),
         _hoverColor.blue() * hoverBlendRatio + _handleColor.blue() * (1 - hoverBlendRatio)
-        );
+    );
     _pressColor = schemeColor.lighter(20);
     float pressBlendRatio = 0.5;
     _pressColor = QColor(
         _pressColor.red() * pressBlendRatio + _handleColor.red() * (1 - pressBlendRatio),
         _pressColor.green() * pressBlendRatio + _handleColor.green() * (1 - pressBlendRatio),
         _pressColor.blue() * pressBlendRatio + _handleColor.blue() * (1 - pressBlendRatio)
-        );
+    );
 }
 
 void Slider::setColorScheme(QColor color) {
     generateColor(color);
     // Change style sheet
     QString grooveStyle = "QSlider::groove:horizontal {"
-                          "height:6px;"
-                          "border-radius:3px;"
-                          "}";
+        "height:6px;"
+        "border-radius:3px;"
+        "}";
     QString sliderStyle = "QSlider::handle:horizontal {"
-                          "width:12px;"
-                          "margin-bottom:-3px;"
-                          "margin-top:-3px;"
-                          "background:" + _handleColor.name(QColor::HexArgb) + ";"
-                                                                 "border-radius:6px;"
-                                                                 "}";
+        "width:12px;"
+        "margin-bottom:-3px;"
+        "margin-top:-3px;"
+        "background:" + _handleColor.name(QColor::HexArgb) + ";"
+        "border-radius:6px;"
+        "}";
     QString sliderHoverStyle = "QSlider::handle:horizontal:hover {"
-                               "width:12px;"
-                               "margin-bottom:-3px;"
-                               "margin-top:-3px;"
-                               "background:" + _hoverColor.name(QColor::HexArgb) + ";"
-                                                                     "border-radius:6px;"
-                                                                     "}";
+        "width:12px;"
+        "margin-bottom:-3px;"
+        "margin-top:-3px;"
+        "background:" + _hoverColor.name(QColor::HexArgb) + ";"
+        "border-radius:6px;"
+        "}";
     QString sliderPressStyle = "QSlider::handle:horizontal:pressed {"
-                               "width:12px;"
-                               "margin-bottom:-3px;"
-                               "margin-top:-3px;"
-                               "background:" + _pressColor.name(QColor::HexArgb) + ";"
-                                                                     "border-radius:6px;"
-                                                                     "}";
+        "width:12px;"
+        "margin-bottom:-3px;"
+        "margin-top:-3px;"
+        "background:" + _pressColor.name(QColor::HexArgb) + ";"
+        "border-radius:6px;"
+        "}";
     QString subStyle = "QSlider::sub-page:horizontal {"
-                       "background:" + _subColor.name(QColor::HexArgb) + ";"
-                                                           "border-radius:3px;"
-                                                           "}";
+        "background:" + _subColor.name(QColor::HexArgb) + ";"
+        "border-radius:3px;"
+        "}";
     QString addStyle = "QSlider::add-page:horizontal {"
-                       "background:" + _addColor.name(QColor::HexArgb) + ";"
-                                                           "border-radius:3px;"
-                                                           "}";
+        "background:" + _addColor.name(QColor::HexArgb) + ";"
+        "border-radius:3px;"
+        "}";
     _slider->setStyleSheet(grooveStyle + sliderStyle + sliderHoverStyle + sliderPressStyle + subStyle + addStyle);
     // Change button color
     _decreaseBtn->setColorScheme(color);
@@ -246,38 +246,38 @@ void Slider::setEnabled(bool enabled) {
         _pressColor = _restoredColor[4];
         // Change style sheet
         QString grooveStyle = "QSlider::groove:horizontal {"
-                              "height:6px;"
-                              "border-radius:3px;"
-                              "}";
+            "height:6px;"
+            "border-radius:3px;"
+            "}";
         QString sliderStyle = "QSlider::handle:horizontal {"
-                              "width:12px;"
-                              "margin-bottom:-3px;"
-                              "margin-top:-3px;"
-                              "background:" + _handleColor.name(QColor::HexArgb) + ";"
-                                                                     "border-radius:6px;"
-                                                                     "}";
+            "width:12px;"
+            "margin-bottom:-3px;"
+            "margin-top:-3px;"
+            "background:" + _handleColor.name(QColor::HexArgb) + ";"
+            "border-radius:6px;"
+            "}";
         QString sliderHoverStyle = "QSlider::handle:horizontal:hover {"
-                                   "width:12px;"
-                                   "margin-bottom:-3px;"
-                                   "margin-top:-3px;"
-                                   "background:" + _hoverColor.name(QColor::HexArgb) + ";"
-                                                                         "border-radius:6px;"
-                                                                         "}";
+            "width:12px;"
+            "margin-bottom:-3px;"
+            "margin-top:-3px;"
+            "background:" + _hoverColor.name(QColor::HexArgb) + ";"
+            "border-radius:6px;"
+            "}";
         QString sliderPressStyle = "QSlider::handle:horizontal:pressed {"
-                                   "width:12px;"
-                                   "margin-bottom:-3px;"
-                                   "margin-top:-3px;"
-                                   "background:" + _pressColor.name(QColor::HexArgb) + ";"
-                                                                         "border-radius:6px;"
-                                                                         "}";
+            "width:12px;"
+            "margin-bottom:-3px;"
+            "margin-top:-3px;"
+            "background:" + _pressColor.name(QColor::HexArgb) + ";"
+            "border-radius:6px;"
+            "}";
         QString subStyle = "QSlider::sub-page:horizontal {"
-                           "background:" + _subColor.name(QColor::HexArgb) + ";"
-                                                               "border-radius:3px;"
-                                                               "}";
+            "background:" + _subColor.name(QColor::HexArgb) + ";"
+            "border-radius:3px;"
+            "}";
         QString addStyle = "QSlider::add-page:horizontal {"
-                           "background:" + _addColor.name(QColor::HexArgb) + ";"
-                                                               "border-radius:3px;"
-                                                               "}";
+            "background:" + _addColor.name(QColor::HexArgb) + ";"
+            "border-radius:3px;"
+            "}";
         _slider->setStyleSheet(grooveStyle + sliderStyle + sliderHoverStyle + sliderPressStyle + subStyle + addStyle);
         // Change button color
         _decreaseBtn->setColorScheme(_subColor);

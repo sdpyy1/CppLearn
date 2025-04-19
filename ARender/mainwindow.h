@@ -1,14 +1,12 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
-#include "framelesswindow.h"
+#pragma once
 
-#include <QMainWindow>
-#include "aboutpage.h"
+#include <qevent.h>
+
+#include "framelesswindow.h"
 #include "sidebar.h"
 #include "editorpage.h"
-QT_BEGIN_NAMESPACE
-
-QT_END_NAMESPACE
+#include "aboutpage.h"
+// #include "settingpage.h"
 
 class MainWindow : public FramelessWindow
 {
@@ -19,14 +17,17 @@ public:
     ~MainWindow();
 
 private:
+    // Main ui layout
     QHBoxLayout* _mainLayout = nullptr;
+
+    // Side bar and corresponding pages
     SideBar* _sideBar = nullptr;
-    AboutPage* _aboutPage = nullptr;
     EditorPage* _editorPage = nullptr;
+    AboutPage* _aboutPage = nullptr;
+    // SettingPage* _settingPage = nullptr;
 
     // Place holder widget for resizing pages
     QWidget* _placeHolderWidget = nullptr;
-
 
 private:
     void resizePages(QResizeEvent* event);
@@ -35,4 +36,3 @@ private:
     virtual void showEvent(QShowEvent* event) override;
     virtual bool eventFilter(QObject* object, QEvent* event) override;
 };
-#endif // MAINWINDOW_H

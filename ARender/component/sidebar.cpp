@@ -39,7 +39,7 @@ SideBar::SideBar(QWidget* parent)
     _expandButtonIcon->setFont(QFont("Font Awesome 6 Free Solid", 14));
     _expandButtonIcon->setText("\uf0c9");
     _expandButton->setChildWidget(_expandButtonIcon);
-
+    
     // Connect the expand button event to expand / collapse event
     connect(_expandButton, &PushButton::onClick, this, [=]() {
         if (_expanded) {
@@ -49,7 +49,7 @@ SideBar::SideBar(QWidget* parent)
             expand();
         }
     });
-
+    
     // Add expand button to main layout
     _mainLayout->addWidget(_expandButton);
     _expandButton->show();
@@ -71,7 +71,7 @@ SideBar::SideBar(QWidget* parent)
     _pageTextButtonLayout->setContentsMargins(0, 0, 0, 0);
     _pageTextButtonLayout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
     _pageTextButtonWidget->setLayout(_pageTextButtonLayout);
-
+    
     // Add page icon and text button container widgets to main layout
     _mainLayout->addWidget(_pageIconButtonWidget);
     _mainLayout->addWidget(_pageTextButtonWidget);
@@ -91,7 +91,7 @@ void SideBar::expand() {
     expandAnimation->setStartValue(width());
     expandAnimation->setEndValue(_expandedWidth);
     expandAnimation->start(QAbstractAnimation::DeleteWhenStopped);
-
+    
     // Show the page text buttons
     _pageIconButtonWidget->hide();
     _pageTextButtonWidget->show();
@@ -142,19 +142,19 @@ void SideBar::selectPage(PageWidget* page) {
     if (page == nullptr) {
         return;
     }
-
+    
     // Deselect current page if there is one
     if (_currentPage != nullptr) {
         // Find the buttons of the current page
         int index = _pageList.indexOf(_currentPage);
         PushButton* currentPageIconButton = _pageButtonList.at(index).first;
         PushButton* currentPageTextButton = _pageButtonList.at(index).second;
-
+        
         // Deselect both the buttons
         currentPageIconButton->deselect();
         currentPageTextButton->deselect();
     }
-
+    
     // Temporarily store the current page
     PageWidget* previousPage = _currentPage;
 
@@ -180,11 +180,11 @@ void SideBar::addPage(PageWidget* page) {
 
     // Store the corresponding buttons
     _pageButtonList.append(QPair<PushButton*, PushButton*>(iconButton, textButton));
-
+    
     // Add the icon button to the icon button layout
     _pageIconButtonLayout->addWidget(iconButton);
     iconButton->show();
-
+    
     // Add the text button to the text button layout
     _pageTextButtonLayout->addWidget(textButton);
     textButton->show();
@@ -255,7 +255,7 @@ void SideBar::insertPage(PageWidget* page, int index) {
 void SideBar::removePage(PageWidget* page) {
     // Get the index of the page from the page list
     int index = _pageList.indexOf(page);
-
+    
     // Get the corresponding buttons
     PushButton* iconButton = _pageButtonList.at(index).first;
     PushButton* textButton = _pageButtonList.at(index).second;

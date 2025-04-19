@@ -39,7 +39,7 @@ void RoundedCornerWidget::initializeWidgetUI() {
     _borderWidget->setObjectName("borderWidget");
     QString borderWidgetStyleSheet =
         "QWidget#borderWidget{background-color:#00FFFFFF;border:2px solid " + _borderColor.name(QColor::HexArgb) + ";"
-                                                                                                                   "border-radius:" + QString::number(_cornerRadius) + "px;}";
+        "border-radius:" + QString::number(_cornerRadius) + "px;}";
     _borderWidget->setStyleSheet(borderWidgetStyleSheet);
     _borderWidget->setAttribute(Qt::WA_TransparentForMouseEvents);
     _borderWidget->move(0, 0);
@@ -59,7 +59,7 @@ void RoundedCornerWidget::resizeEvent(QResizeEvent* event) {
         _borderWidget->move(0, 0);
         _borderWidget->resize(width(), height());
     }
-
+    
     // Resize window mask
     if (_mainWidget != nullptr) {
         QPainterPath path;
@@ -77,10 +77,10 @@ void RoundedCornerWidget::setCornerRadius(int radius) {
     if (_borderWidget != nullptr) {
         QString styleSheet = _borderWidget->styleSheet();
         styleSheet.replace(QRegularExpression("border-radius:\\d+px;"),
-                           QString("border-radius:%1px;").arg(_cornerRadius));
+            QString("border-radius:%1px;").arg(_cornerRadius));
         _borderWidget->setStyleSheet(styleSheet);
     }
-
+    
     // Reset the mask of the main widget
     QPainterPath path;
     path.addRoundedRect(_mainWidget->rect(), _cornerRadius, _cornerRadius);
@@ -96,7 +96,7 @@ void RoundedCornerWidget::setBorderColor(QColor color) {
     if (_borderWidget != nullptr) {
         QString styleSheet = _borderWidget->styleSheet();
         styleSheet.replace(QRegularExpression("border:2px solid #\\w+;"),
-                           QString("border:2px solid %1;").arg(_borderColor.name(QColor::HexArgb)));
+            QString("border:2px solid %1;").arg(_borderColor.name(QColor::HexArgb)));
         _borderWidget->setStyleSheet(styleSheet);
     }
 }

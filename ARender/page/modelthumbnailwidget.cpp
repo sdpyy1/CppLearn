@@ -4,7 +4,7 @@
 
 #include "modelthumbnailwidget.h"
 
-ModelThumbnailWidget::ModelThumbnailWidget(Model* model, QWidget* parent) :
+ModelThumbnailWidget::ModelThumbnailWidget(Model* model, QWidget* parent) : 
     QOpenGLWidget(parent), _model(model)
 {
     // OpenGL initialize
@@ -18,26 +18,11 @@ ModelThumbnailWidget::ModelThumbnailWidget(Model* model, QWidget* parent) :
     if (!dir.exists()) {
         dir.mkpath(".");
     }
-
-    // Copy the shaders to the folder
-    extractShaderResource("thumbnailvertexshader.glsl");
-    extractShaderResource("thumbnailfragmentshader.glsl");
 }
 
 ModelThumbnailWidget::~ModelThumbnailWidget() {
 }
 
-void ModelThumbnailWidget::extractShaderResource(const QString& shaderName) {
-    QString shaderResourcePath = ":/shaders/" + shaderName;
-    QString shaderTempPath = "./temp/shaders/" + shaderName;
-
-    if (QFile::exists(shaderTempPath))
-    {
-        QFile::remove(shaderTempPath);
-    }
-    QFile::copy(shaderResourcePath, shaderTempPath);
-    QFile::setPermissions(shaderTempPath, QFile::ReadOwner | QFile::WriteOwner);
-}
 
 void ModelThumbnailWidget::initializeGL() {
     initializeOpenGLFunctions();
@@ -48,9 +33,9 @@ void ModelThumbnailWidget::initializeGL() {
     glEnable(GL_DEPTH_TEST);
 
     _shaderProgram.ensureInitialized();
-
-    VertexShader vertexShader("./temp/shaders/thumbnailvertexshader.glsl");
-    FragmentShader fragmentShader("./temp/shaders/thumbnailfragmentshader.glsl");
+    
+    VertexShader vertexShader("./shaders/thumbnailvertexshader.glsl");
+    FragmentShader fragmentShader("./shaders/thumbnailfragmentshader.glsl");
     _shaderProgram.attachShader(vertexShader);
     _shaderProgram.attachShader(fragmentShader);
     vertexShader.dispose();
@@ -58,7 +43,7 @@ void ModelThumbnailWidget::initializeGL() {
 
     _object.setModel(_model->copyToCurrentContext());
     _object.updateBoundary();
-
+    
     // Move the camera to the right position
     float viewportWidth = width();
     float viewportHeight = height();
@@ -75,14 +60,14 @@ void ModelThumbnailWidget::paintGL() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     _shaderProgram.bind();
-
+    
     glm::mat4 view = _camera.viewMatrix();
     glm::mat4 projection = _camera.projectionMatrix((float)width() / (float)height());
     _shaderProgram.setUniform("view", view);
     _shaderProgram.setUniform("projection", projection);
-
+    
     _object.render(_shaderProgram);
-
+    
     _shaderProgram.unbind();
 }
 

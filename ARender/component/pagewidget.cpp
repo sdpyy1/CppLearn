@@ -9,12 +9,12 @@ PageWidget::PageWidget(QWidget* parent) : QWidget(parent) {
     _stretchLayout->setContentsMargins(0, 0, 0, 0);
     _stretchLayout->setSpacing(0);
     setLayout(_stretchLayout);
-
+    
     // Construct content widget
     _contentWidget = new QWidget(this);
     _stretchLayout->addWidget(_contentWidget);
     _contentWidget->show();
-
+    
     // Add opacity effect to real content
     _pageOpacityEffect = new QGraphicsOpacityEffect(_contentWidget);
     _pageOpacityEffect->setOpacity(0);
@@ -43,7 +43,7 @@ void PageWidget::onStage() {
     onStageAnimation->addAnimation(moveAnimation);
     onStageAnimation->addAnimation(fadeInAnimation);
     onStageAnimation->start(QAbstractAnimation::DeleteWhenStopped);
-
+    
     // Show page
     show();
 }
@@ -63,7 +63,7 @@ void PageWidget::offStage() {
     //offStageAnimation->addAnimation(moveAnimation);
     offStageAnimation->addAnimation(fadeOutAnimation);
     offStageAnimation->start(QAbstractAnimation::DeleteWhenStopped);
-
+    
     // Connect animation finished signal to hide page
     connect(offStageAnimation, &QParallelAnimationGroup::finished, [=]() {
         move(_originPagePosition + QPoint(0, 150));

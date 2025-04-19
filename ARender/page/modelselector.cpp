@@ -7,7 +7,7 @@ ModelSelector::ModelSelector(QWidget* parent) :
 {
     // Set maximum width
     setMaximumWidth(240);
-
+    
     // Set up the main layout
     _stretchLayout = new QVBoxLayout(this);
     _stretchLayout->setContentsMargins(0, 0, 0, 0);
@@ -23,7 +23,7 @@ ModelSelector::ModelSelector(QWidget* parent) :
     _addNewObjectBtn->setBackgroundColor(QColor(58, 143, 183, 20));
     _stretchLayout->addWidget(_addNewObjectBtn);
     _addNewObjectBtn->show();
-
+    
     // Create the selection list widget
     _objectList = new ScrollListWidget(this);
     _stretchLayout->addWidget(_objectList);
@@ -41,7 +41,7 @@ void ModelSelector::addNewObject() {
     if (path.isEmpty()) {
         return;
     }
-
+    
     Logger::info("Loading model file from " + path.toStdString());
     Model* model = loadObject(path);
     if (model->status() != Model::LOADED) {
@@ -50,10 +50,10 @@ void ModelSelector::addNewObject() {
         return;
     }
     ModelSelectable* newSelectable = new ModelSelectable(model, this);
-
+    
     _objectSelectables.push_back(newSelectable);
     _objectList->addWidget(newSelectable);
-
+    
     connect(newSelectable, &ModelSelectable::onSelected, this, [=]() {
         emit onObjectSelected(model);
     });

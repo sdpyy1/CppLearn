@@ -7,9 +7,9 @@
 #include <qevent.h>
 
 class LineEditWidget : public QWidget {
-
+    
     Q_OBJECT
-
+       
 public:
     LineEditWidget(QWidget* parent = 0);
     ~LineEditWidget();
@@ -20,16 +20,16 @@ private:
 
     // UI elements
     QHBoxLayout* _mainLayout = nullptr; // For layout the user added components and the real editor component
-
+    
     QWidget* _backgroundWidget = nullptr;
     const QColor _defaultColorScheme = QColor(58, 143, 183);
     QColor _backgroundColor;
     QColor _hoverColor;
     QColor _pressedColor;
-
+    
     QWidget* _editorWidget = nullptr;   // Container widget for the real editor component
     QHBoxLayout* _editorWidgetLayout = nullptr;
-
+    
     QLineEdit* _editor = nullptr;
     const QFont _defaultFont = QFont("DengXian", 10, QFont::Normal);
 
@@ -38,7 +38,7 @@ private:
     const int _indicatorSpacing = 4;
     QColor _indicatorColor;
     QGraphicsOpacityEffect* _indicatorEffect;
-
+    
     // Editor state
     bool _hovered = false;
     bool _pressed = false;
@@ -50,7 +50,7 @@ private:
     // UI Util functions
     void initializeUI();
     void generateColor(QColor colorScheme);
-
+    
     // Interaction Util functions
     void startEdit();
     void endEdit();

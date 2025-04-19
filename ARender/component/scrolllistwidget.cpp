@@ -274,7 +274,7 @@ void ScrollListContainer::AddWidget(QWidget* widget, bool setAnimation) {
                     widgetOpac->deleteLater();
                 }
             }
-        });
+            });
     }
     else {
         for (int i = 0; i < size - 1; i++) {
