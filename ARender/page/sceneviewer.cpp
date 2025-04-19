@@ -9,7 +9,7 @@
 
 
 SceneViewer::SceneViewer(QWidget* parent)
-	: QOpenGLWidget(parent)
+    : QOpenGLWidget(parent)
 {
     // Set mouse tracking
     setMouseTracking(true);
@@ -24,26 +24,6 @@ SceneViewer::SceneViewer(QWidget* parent)
     format.setVersion(4, 3);
     setFormat(format);
 
-    // Create temp folder
-    QDir dir;
-    if (!dir.exists("./temp"))
-    {
-        dir.mkdir("./temp");
-    }
-    if (!dir.exists("./temp/shaders"))
-    {
-        dir.mkdir("./temp/shaders");
-    }
-    
-    // Copy the shaders to the temp folder
-    extractShaderResource("vertexshader.glsl");
-    extractShaderResource("fragmentshader.glsl");
-    extractShaderResource("skyboxvertexshader.glsl");
-    extractShaderResource("skyboxfragmentshader.glsl");
-    extractShaderResource("terrainvertexshader.glsl");
-    extractShaderResource("terrainfragmentshader.glsl");
-    extractShaderResource("boundfragmentshader.glsl");
-    extractShaderResource("boundvertexshader.glsl");
 }
 
 SceneViewer::~SceneViewer() {
@@ -56,17 +36,6 @@ SceneViewer::~SceneViewer() {
     }
 }
 
-void SceneViewer::extractShaderResource(const QString& shaderName) {
-    QString shaderResourcePath = ":/shaders/" + shaderName;
-    QString shaderTempPath = "./temp/shaders/" + shaderName;
-    
-    if (QFile::exists(shaderTempPath))
-    {
-        QFile::remove(shaderTempPath);
-    }
-    QFile::copy(shaderResourcePath, shaderTempPath);
-    QFile::setPermissions(shaderTempPath, QFile::ReadOwner | QFile::WriteOwner);
-}
 
 Renderable* SceneViewer::hitTest(const Ray& ray) {
     HitRecord newRecord = HitRecord();
@@ -109,22 +78,27 @@ Renderable* SceneViewer::hitTest(const Ray& ray) {
     return newObject;
 }
 
+// 加载各种shader、设置光照、设置摄像机
 void SceneViewer::initializeGL() {
     initializeOpenGLFunctions();
-    
+
+    // 加载默认天空盒子
+    _sky = new SkyBox("./assets/skybox");
+
+
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_FRAMEBUFFER_SRGB);
-	
+
     Logger::info("Currently running on OpenGL version: " + std::string((const char*)glGetString(GL_VERSION)));
 
     _shaderProgram.ensureInitialized();
     Logger::info("Shader Program initialized");
 
-    VertexShader vertexShader("./temp/shaders/vertexshader.glsl");
-    FragmentShader fragmentShader("./temp/shaders/fragmentshader.glsl");
+    VertexShader vertexShader("./shaders/thumbnailvertexshader.glsl");
+    FragmentShader fragmentShader("./shaders/thumbnailfragmentshader.glsl");
     _shaderProgram.attachShader(vertexShader);
     _shaderProgram.attachShader(fragmentShader);
     vertexShader.dispose();
@@ -132,8 +106,8 @@ void SceneViewer::initializeGL() {
 
     _boundShader.ensureInitialized();
     Logger::info("Bound Shader initialized");
-    VertexShader boundVertexShader("./temp/shaders/boundvertexshader.glsl");
-    FragmentShader boundFragmentShader("./temp/shaders/boundfragmentshader.glsl");
+    VertexShader boundVertexShader("./shaders/boundvertexshader.glsl");
+    FragmentShader boundFragmentShader("./shaders/boundfragmentshader.glsl");
     _boundShader.attachShader(boundVertexShader);
     _boundShader.attachShader(boundFragmentShader);
     boundVertexShader.dispose();
@@ -141,38 +115,43 @@ void SceneViewer::initializeGL() {
 
     _skyShader.ensureInitialized();
     Logger::info("Sky Shader initialized");
-    
-    VertexShader skyVertexShader("./temp/shaders/skyboxvertexshader.glsl");
-    FragmentShader skyFragmentShader("./temp/shaders/skyboxfragmentshader.glsl");
+    VertexShader skyVertexShader("./shaders/skyboxvertexshader.glsl");
+    FragmentShader skyFragmentShader("./shaders/skyboxfragmentshader.glsl");
     _skyShader.attachShader(skyVertexShader);
     _skyShader.attachShader(skyFragmentShader);
     skyVertexShader.dispose();
     skyFragmentShader.dispose();
-    
+
     _terrainShader.ensureInitialized();
     Logger::info("Terrain Shader initialized");
-    
-    VertexShader terrainVertexShader("./temp/shaders/terrainvertexshader.glsl");
-    FragmentShader terrainFragmentShader("./temp/shaders/terrainfragmentshader.glsl");
+    VertexShader terrainVertexShader("./shaders/terrainvertexshader.glsl");
+    FragmentShader terrainFragmentShader("./shaders/terrainfragmentshader.glsl");
     _terrainShader.attachShader(terrainVertexShader);
     _terrainShader.attachShader(terrainFragmentShader);
     terrainVertexShader.dispose();
     terrainFragmentShader.dispose();
-    
+
     _dirLight = new DirLight();
-    
+
     _camera.setPosition(glm::vec3(0.0f, 0.0f, 10.0f));
 }
 
+// 调整窗口
 void SceneViewer::resizeGL(int w, int h) {
     glViewport(0, 0, w, h);
 }
-
+void printMat4(const glm::mat4& mat) {
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            std::cout << mat[j][i] << " ";
+        }
+        std::cout << std::endl;
+    }
+}
+// 渲染
 void SceneViewer::paintGL() {
-    Logger::debug("Repainting");
-    
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
+
     // Set view and projection matrices
     glm::mat4 view = _camera.viewMatrix();
     glm::mat4 projection = _camera.projectionMatrix((float)width() / (float)height());
@@ -221,7 +200,7 @@ void SceneViewer::paintGL() {
             }
         }
     }
-    
+
     _shaderProgram.setUniform("pointlightnr", pointLights);
     _shaderProgram.setUniform("spotlightnr", spotLights);
 
@@ -325,7 +304,7 @@ void SceneViewer::mouseReleaseEvent(QMouseEvent* event) {
         _hideBound = false;
         emit onSelect(_selectedObject);
     }
-    
+
     // Reset pressed object
     _pressedObject = nullptr;
 
@@ -334,7 +313,7 @@ void SceneViewer::mouseReleaseEvent(QMouseEvent* event) {
     float relY = 1 - (float)event->y() / (float)height();
     Ray ray = _camera.generateRay(glm::vec2(relX, relY), (float)width() / (float)height());
     _hoveredObject = hitTest(ray);
-    
+
     if (startOperatingObject) {
         // If just setted to operating mode, move the object
         moveOperatingObject(ray);
@@ -477,7 +456,7 @@ void SceneViewer::keyPressEvent(QKeyEvent* event) {
         Logger::debug("Control pressed");
         _controlPressed = true;
     }
-    
+
     if (event->modifiers() == Qt::NoModifier && _selectedObject != nullptr) {
         switch (event->key()) {
             case Qt::Key_W: {
@@ -579,7 +558,7 @@ void SceneViewer::moveOperatingObject(const Ray& ray) {
 
         // Move the model to the hit point
         glm::vec3 target = _hitRecord.position();
-        
+
         glm::vec3 newCenter = target + modelCenter - bottomCenter;
         _operatingObject->setPosition(newCenter);
 
@@ -602,6 +581,7 @@ void SceneViewer::moveOperatingObject(const Ray& ray) {
 }
 
 void SceneViewer::addObject(Model* model) {
+    Logger::info("添加模型！！！");
     makeCurrent();
     Model* newModel = model->copyToCurrentContext();
     Renderable* newObject = new Renderable(newModel);

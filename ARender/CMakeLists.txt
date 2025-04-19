@@ -8,6 +8,8 @@ set(CMAKE_AUTORCC ON)
 # 把shader文件夹复制到构建目录
 file(COPY ${CMAKE_SOURCE_DIR}/shaders
      DESTINATION ${CMAKE_BINARY_DIR})
+file(COPY ${CMAKE_SOURCE_DIR}/assets
+     DESTINATION ${CMAKE_BINARY_DIR})
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_PREFIX_PATH "D:/qt/6.5.3/mingw_64/lib/cmake")
@@ -44,9 +46,10 @@ file(GLOB UTILS_SOURCES
     "utils/*.qrc"
 )
 file(GLOB SHADER
-
     "shaders/*.glsl"
-
+)
+file(GLOB ASSETS
+    "assets/*"
 )
 include_directories(component page utils openGL)
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -58,6 +61,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         ${PAGE_SOURCES}
         ${COMPONENT_SOURCES}
         ${SHADER}
+        ${ASSETS}  # just for qt creator show the dir
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET ARender APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

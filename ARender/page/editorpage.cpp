@@ -80,7 +80,7 @@ EditorPage::~EditorPage() {}
 
 void EditorPage::updateSetting(QPair<QString, QString> setting) {
     if (_sceneViewer != nullptr) {
-        _sceneViewer->updateSetting(setting);
+        // _sceneViewer->updateSetting(setting);
     }
 }
 

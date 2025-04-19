@@ -63,7 +63,7 @@ void ModelSelector::addNewObject() {
 }
 
 QString ModelSelector::getNewObjectPath() {
-    QString path = QFileDialog::getOpenFileName(this, "Select Model", "", "Model Files (*.obj)");
+    QString path = QFileDialog::getOpenFileName(this, "Select Model", "./assets", "Model Files (*.obj)");
     return path;
 }
 

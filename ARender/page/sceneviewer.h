@@ -62,10 +62,10 @@ private:
     // UI interface control
     const int _cornerRadius = 10;
     bool _initialized = false;
-	
+
 public:
-	SceneViewer(QWidget* parent = 0);
-	~SceneViewer();
+    SceneViewer(QWidget* parent = 0);
+    ~SceneViewer();
 
 private:
     void extractShaderResource(const QString& shaderName);
@@ -94,7 +94,7 @@ protected:
     virtual void keyReleaseEvent(QKeyEvent* event) override;
 
 public:
-    void setDragFlag() { 
+    void setDragFlag() {
         _hideBound = true;
         parentWidget()->update();
     }
