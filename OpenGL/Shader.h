@@ -115,24 +115,24 @@ public:
         GL_CALL(vertex = glCreateShader(GL_VERTEX_SHADER));
         GL_CALL(glShaderSource(vertex, 1, &vShaderCode, NULL));
         GL_CALL(glCompileShader(vertex));
-        GL_CALL(checkCompileErrors(vertex, "VERTEX"));
+        checkCompileErrors(vertex, "VERTEX");
         // 几何着色器
         GL_CALL(geometry = glCreateShader(GL_GEOMETRY_SHADER));
         glShaderSource(geometry, 1, &gShaderCode, NULL);
         glCompileShader(geometry);
-        GL_CALL(checkCompileErrors(geometry, "GEOMETRY"));
+        checkCompileErrors(geometry, "GEOMETRY");
         // fragment Shader
         GL_CALL(fragment = glCreateShader(GL_FRAGMENT_SHADER));
         GL_CALL(glShaderSource(fragment, 1, &fShaderCode, NULL));
         GL_CALL(glCompileShader(fragment));
-        GL_CALL(checkCompileErrors(fragment, "FRAGMENT"));
+        checkCompileErrors(fragment, "FRAGMENT");
         // shader Program
         GL_CALL(ID = glCreateProgram());
         GL_CALL(glAttachShader(ID, vertex));
         GL_CALL(glAttachShader(ID, fragment));
         GL_CALL(glAttachShader(ID, geometry));
         GL_CALL(glLinkProgram(ID));
-        GL_CALL(checkCompileErrors(ID, "PROGRAM"));
+        checkCompileErrors(ID, "PROGRAM");
         // delete the shaders as they're linked into our program now and no longer necessary
         GL_CALL(glDeleteShader(vertex));
         GL_CALL(glDeleteShader(fragment));
