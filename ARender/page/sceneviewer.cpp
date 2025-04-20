@@ -82,10 +82,6 @@ Renderable* SceneViewer::hitTest(const Ray& ray) {
 void SceneViewer::initializeGL() {
     initializeOpenGLFunctions();
 
-    // 加载默认天空盒子
-    _sky = new SkyBox("./assets/skybox");
-
-
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -185,30 +181,30 @@ void SceneViewer::paintGL() {
     _shaderProgram.setUniform("projection", projection);
     _shaderProgram.setUniform("viewPos", _camera.position());
 
-    int pointLights = 0;
-    int spotLights = 0;
+    // int pointLights = 0;
+    // int spotLights = 0;
 
-    // Update lights
-    for (auto object : _objects) {
-        if (object->hasLight()) {
-            ScopedLight light = object->transformedLight();
-            if (light.isPointLight()) {
-                light.updateShader(_shaderProgram, pointLights++);
-            }
-            else {
-                light.updateShader(_shaderProgram, spotLights++);
-            }
-        }
-    }
+    // // Update lights
+    // for (auto object : _objects) {
+    //     if (object->hasLight()) {
+    //         ScopedLight light = object->transformedLight();
+    //         if (light.isPointLight()) {
+    //             light.updateShader(_shaderProgram, pointLights++);
+    //         }
+    //         else {
+    //             light.updateShader(_shaderProgram, spotLights++);
+    //         }
+    //     }
+    // }
 
-    _shaderProgram.setUniform("pointlightnr", pointLights);
-    _shaderProgram.setUniform("spotlightnr", spotLights);
+    // _shaderProgram.setUniform("pointlightnr", pointLights);
+    // _shaderProgram.setUniform("spotlightnr", spotLights);
 
-    if (_dirLight != nullptr && _dirLightOn) {
-        _dirLight->updateShader(_shaderProgram, 0);
-    }
+    // if (_dirLight != nullptr && _dirLightOn) {
+    //     _dirLight->updateShader(_shaderProgram, 0);
+    // }
 
-    _shaderProgram.setUniform("dirlightnr", _dirLight != nullptr && _dirLightOn ? 1 : 0);
+    // _shaderProgram.setUniform("dirlightnr", _dirLight != nullptr && _dirLightOn ? 1 : 0);
 
     // Render objects
     for (auto object : _objects) {
@@ -581,7 +577,6 @@ void SceneViewer::moveOperatingObject(const Ray& ray) {
 }
 
 void SceneViewer::addObject(Model* model) {
-    Logger::info("添加模型！！！");
     makeCurrent();
     Model* newModel = model->copyToCurrentContext();
     Renderable* newObject = new Renderable(newModel);
@@ -617,6 +612,7 @@ void SceneViewer::deleteObject() {
 }
 
 void SceneViewer::updateSetting(QPair<QString, QString> setting) {
+    Logger::info("场景配置更新" + setting.first.toStdString() + ":" + setting.second.toStdString());
     makeCurrent();
     if (setting.first == "stickSurface") {
         if (setting.second == "true") {
@@ -678,4 +674,12 @@ void SceneViewer::updateSetting(QPair<QString, QString> setting) {
         Logger::warning("Unknown setting input");
     }
     doneCurrent();
+}
+
+void SceneViewer::changeRenderFlag()
+{
+    if(_selectedObject != nullptr){
+        _selectedObject->changeRenderLineFlag();
+    }
+    parentWidget()->update();
 }

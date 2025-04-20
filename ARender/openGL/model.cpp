@@ -189,6 +189,20 @@ void Model::render(const ShaderProgram& shader) const {
     }
 }
 
+void Model::renderLine(const ShaderProgram& shader)
+{
+    // Test for model status
+    if (_status != LOADED) {
+        Logger::error("Trying to render unloaded model");
+        return;
+    }
+    // Render the model
+    for (unsigned int i = 0; i < _meshes.size(); i++) {
+        _meshes[i].renderLine(shader);
+    }
+}
+
+
 HitRecord Model::hit(const Ray& ray, const glm::mat4& modelMatrix) const {
     HitRecord record = HitRecord();
     for (unsigned int i = 0; i < _meshes.size(); i++) {

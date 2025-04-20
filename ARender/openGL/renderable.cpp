@@ -66,6 +66,11 @@ void Renderable::disposeLight() {
     }
 }
 
+void Renderable::changeRenderLineFlag()
+{
+    isRenderLine = !isRenderLine;
+}
+
 void Renderable::render(ShaderProgram shader) {
     // Check if initialized
     if (_model == nullptr) {
@@ -76,7 +81,11 @@ void Renderable::render(ShaderProgram shader) {
     shader.setUniform("model", modelMatrix());
 
     // Render
-    _model->render(shader);
+    if(isRenderLine){
+        _model->renderLine(shader);
+    }else{
+        _model->render(shader);
+    }
 }
 
 void Renderable::updateBoundary() {

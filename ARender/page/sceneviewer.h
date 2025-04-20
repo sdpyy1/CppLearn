@@ -106,7 +106,7 @@ public:
     }
     void deleteObject();
     void updateSetting(QPair<QString, QString> setting);
-
+    void changeRenderFlag();
 signals:
     void onHover(Renderable* object);
     void onSelect(Renderable* object);

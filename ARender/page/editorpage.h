@@ -6,6 +6,7 @@
 #include <qpair.h>
 
 #include "pagewidget.h"
+#include "globalsetting.h"
 #include "sceneviewer.h"
 #include "roundedcornerwidget.h"
 #include "modelselector.h"
@@ -44,6 +45,8 @@ private:
     SceneViewer* _sceneViewer = nullptr;
 
     ModelSetter* _modelSetter = nullptr;
+
+    GlobalSetting * _globalSetting = nullptr;
 
 public:
     void updateSetting(QPair<QString, QString> setting);

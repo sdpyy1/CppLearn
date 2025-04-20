@@ -49,5 +49,6 @@ private:
 
 public:
     void render(const ShaderProgram& shader) const;
+    void renderLine(const ShaderProgram& shader);
     HitRecord hit(const Ray& ray, const glm::mat4& modelMatrix) const;    // test the hit record of an input array (transformed into local space)
 };

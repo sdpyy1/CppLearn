@@ -1,13 +1,7 @@
 #include <QtWidgets/QApplication>
 #include <qfontdatabase.h>
-#include <string>
-#include <fstream>
-#include <sstream>
-#include <iostream>
-#include <QDir>
 #include "mainwindow.h"
-#include "logger.h"
-#include"iostream"
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv); // Create main application instance
@@ -21,7 +15,7 @@ int main(int argc, char *argv[])
 
     MainWindow w;
     w.setMouseTracking(true);
-    w.resize(1250, 750);
+    w.resize(1680, 1200);
     w.show();
     return a.exec();
 }

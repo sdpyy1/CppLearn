@@ -45,6 +45,13 @@ void Mesh::render(const ShaderProgram& shader) const {
     _vao.unbind();
 }
 
+void Mesh::renderLine(const ShaderProgram &shader) const
+{
+    _vao.bind();
+    OPENGL_EXTRA_FUNCTIONS->glDrawElements(GL_LINE_STRIP, _indices.size(), GL_UNSIGNED_INT, 0);
+    _vao.unbind();
+}
+
 void Mesh::setupMesh() {
     _vao = VertexArrayObject(_vertices, _indices);
     _vao.setVertexAttributePointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);

@@ -64,6 +64,13 @@ EditorPage::EditorPage(QWidget* parent) :
     _modelSetter->setObjectName("ModelSetter");
     _modelSetter->setStyleSheet("#ModelSetter { background-color: #f0f0f0; border-radius: 10px; }");
 
+
+    // 全局修改模块
+    _globalSetting  = new GlobalSetting(_mainWidget);
+    _mainLayout->addWidget(_globalSetting);
+    _globalSetting->show();
+
+
     // Connect signals
     connect(_modelSelector, &ModelSelector::onObjectSelected, _sceneViewer, &SceneViewer::addObject);
     connect(_sceneViewer, &SceneViewer::onSelect, _modelSetter, &ModelSetter::update);
@@ -74,13 +81,17 @@ EditorPage::EditorPage(QWidget* parent) :
         _sceneViewer->update();
     });
     connect(_modelSetter, &ModelSetter::onDeleteObject, _sceneViewer, &SceneViewer::deleteObject);
+
+    connect(_globalSetting,&GlobalSetting::onSettingsChanged, _sceneViewer, &SceneViewer::updateSetting);
+    connect(_globalSetting,&GlobalSetting::changeRenderLineFlag, _sceneViewer, &SceneViewer::changeRenderFlag);
+
 }
 
 EditorPage::~EditorPage() {}
 
 void EditorPage::updateSetting(QPair<QString, QString> setting) {
     if (_sceneViewer != nullptr) {
-        // _sceneViewer->updateSetting(setting);
+        _sceneViewer->updateSetting(setting);
     }
 }
 
