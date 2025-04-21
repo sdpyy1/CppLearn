@@ -163,3 +163,13 @@ ShaderProgram::ShaderProgram(VertexShader vertexShader, FragmentShader fragmentS
     fragmentShader.dispose();
     geometryShader.dispose();
 }
+ShaderProgram::ShaderProgram(const std::string& vertexFilePath,const std::string& fragFilePath){
+    _programId = OPENGL_EXTRA_FUNCTIONS->glCreateProgram();
+    VertexShader vertexShader = VertexShader(vertexFilePath);
+    FragmentShader fragmentShader = FragmentShader(fragFilePath);
+    OPENGL_EXTRA_FUNCTIONS->glAttachShader(_programId, vertexShader.shaderId());
+    OPENGL_EXTRA_FUNCTIONS->glAttachShader(_programId, fragmentShader.shaderId());
+    OPENGL_EXTRA_FUNCTIONS->glLinkProgram(_programId);
+    vertexShader.dispose();
+    fragmentShader.dispose();
+}

@@ -71,6 +71,7 @@ public:
     ShaderProgram(VertexShader vertexShader, GeometryShader geometryShader);
     ShaderProgram(FragmentShader fragmentShader, GeometryShader geometryShader);
     ShaderProgram(VertexShader vertexShader, FragmentShader fragmentShader, GeometryShader geometryShader);
+    ShaderProgram(const std::string& vertexFilePath,const std::string& fragFilePath);
     
 public:
     inline unsigned int programId() const { return _programId; }

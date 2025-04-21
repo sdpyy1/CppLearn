@@ -90,16 +90,16 @@ void SceneViewer::initializeGL() {
 
     Logger::info("Currently running on OpenGL version: " + std::string((const char*)glGetString(GL_VERSION)));
 
-    _shaderProgram.ensureInitialized();
-    Logger::info("Shader Program initialized");
+//    _shaderProgram.ensureInitialized();
+//    Logger::info("Shader Program initialized");
 
-    VertexShader vertexShader("./shaders/thumbnailvertexshader.glsl");
-    FragmentShader fragmentShader("./shaders/thumbnailfragmentshader.glsl");
-    _shaderProgram.attachShader(vertexShader);
-    _shaderProgram.attachShader(fragmentShader);
-    vertexShader.dispose();
-    fragmentShader.dispose();
-
+//    VertexShader vertexShader("./shaders/thumbnailvertexshader.glsl");
+//    FragmentShader fragmentShader("./shaders/thumbnailfragmentshader.glsl");
+//    _shaderProgram.attachShader(vertexShader);
+//    _shaderProgram.attachShader(fragmentShader);
+//    vertexShader.dispose();
+//    fragmentShader.dispose();
+    _shaderProgram = ShaderProgram("./shaders/thumbnailvertexshader.glsl","./shaders/thumbnailfragmentshader.glsl");
     _boundShader.ensureInitialized();
     Logger::info("Bound Shader initialized");
     VertexShader boundVertexShader("./shaders/boundvertexshader.glsl");
