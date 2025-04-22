@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <limits>
+#include <future>
 #include <Assimp/Importer.hpp>
 #include <Assimp/scene.h>
 #include <Assimp/postprocess.h>
@@ -30,7 +31,7 @@ public:
 
 private:
     Model(std::vector<Mesh>&& meshes, std::vector<Texture>&& textures, std::string directory, Boundary boundBox);
-
+    void printModelInfo();
 public:
     inline MODELSTATUS status() const { return _status; }
     inline int meshCount() const { return _meshes.size(); }
@@ -42,6 +43,7 @@ public:
     Model* copyToCurrentContext() const;
 
 private:
+    std::future<void> loadModelAsync(std::string path);
     void loadModel(std::string path);
     void processNode(aiNode* node, const aiScene* scene);
     Mesh processMesh(aiMesh* mesh, const aiScene* scene);

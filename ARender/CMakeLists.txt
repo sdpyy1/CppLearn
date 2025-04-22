@@ -45,8 +45,11 @@ file(GLOB UTILS_SOURCES
     "utils/*.cpp"
     "utils/*.qrc"
 )
+# 写这个只是为了显示在QT
 file(GLOB SHADER
-    "shaders/*.glsl"
+    "shaders/*.glsl"   # 一些默认的就不显示了，
+    "shaders/*.frag"
+    "shaders/*.vert"
 )
 file(GLOB ASSETS
     "assets/*"

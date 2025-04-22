@@ -8,6 +8,9 @@
 #include "pushbutton.h"
 #include <QVBoxLayout>
 #include <QWidget>
+#include <Renderable.h>
+#include <RoundedCornerWidget.h>
+#include <Slider.h>
 
 class GlobalSetting : public QWidget
 {
@@ -15,13 +18,23 @@ class GlobalSetting : public QWidget
 public:
     explicit GlobalSetting(QWidget *parent = nullptr);
     void selectSkyBox();
+    void selectObject(Renderable* object);
+
+
+
 private:
     QVBoxLayout * _mainLayout;
+    Renderable * _selectedObject;
+    // 按钮
     PushButton * _skyBtn;
     PushButton * _lineModelBtn;
     PushButton * _waitingAdd1;
     PushButton * _waitingAdd2;
     PushButton * _waitingAdd3;
+
+    // 操作界面
+    Slider * _lineChange;
+
 signals:
     void onSettingsChanged(QPair<QString, QString> settings);
     void changeRenderLineFlag();

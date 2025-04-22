@@ -3,14 +3,57 @@
 #include "logger.h"
 #include "model.h"
 
+void Model::printModelInfo() {
+    // 打印模型基本信息
+    Logger::info("===== Model Information =====");
+
+    // 打印状态信息
+    QString statusStr;
+    switch(_status) {
+    case LOADING: statusStr = "LOADING"; break;
+    case LOADED: statusStr = "LOADED"; break;
+    case ERR: statusStr = "ERROR"; break;
+    }
+    Logger::info("Status: " + statusStr.toStdString());
+
+    // 打印网格信息
+    Logger::info("Mesh count: " + QString::number(_meshes.size()).toStdString());
+    for(size_t i = 0; i < _meshes.size(); ++i) {
+        Logger::info((QString("  Mesh %1: %2 vertices, %3 indices")
+                         .arg(i)
+                         .arg(_meshes[i]._vertices.size())
+                         .arg(_meshes[i]._indices.size())).toStdString());
+    }
+
+    // 打印纹理信息
+    Logger::info("Texture count: " + QString::number(_texturesLoaded.size()).toStdString());
+    for(const auto& tex : _texturesLoaded) {
+        QString typeStr;
+        switch(tex._type) {
+        case DIFFUSE: typeStr = "DIFFUSE"; break;
+        case SPECULAR: typeStr = "SPECULAR"; break;
+        }
+        Logger::info((QString("  Texture ID: %1, Type: %2, Path: %3")
+                         .arg(tex._id)
+                         .arg(typeStr)
+                         .arg(QString::fromStdString(tex._path))).toStdString());
+    }
+    Logger::info("=============================");
+}
+
 Model::Model(std::string path) {
     // Load model meta info from path
     // TODO: Implement as async task
     loadModel(path);
+    printModelInfo();
 }
 
 Model::~Model() {
     // TODO: Maybe delete all meshes?
+    // 删除所有网格
+    _meshes.clear();
+    // 可以考虑其他资源清理，如纹理等
+    _texturesLoaded.clear();
 }
 
 Model::Model(std::vector<Mesh>&& meshes, std::vector<Texture>&& textures, std::string directory, Boundary boundBox) {
@@ -22,7 +65,7 @@ Model::Model(std::vector<Mesh>&& meshes, std::vector<Texture>&& textures, std::s
 }
 
 void Model::loadModel(std::string path) {
-    Logger::info("Loading model from path: " + path);
+    Logger::debug("加载模型路径：" + path);
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(
         path, aiProcess_Triangulate | aiProcess_FlipUVs);
@@ -35,13 +78,12 @@ void Model::loadModel(std::string path) {
     // Convert all '\' to '/'
     std::replace(path.begin(), path.end(), '\\', '/');
     _directory = path.substr(0, path.find_last_of('/'));
-    
-    Logger::info("Model read successfully");
-    Logger::info("Processing model nodes");
+
+    Logger::debug("Model read successfully");
+    Logger::debug("Processing model nodes");
     processNode(scene->mRootNode, scene);
-    
     _status = LOADED;
-    Logger::info("Model loaded");
+    Logger::debug("Model loaded");
 }
 
 void Model::processNode(aiNode* node, const aiScene* scene) {
@@ -50,7 +92,7 @@ void Model::processNode(aiNode* node, const aiScene* scene) {
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
         _meshes.push_back(processMesh(mesh, scene));
     }
-    
+
     // Recursively process child nodes
     for (unsigned int i = 0; i < node->mNumChildren; i++) {
         processNode(node->mChildren[i], scene);
@@ -71,7 +113,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene) {
         glm::vec2 vertexTextureCoordinate = glm::vec2(0.0f);
         glm::vec3 vertexTangent = glm::vec3(0.0f);
         glm::vec3 vertexBitangent = glm::vec3(0.0f);
-        
+
         // Process vertex position
         vertexPosition.x = mesh->mVertices[i].x;
         vertexPosition.y = mesh->mVertices[i].y;
@@ -92,7 +134,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene) {
             // Process texture coordinates
             vertexTextureCoordinate.x = mesh->mTextureCoords[0][i].x;
             vertexTextureCoordinate.y = mesh->mTextureCoords[0][i].y;
-            
+
             //// Process vertex tangents
             //if (mesh->mTangents) {
             //    vertexTangent.x = mesh->mTangents[i].x;
@@ -187,6 +229,11 @@ void Model::render(const ShaderProgram& shader) const {
     for (unsigned int i = 0; i < _meshes.size(); i++) {
         _meshes[i].render(shader);
     }
+
+    // 渲染完成后解绑纹理
+    for(int i = 0;i<_texturesLoaded.size();i++){
+        _texturesLoaded[i].unbind();
+    }
 }
 
 void Model::renderLine(const ShaderProgram& shader)
@@ -199,6 +246,10 @@ void Model::renderLine(const ShaderProgram& shader)
     // Render the model
     for (unsigned int i = 0; i < _meshes.size(); i++) {
         _meshes[i].renderLine(shader);
+    }
+    // 渲染完成后解绑纹理
+    for(int i = 0;i<_texturesLoaded.size();i++){
+        _texturesLoaded[i].unbind();
     }
 }
 
@@ -222,7 +273,7 @@ Model* Model::copyToCurrentContext() const {
         Texture newTexture = Texture(_texturesLoaded[i].type(), _directory + '/' + _texturesLoaded[i].path());
         newTextures.push_back(newTexture);
     }
-    
+
     // Copy all meshes
     std::vector<Mesh> newMeshes;
     for (unsigned int i = 0; i < _meshes.size(); i++) {
@@ -230,7 +281,7 @@ Model* Model::copyToCurrentContext() const {
         Mesh newMesh = Mesh(_meshes[i].vertices(), _meshes[i].indices(), newTextures);
         newMeshes.push_back(newMesh);
     }
-    
+
     // Create new model
     Model* newModel = new Model(std::move(newMeshes), std::move(newTextures), _directory, _boundBox);
     return newModel;

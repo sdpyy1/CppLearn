@@ -54,4 +54,5 @@ public:
 public:
     virtual PushButton* getPageIconButton(QWidget* context) override;
     virtual PushButton* getPageTextButton(QWidget* context) override;
+
 };

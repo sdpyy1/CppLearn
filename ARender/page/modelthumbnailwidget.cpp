@@ -12,12 +12,6 @@ ModelThumbnailWidget::ModelThumbnailWidget(Model* model, QWidget* parent) :
     format.setProfile(QSurfaceFormat::CoreProfile);
     format.setVersion(4, 3);
     setFormat(format);
-
-    // Create a folder
-    QDir dir("./temp/shaders");
-    if (!dir.exists()) {
-        dir.mkpath(".");
-    }
 }
 
 ModelThumbnailWidget::~ModelThumbnailWidget() {
@@ -29,7 +23,7 @@ void ModelThumbnailWidget::initializeGL() {
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+    glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
 
     _shaderProgram.ensureInitialized();
@@ -54,21 +48,21 @@ void ModelThumbnailWidget::initializeGL() {
     float distance = std::max(objectHeight / (2 * tan(fovy / 2)), objectWidth / (2 * tan(fovx / 2)));
     glm::vec2 center = _object.boundary().centerPoint();
     _camera.setPosition(glm::vec3(center, _object.boundary().topControlPoint().z + distance + 3.0f));
+    view = _camera.viewMatrix();
+    projection = _camera.projectionMatrix((float)width() / (float)height());
+    // 只有一个shader不需要切换
+    _shaderProgram.bind();
+
 }
 
 void ModelThumbnailWidget::paintGL() {
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    _shaderProgram.bind();
-    
-    glm::mat4 view = _camera.viewMatrix();
-    glm::mat4 projection = _camera.projectionMatrix((float)width() / (float)height());
     _shaderProgram.setUniform("view", view);
     _shaderProgram.setUniform("projection", projection);
-    
     _object.render(_shaderProgram);
-    
-    _shaderProgram.unbind();
+
 }
 
 void ModelThumbnailWidget::resizeGL(int w, int h) {

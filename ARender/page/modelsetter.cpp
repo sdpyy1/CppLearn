@@ -376,7 +376,6 @@ ModelSetter::ModelSetter(Renderable* object, QWidget* parent) :
             emit onDeleteObject();
         });
     }
-
     // Update values
     update(_object);
 }

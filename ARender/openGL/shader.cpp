@@ -165,6 +165,7 @@ ShaderProgram::ShaderProgram(VertexShader vertexShader, FragmentShader fragmentS
 }
 ShaderProgram::ShaderProgram(const std::string& vertexFilePath,const std::string& fragFilePath){
     _programId = OPENGL_EXTRA_FUNCTIONS->glCreateProgram();
+    Logger::debug(vertexFilePath+"的程序ID为：" + std::to_string(_programId));
     VertexShader vertexShader = VertexShader(vertexFilePath);
     FragmentShader fragmentShader = FragmentShader(fragFilePath);
     OPENGL_EXTRA_FUNCTIONS->glAttachShader(_programId, vertexShader.shaderId());

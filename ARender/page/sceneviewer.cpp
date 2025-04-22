@@ -7,7 +7,6 @@
 
 #include "illuminer.h"
 
-
 SceneViewer::SceneViewer(QWidget* parent)
     : QOpenGLWidget(parent)
 {
@@ -26,6 +25,107 @@ SceneViewer::SceneViewer(QWidget* parent)
 
 }
 
+void SceneViewer::initializeGL() {
+    initializeOpenGLFunctions();
+
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_FRAMEBUFFER_SRGB);
+
+    Logger::info("OpenGL版本: " + std::string((const char*)glGetString(GL_VERSION)));
+    // 默认天空盒
+    _sky = new SkyBox("./assets/skybox");
+
+    // 加载shader
+    _shaderProgram = ShaderProgram("./shaders/model.vert","./shaders/model.frag");
+    _boundShader = ShaderProgram("./shaders/boundvertexshader.glsl","./shaders/boundfragmentshader.glsl");
+    _skyShader = ShaderProgram("./shaders/skyboxvertexshader.glsl","./shaders/skyboxfragmentshader.glsl");
+    _terrainShader = ShaderProgram("./shaders/terrainvertexshader.glsl","./shaders/terrainfragmentshader.glsl");
+
+    // 摄像机
+    _camera.setPosition(glm::vec3(0.0f, 0.0f, 10.0f));
+}
+
+// 调整窗口
+void SceneViewer::resizeGL(int w, int h) {
+    glViewport(0, 0, w, h);
+}
+
+// 渲染
+void SceneViewer::paintGL() {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Set view and projection matrices
+    glm::mat4 view = _camera.viewMatrix();
+    glm::mat4 projection = _camera.projectionMatrix((float)width() / (float)height());
+
+    // Terrain Render ---------------------------------------------------
+    if (_terrain != nullptr) {
+        _terrainShader.bind();
+        _terrainShader.setUniform("view", view);
+        _terrainShader.setUniform("projection", projection);
+        _terrainShader.setUniform("model", _terrain->modelMatrix());
+        _terrainShader.setUniform("texture1", 2);
+        _terrain->render();
+        _terrainShader.unbind();
+    }
+    // ------------------------------------------------------------------
+
+    // Renderable Render ------------------------------------------------
+    _shaderProgram.bind();
+    _shaderProgram.setUniform("view", view);
+    _shaderProgram.setUniform("projection", projection);
+
+    // Render objects
+    for (auto object : _objects) {
+        object->render(_shaderProgram);
+    }
+    _shaderProgram.unbind();
+    // ------------------------------------------------------------------
+
+    // Bound box render -------------------------------------------------
+    if (_selectedObject != nullptr && !_hideBound) {
+        _boundShader.bind();
+        _boundShader.setUniform("view", view);
+        _boundShader.setUniform("projection", projection);
+        _selectedObject->boundary().render();
+        _boundShader.unbind();
+    }
+    if (_hoveredObject != nullptr && _hoveredObject != _selectedObject) {
+        _boundShader.bind();
+        _boundShader.setUniform("view", view);
+        _boundShader.setUniform("projection", projection);
+        _hoveredObject->boundary().render();
+        _boundShader.unbind();
+    }
+    // ------------------------------------------------------------------
+
+
+    // Sky Box Render ---------------------------------------------------
+    if (_sky != nullptr) {
+        _skyShader.bind();
+        _skyShader.setUniform("view", glm::mat4(glm::mat3(view)));
+        _skyShader.setUniform("projection", projection);
+        _sky->render();
+        _skyShader.unbind();
+    }
+    // ------------------------------------------------------------------
+
+}
+
+void SceneViewer::mousePressEvent(QMouseEvent* event) {
+    if (event->button() == Qt::LeftButton) {
+        _pressedObject = _hoveredObject;
+    }
+    else {
+        _lastMousePosition = event->pos();
+    }
+
+    parentWidget()->update();
+    setFocus();
+}
 SceneViewer::~SceneViewer() {
     if (_dirLight) {
         delete _dirLight;
@@ -77,185 +177,6 @@ Renderable* SceneViewer::hitTest(const Ray& ray) {
     _hitRecord = newRecord;
     return newObject;
 }
-
-// 加载各种shader、设置光照、设置摄像机
-void SceneViewer::initializeGL() {
-    initializeOpenGLFunctions();
-
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_FRAMEBUFFER_SRGB);
-
-    Logger::info("Currently running on OpenGL version: " + std::string((const char*)glGetString(GL_VERSION)));
-
-//    _shaderProgram.ensureInitialized();
-//    Logger::info("Shader Program initialized");
-
-//    VertexShader vertexShader("./shaders/thumbnailvertexshader.glsl");
-//    FragmentShader fragmentShader("./shaders/thumbnailfragmentshader.glsl");
-//    _shaderProgram.attachShader(vertexShader);
-//    _shaderProgram.attachShader(fragmentShader);
-//    vertexShader.dispose();
-//    fragmentShader.dispose();
-    _shaderProgram = ShaderProgram("./shaders/thumbnailvertexshader.glsl","./shaders/thumbnailfragmentshader.glsl");
-    _boundShader.ensureInitialized();
-    Logger::info("Bound Shader initialized");
-    VertexShader boundVertexShader("./shaders/boundvertexshader.glsl");
-    FragmentShader boundFragmentShader("./shaders/boundfragmentshader.glsl");
-    _boundShader.attachShader(boundVertexShader);
-    _boundShader.attachShader(boundFragmentShader);
-    boundVertexShader.dispose();
-    boundFragmentShader.dispose();
-
-    _skyShader.ensureInitialized();
-    Logger::info("Sky Shader initialized");
-    VertexShader skyVertexShader("./shaders/skyboxvertexshader.glsl");
-    FragmentShader skyFragmentShader("./shaders/skyboxfragmentshader.glsl");
-    _skyShader.attachShader(skyVertexShader);
-    _skyShader.attachShader(skyFragmentShader);
-    skyVertexShader.dispose();
-    skyFragmentShader.dispose();
-
-    _terrainShader.ensureInitialized();
-    Logger::info("Terrain Shader initialized");
-    VertexShader terrainVertexShader("./shaders/terrainvertexshader.glsl");
-    FragmentShader terrainFragmentShader("./shaders/terrainfragmentshader.glsl");
-    _terrainShader.attachShader(terrainVertexShader);
-    _terrainShader.attachShader(terrainFragmentShader);
-    terrainVertexShader.dispose();
-    terrainFragmentShader.dispose();
-
-    _dirLight = new DirLight();
-
-    _camera.setPosition(glm::vec3(0.0f, 0.0f, 10.0f));
-}
-
-// 调整窗口
-void SceneViewer::resizeGL(int w, int h) {
-    glViewport(0, 0, w, h);
-}
-void printMat4(const glm::mat4& mat) {
-    for (int i = 0; i < 4; ++i) {
-        for (int j = 0; j < 4; ++j) {
-            std::cout << mat[j][i] << " ";
-        }
-        std::cout << std::endl;
-    }
-}
-// 渲染
-void SceneViewer::paintGL() {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // Set view and projection matrices
-    glm::mat4 view = _camera.viewMatrix();
-    glm::mat4 projection = _camera.projectionMatrix((float)width() / (float)height());
-
-    // Sky Box Render ---------------------------------------------------
-    if (_sky != nullptr) {
-        _skyShader.bind();
-        _skyShader.setUniform("view", glm::mat4(glm::mat3(view)));
-        _skyShader.setUniform("projection", projection);
-        _sky->render();
-        _skyShader.unbind();
-    }
-    // ------------------------------------------------------------------
-
-    // Terrain Render ---------------------------------------------------
-    if (_terrain != nullptr) {
-        _terrainShader.bind();
-        _terrainShader.setUniform("view", view);
-        _terrainShader.setUniform("projection", projection);
-        _terrainShader.setUniform("model", _terrain->modelMatrix());
-        _terrainShader.setUniform("texture1", 2);
-        _terrain->render();
-        _terrainShader.unbind();
-    }
-    // ------------------------------------------------------------------
-
-    // Renderable Render ------------------------------------------------
-    _shaderProgram.bind();
-
-    _shaderProgram.setUniform("view", view);
-    _shaderProgram.setUniform("projection", projection);
-    _shaderProgram.setUniform("viewPos", _camera.position());
-
-    // int pointLights = 0;
-    // int spotLights = 0;
-
-    // // Update lights
-    // for (auto object : _objects) {
-    //     if (object->hasLight()) {
-    //         ScopedLight light = object->transformedLight();
-    //         if (light.isPointLight()) {
-    //             light.updateShader(_shaderProgram, pointLights++);
-    //         }
-    //         else {
-    //             light.updateShader(_shaderProgram, spotLights++);
-    //         }
-    //     }
-    // }
-
-    // _shaderProgram.setUniform("pointlightnr", pointLights);
-    // _shaderProgram.setUniform("spotlightnr", spotLights);
-
-    // if (_dirLight != nullptr && _dirLightOn) {
-    //     _dirLight->updateShader(_shaderProgram, 0);
-    // }
-
-    // _shaderProgram.setUniform("dirlightnr", _dirLight != nullptr && _dirLightOn ? 1 : 0);
-
-    // Render objects
-    for (auto object : _objects) {
-        if (object == _pressedObject) {
-            _shaderProgram.setUniform("selColor", glm::vec3(0.22f));
-        }
-        else if (object == _operatingObject) {
-            _shaderProgram.setUniform("selColor", glm::vec3(0.1f));
-        }
-        else if (object == _hoveredObject) {
-            _shaderProgram.setUniform("selColor", glm::vec3(0.2f));
-        }
-        else {
-            _shaderProgram.setUniform("selColor", glm::vec3(0.0f));
-        }
-        object->render(_shaderProgram);
-    }
-
-    _shaderProgram.unbind();
-    // ------------------------------------------------------------------
-
-    // Bound box render -------------------------------------------------
-    if (_selectedObject != nullptr && !_hideBound) {
-        _boundShader.bind();
-        _boundShader.setUniform("view", view);
-        _boundShader.setUniform("projection", projection);
-        _selectedObject->boundary().render();
-        _boundShader.unbind();
-    }
-    if (_hoveredObject != nullptr && _hoveredObject != _selectedObject) {
-        _boundShader.bind();
-        _boundShader.setUniform("view", view);
-        _boundShader.setUniform("projection", projection);
-        _hoveredObject->boundary().render();
-        _boundShader.unbind();
-    }
-    // ------------------------------------------------------------------
-}
-
-void SceneViewer::mousePressEvent(QMouseEvent* event) {
-    if (event->button() == Qt::LeftButton) {
-        _pressedObject = _hoveredObject;
-    }
-    else {
-        _lastMousePosition = event->pos();
-    }
-
-    parentWidget()->update();
-    setFocus();
-}
-
 void SceneViewer::mouseReleaseEvent(QMouseEvent* event) {
     // State transfer
     bool startOperatingObject = false;
@@ -682,4 +603,12 @@ void SceneViewer::changeRenderFlag()
         _selectedObject->changeRenderLineFlag();
     }
     parentWidget()->update();
+}
+void printMat4(const glm::mat4& mat) {
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            std::cout << mat[j][i] << " ";
+        }
+        std::cout << std::endl;
+    }
 }

@@ -70,11 +70,13 @@ EditorPage::EditorPage(QWidget* parent) :
     _mainLayout->addWidget(_globalSetting);
     _globalSetting->show();
 
-
     // Connect signals
     connect(_modelSelector, &ModelSelector::onObjectSelected, _sceneViewer, &SceneViewer::addObject);
     connect(_sceneViewer, &SceneViewer::onSelect, _modelSetter, &ModelSetter::update);
+    connect(_sceneViewer, &SceneViewer::onSelect, _globalSetting, &GlobalSetting::selectObject);
+
     connect(_sceneViewer, &SceneViewer::onUpdate, _modelSetter, &ModelSetter::update);
+
     connect(_modelSetter, &ModelSetter::onAdjustStart, _sceneViewer, &SceneViewer::setDragFlag);
     connect(_modelSetter, &ModelSetter::onAdjustEnd, _sceneViewer, &SceneViewer::clearDragFlag);
     connect(_modelSetter, &ModelSetter::onAdjust, this, [=]() {
@@ -84,7 +86,6 @@ EditorPage::EditorPage(QWidget* parent) :
 
     connect(_globalSetting,&GlobalSetting::onSettingsChanged, _sceneViewer, &SceneViewer::updateSetting);
     connect(_globalSetting,&GlobalSetting::changeRenderLineFlag, _sceneViewer, &SceneViewer::changeRenderFlag);
-
 }
 
 EditorPage::~EditorPage() {}

@@ -13,10 +13,18 @@ ModelSelector::ModelSelector(QWidget* parent) :
     _stretchLayout->setContentsMargins(0, 0, 0, 0);
     _stretchLayout->setSpacing(8);
     setLayout(_stretchLayout);
-
+    // 添加预设model的按钮
+    _addTemplateObjectBtn = new PushButton(nullptr, this);
+    _addTemplateObjectBtn->setChildWidget(new QLabel("预设模型", _addNewObjectBtn));
+    _addTemplateObjectBtn->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    _addTemplateObjectBtn->setMargin(32, 24, 32, 24);
+    _addTemplateObjectBtn->setRadius(10);
+    _addTemplateObjectBtn->setBackgroundColor(QColor(58, 143, 183, 20));
+    _stretchLayout->addWidget(_addTemplateObjectBtn);
+    _addTemplateObjectBtn->show();
     // Create and add the 'add new' button
     _addNewObjectBtn = new PushButton(nullptr, this);
-    _addNewObjectBtn->setChildWidget(new QLabel("Add New", _addNewObjectBtn));
+    _addNewObjectBtn->setChildWidget(new QLabel("添加新模型", _addNewObjectBtn));
     _addNewObjectBtn->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     _addNewObjectBtn->setMargin(32, 24, 32, 24);
     _addNewObjectBtn->setRadius(10);
@@ -32,6 +40,7 @@ ModelSelector::ModelSelector(QWidget* parent) :
 
     // Connect
     connect(_addNewObjectBtn, &PushButton::onClick, this, &ModelSelector::addNewObject);
+    connect(_addTemplateObjectBtn, &PushButton::onClick, this, &ModelSelector::addTemplateModel);
 }
 
 ModelSelector::~ModelSelector() {}
@@ -41,8 +50,6 @@ void ModelSelector::addNewObject() {
     if (path.isEmpty()) {
         return;
     }
-    
-    Logger::info("Loading model file from " + path.toStdString());
     Model* model = loadObject(path);
     if (model->status() != Model::LOADED) {
         delete model;
@@ -54,6 +61,35 @@ void ModelSelector::addNewObject() {
     _objectSelectables.push_back(newSelectable);
     _objectList->addWidget(newSelectable);
     
+    connect(newSelectable, &ModelSelectable::onSelected, this, [=]() {
+        emit onObjectSelected(model);
+    });
+    connect(newSelectable, &ModelSelectable::onRemoved, this, [=]() {
+        removeObject(newSelectable);
+    });
+
+}
+
+void ModelSelector::addTemplateModel()
+{
+    // 预设两个模型
+    addNewObjectByPath("./assets/planet/planet.obj");
+    addNewObjectByPath("./assets/rock/rock.obj");
+}
+void ModelSelector::addNewObjectByPath(QString path) {
+    if (path.isEmpty()) {
+        return;
+    }
+    Model* model = loadObject(path);
+    if (model->status() != Model::LOADED) {
+        delete model;
+        Logger::error("Invalid model file");
+        return;
+    }
+    ModelSelectable* newSelectable = new ModelSelectable(model, this);
+    _objectSelectables.push_back(newSelectable);
+    _objectList->addWidget(newSelectable);
+
     connect(newSelectable, &ModelSelectable::onSelected, this, [=]() {
         emit onObjectSelected(model);
     });

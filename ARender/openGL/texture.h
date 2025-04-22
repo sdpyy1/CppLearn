@@ -8,7 +8,7 @@
 enum TextureType { DIFFUSE, SPECULAR };
 
 class Texture {
-private:
+public:
     unsigned int _id;
     TextureType _type;
     std::string _path;

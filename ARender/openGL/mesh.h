@@ -10,7 +10,7 @@
 #include "hitrecord.h"
 
 class Mesh {
-private:
+public:
     std::vector<Vertex> _vertices;
     std::vector<unsigned int> _indices;
     std::vector<Texture> _textures;

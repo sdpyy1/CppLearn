@@ -22,6 +22,9 @@ private:
     Renderable _object = Renderable::empty();
     ShaderProgram _shaderProgram = ShaderProgram::empty();
     Camera _camera;
+    glm::mat4 view;
+    glm::mat4 projection;
+    void doneInit();
 
 protected:
     virtual void initializeGL() override;

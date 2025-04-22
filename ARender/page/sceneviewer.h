@@ -12,8 +12,6 @@
 #include "shader.h"
 #include "renderable.h"
 #include "illuminer.h"
-#include "utils.h"
-#include "logger.h"
 #include "skybox.h"
 #include "terrain.h"
 

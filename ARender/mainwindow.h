@@ -6,7 +6,6 @@
 #include "sidebar.h"
 #include "editorpage.h"
 #include "aboutpage.h"
-// #include "settingpage.h"
 
 class MainWindow : public FramelessWindow
 {
@@ -15,7 +14,6 @@ class MainWindow : public FramelessWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-
 private:
     // Main ui layout
     QHBoxLayout* _mainLayout = nullptr;
@@ -31,6 +29,8 @@ private:
 
 private:
     void resizePages(QResizeEvent* event);
+
+
 
 private:
     virtual void showEvent(QShowEvent* event) override;

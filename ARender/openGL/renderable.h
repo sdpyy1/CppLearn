@@ -15,7 +15,7 @@ public:
     static Renderable empty() {
         return Renderable();
     }
-    bool isRenderLine = false;
+    bool isRenderLine = false;  // 默认为true表示渲染模型，修改为true为渲染线框
 private:
     Renderable() {}
 
@@ -26,7 +26,7 @@ private:
     glm::mat4 _rotation = glm::mat4(1.0f);
     glm::vec3 _scale = glm::vec3(1.0f);
     Boundary _boundary; // the renderable's boudary box, should be updated after a transformation is done
-  // 默认为true表示渲染模型，修改为true为渲染线框
+
 public:
     Renderable(Model* model);
     Renderable(Model* model, glm::vec3 position);

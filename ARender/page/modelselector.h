@@ -16,20 +16,21 @@ class ModelSelector : public QWidget
 public:
     ModelSelector(QWidget* parent = 0);
     ~ModelSelector();
-
+    void addTemplateModel();
 private:
     // UI elements
     QVBoxLayout* _stretchLayout = nullptr;
     PushButton* _addNewObjectBtn = nullptr;
+    PushButton* _addTemplateObjectBtn = nullptr;
     ScrollListWidget* _objectList = nullptr;
 
     // Object selection storage
     QList<ModelSelectable*> _objectSelectables;
-
+    void addNewObjectByPath(QString path);
 private:
     // Slot functions
     void addNewObject();
-    
+
     // Util functions
     QString getNewObjectPath();
     Model* loadObject(const QString& path);
