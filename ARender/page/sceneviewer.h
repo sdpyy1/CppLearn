@@ -6,6 +6,7 @@
 #include <qpair.h>
 #include <QtOpenGLWidgets/qopenglwidget.h>
 
+#include <plane.h>
 #include <vector>
 
 #include "camera.h"
@@ -25,6 +26,9 @@ private:
     std::vector<Renderable*> _objects;
     // Sky Box
     SkyBox* _sky = nullptr;
+    // plane
+    Plane * _plane = nullptr;
+    bool needPlane = false;
     // Dir light
     bool _dirLightOn = false;
     DirLight* _dirLight = nullptr;
@@ -105,6 +109,7 @@ public:
     void deleteObject();
     void updateSetting(QPair<QString, QString> setting);
     void changeRenderFlag();
+    void changePlaneShow();
 signals:
     void onHover(Renderable* object);
     void onSelect(Renderable* object);

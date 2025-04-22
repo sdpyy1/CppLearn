@@ -19,7 +19,7 @@ public:
     explicit GlobalSetting(QWidget *parent = nullptr);
     void selectSkyBox();
     void selectObject(Renderable* object);
-
+    void selectTerrain();
 
 
 private:
@@ -27,17 +27,18 @@ private:
     Renderable * _selectedObject;
     // 按钮
     PushButton * _skyBtn;
+    PushButton * _terrainBtn;
     PushButton * _lineModelBtn;
-    PushButton * _waitingAdd1;
-    PushButton * _waitingAdd2;
+    PushButton * _renderPlaneBtn;
     PushButton * _waitingAdd3;
-
+    QFrame* _line1;
     // 操作界面
     Slider * _lineChange;
 
 signals:
     void onSettingsChanged(QPair<QString, QString> settings);
     void changeRenderLineFlag();
+    void changeRenderPlaneFlag();
 
 };
 

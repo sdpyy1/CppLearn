@@ -2,6 +2,7 @@
 
 
 void addBtn(QVBoxLayout * layout, PushButton *& btn, QString title,QWidget * widget);
+void addLine(QVBoxLayout * layout, QFrame*& line);
 
 
 GlobalSetting::GlobalSetting(QWidget *parent) :
@@ -14,22 +15,24 @@ GlobalSetting::GlobalSetting(QWidget *parent) :
     _mainLayout->setContentsMargins(0, 0, 0, 0);
     // 添加按钮
     addBtn(_mainLayout,_skyBtn,"天空盒",this);
+    addBtn(_mainLayout,_terrainBtn,"地形",this);
+    addBtn(_mainLayout,_renderPlaneBtn,"渲染地板",this);
+    addLine(_mainLayout,_line1);
 
     addBtn(_mainLayout,_lineModelBtn,"线框模型",this);
     _lineChange = new Slider(0,100,100,this);
     _lineChange->setValue(50);
     _mainLayout->addWidget(_lineChange);
     _lineChange -> hide();
-
-    addBtn(_mainLayout,_waitingAdd1,"待添加",this);
-    addBtn(_mainLayout,_waitingAdd2,"待添加",this);
     addBtn(_mainLayout,_waitingAdd3,"待添加",this);
     _mainLayout->addStretch();
 
-
-
     // 连接信号
     connect(_skyBtn, &PushButton::onClick, this, &GlobalSetting::selectSkyBox);
+    connect(_terrainBtn, &PushButton::onClick, this, &GlobalSetting::selectTerrain);
+    connect(_renderPlaneBtn, &PushButton::onClick, this, [=](){
+        emit changeRenderPlaneFlag();
+    });
 
     connect(_lineModelBtn,&PushButton::onClick,this,[=](){
         if (_selectedObject == nullptr) {
@@ -76,6 +79,30 @@ void GlobalSetting::selectSkyBox() {
     emit onSettingsChanged(QPair<QString, QString>("skybox", dir));
 }
 
+void GlobalSetting::selectTerrain() {
+    QString dir = QFileDialog::getExistingDirectory(this, tr("Select Terrain Directory"), QDir::currentPath(), QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    if (dir.isEmpty()) {
+        Logger::warning("Tempt to open invalid terrain folder");
+        emit onSettingsChanged(QPair<QString, QString>("terrain", ""));
+        return;
+    }
+
+    QDir terrainDir(dir);
+    // filter *.jpg and *.png
+    QStringList terrainFiles = terrainDir.entryList(QStringList() << "*.jpg" << "*.png", QDir::Files);
+    if (
+        terrainFiles.indexOf("heightmap.png") == -1 ||
+        terrainFiles.indexOf("texture.jpg") == -1
+        ) {
+        QMessageBox::warning(this, "Error", "The selected directory does not contain all the required files.");
+        Logger::warning("Tempt to open invalid terrain folder");
+        emit onSettingsChanged(QPair<QString, QString>("terrain", ""));
+        return;
+    }
+
+    emit onSettingsChanged(QPair<QString, QString>("terrain", dir));
+}
+
 void GlobalSetting::selectObject(Renderable *object)
 {
     _selectedObject = object;
@@ -102,4 +129,10 @@ void addBtn(QVBoxLayout * layout, PushButton *& btn, QString title,QWidget * wid
     btn->setBackgroundColor(QColor(58, 143, 183, 20));
     layout->addWidget(btn);
     btn->show();
+}
+void addLine(QVBoxLayout * layout, QFrame*& line){
+    line = new QFrame();
+    line->setStyleSheet("background-color: rgba(58,143,183,50);");  // 与按钮背景色协调
+    line->setFixedHeight(1);  // 设置1像素高度
+    layout->addWidget(line);
 }

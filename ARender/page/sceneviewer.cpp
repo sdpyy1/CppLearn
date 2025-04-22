@@ -30,14 +30,15 @@ void SceneViewer::initializeGL() {
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glEnable(GL_CULL_FACE);
+    // glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_FRAMEBUFFER_SRGB);
 
     Logger::info("OpenGL版本: " + std::string((const char*)glGetString(GL_VERSION)));
     // 默认天空盒
     _sky = new SkyBox("./assets/skybox");
-
+    // 加载地板
+    _plane = new Plane("./assets/diffuse.png");
     // 加载shader
     _shaderProgram = ShaderProgram("./shaders/model.vert","./shaders/model.frag");
     _boundShader = ShaderProgram("./shaders/boundvertexshader.glsl","./shaders/boundfragmentshader.glsl");
@@ -81,6 +82,13 @@ void SceneViewer::paintGL() {
     // Render objects
     for (auto object : _objects) {
         object->render(_shaderProgram);
+    }
+    // 渲染地板
+    if(needPlane){
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model,{0,-10,-30});
+        _shaderProgram.setUniform("model", model);
+        _plane->render();
     }
     _shaderProgram.unbind();
     // ------------------------------------------------------------------
@@ -506,6 +514,12 @@ void SceneViewer::addObject(Model* model) {
     _objects.push_back(newObject);
     parentWidget()->update();
     emit onSelect(_selectedObject);
+}
+
+void SceneViewer::changePlaneShow()
+{
+    needPlane = !needPlane;
+    parentWidget()->update();
 }
 
 void SceneViewer::deleteObject() {
