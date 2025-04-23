@@ -17,18 +17,18 @@ void Logger::log(LogLevel level, std::string message) {
     _previous = message;
 
     switch (level) {
-        case DEBUG:
-            qDebug() << "DEBUG: " << message.c_str();
-            break;
-        case INFO:
-            qDebug() << "INFO: " << message.c_str();
-            break;
-        case WARNING:
-            qDebug() << "WARNING: " << message.c_str();
-            break;
-        case ERR:
-            qDebug() << "ERROR: " << message.c_str();
-            break;
+    case DEBUG:
+        qDebug() << "DEBUG: " << message.c_str();
+        break;
+    case INFO:
+        qDebug() << "INFO: " << message.c_str();
+        break;
+    case WARNING:
+        qDebug() << "WARNING: " << message.c_str();
+        break;
+    case ERR:
+        qDebug() << "ERROR: " << message.c_str();
+        break;
     }
 }
 

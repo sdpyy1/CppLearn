@@ -2,10 +2,12 @@
 
 #include <vector>
 #include <string>
-
+#include <iostream>
 #include "utils.h"
 #include "shader.h"
 #include "camera.h"
+#include <STBImage/stb_image.h>
+
 
 
 class SkyBox { 

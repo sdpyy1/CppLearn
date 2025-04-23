@@ -109,6 +109,13 @@ ShaderProgram::ShaderProgram(VertexShader vertexShader) {
     _programId = OPENGL_EXTRA_FUNCTIONS->glCreateProgram();
     OPENGL_EXTRA_FUNCTIONS->glAttachShader(_programId, vertexShader.shaderId());
     OPENGL_EXTRA_FUNCTIONS->glLinkProgram(_programId);
+    GLint success;
+    OPENGL_EXTRA_FUNCTIONS->glGetProgramiv(_programId, GL_LINK_STATUS, &success);
+    if (!success) {
+        GLchar infoLog[512];
+        OPENGL_EXTRA_FUNCTIONS->glGetProgramInfoLog(_programId, 512, NULL, infoLog);
+        Logger::error("Shader Link错误: {}", infoLog);
+    }
     vertexShader.dispose();
 }
 
@@ -116,6 +123,13 @@ ShaderProgram::ShaderProgram(FragmentShader fragmentShader) {
     _programId = OPENGL_EXTRA_FUNCTIONS->glCreateProgram();
     OPENGL_EXTRA_FUNCTIONS->glAttachShader(_programId, fragmentShader.shaderId());
     OPENGL_EXTRA_FUNCTIONS->glLinkProgram(_programId);
+    GLint success;
+    OPENGL_EXTRA_FUNCTIONS->glGetProgramiv(_programId, GL_LINK_STATUS, &success);
+    if (!success) {
+        GLchar infoLog[512];
+        OPENGL_EXTRA_FUNCTIONS->glGetProgramInfoLog(_programId, 512, NULL, infoLog);
+        Logger::error("Shader Link错误: {}", infoLog);
+    }
     fragmentShader.dispose();
 }
 
@@ -123,6 +137,13 @@ ShaderProgram::ShaderProgram(GeometryShader geometryShader) {
     _programId = OPENGL_EXTRA_FUNCTIONS->glCreateProgram();
     OPENGL_EXTRA_FUNCTIONS->glAttachShader(_programId, geometryShader.shaderId());
     OPENGL_EXTRA_FUNCTIONS->glLinkProgram(_programId);
+    GLint success;
+    OPENGL_EXTRA_FUNCTIONS->glGetProgramiv(_programId, GL_LINK_STATUS, &success);
+    if (!success) {
+        GLchar infoLog[512];
+        OPENGL_EXTRA_FUNCTIONS->glGetProgramInfoLog(_programId, 512, NULL, infoLog);
+        Logger::error("Shader Link错误: {}", infoLog);
+    }
     geometryShader.dispose();
 }
 
@@ -131,6 +152,13 @@ ShaderProgram::ShaderProgram(VertexShader vertexShader, FragmentShader fragmentS
     OPENGL_EXTRA_FUNCTIONS->glAttachShader(_programId, vertexShader.shaderId());
     OPENGL_EXTRA_FUNCTIONS->glAttachShader(_programId, fragmentShader.shaderId());
     OPENGL_EXTRA_FUNCTIONS->glLinkProgram(_programId);
+    GLint success;
+    OPENGL_EXTRA_FUNCTIONS->glGetProgramiv(_programId, GL_LINK_STATUS, &success);
+    if (!success) {
+        GLchar infoLog[512];
+        OPENGL_EXTRA_FUNCTIONS->glGetProgramInfoLog(_programId, 512, NULL, infoLog);
+        Logger::error("Shader Link错误: {}", infoLog);
+    }
     vertexShader.dispose();
     fragmentShader.dispose();
 }
@@ -140,6 +168,13 @@ ShaderProgram::ShaderProgram(VertexShader vertexShader, GeometryShader geometryS
     OPENGL_EXTRA_FUNCTIONS->glAttachShader(_programId, vertexShader.shaderId());
     OPENGL_EXTRA_FUNCTIONS->glAttachShader(_programId, geometryShader.shaderId());
     OPENGL_EXTRA_FUNCTIONS->glLinkProgram(_programId);
+    GLint success;
+    OPENGL_EXTRA_FUNCTIONS->glGetProgramiv(_programId, GL_LINK_STATUS, &success);
+    if (!success) {
+        GLchar infoLog[512];
+        OPENGL_EXTRA_FUNCTIONS->glGetProgramInfoLog(_programId, 512, NULL, infoLog);
+        Logger::error("Shader Link错误: {}", infoLog);
+    }
     vertexShader.dispose();
     geometryShader.dispose();
 }
@@ -149,6 +184,13 @@ ShaderProgram::ShaderProgram(FragmentShader fragmentShader, GeometryShader geome
     OPENGL_EXTRA_FUNCTIONS->glAttachShader(_programId, fragmentShader.shaderId());
     OPENGL_EXTRA_FUNCTIONS->glAttachShader(_programId, geometryShader.shaderId());
     OPENGL_EXTRA_FUNCTIONS->glLinkProgram(_programId);
+    GLint success;
+    OPENGL_EXTRA_FUNCTIONS->glGetProgramiv(_programId, GL_LINK_STATUS, &success);
+    if (!success) {
+        GLchar infoLog[512];
+        OPENGL_EXTRA_FUNCTIONS->glGetProgramInfoLog(_programId, 512, NULL, infoLog);
+        Logger::error("Shader Link错误: {}", infoLog);
+    }
     fragmentShader.dispose();
     geometryShader.dispose();
 }
@@ -159,18 +201,31 @@ ShaderProgram::ShaderProgram(VertexShader vertexShader, FragmentShader fragmentS
     OPENGL_EXTRA_FUNCTIONS->glAttachShader(_programId, fragmentShader.shaderId());
     OPENGL_EXTRA_FUNCTIONS->glAttachShader(_programId, geometryShader.shaderId());
     OPENGL_EXTRA_FUNCTIONS->glLinkProgram(_programId);
+    GLint success;
+    OPENGL_EXTRA_FUNCTIONS->glGetProgramiv(_programId, GL_LINK_STATUS, &success);
+    if (!success) {
+        GLchar infoLog[512];
+        OPENGL_EXTRA_FUNCTIONS->glGetProgramInfoLog(_programId, 512, NULL, infoLog);
+        Logger::error("Shader Link错误: {}", infoLog);
+    }
     vertexShader.dispose();
     fragmentShader.dispose();
     geometryShader.dispose();
 }
 ShaderProgram::ShaderProgram(const std::string& vertexFilePath,const std::string& fragFilePath){
     _programId = OPENGL_EXTRA_FUNCTIONS->glCreateProgram();
-    Logger::debug(vertexFilePath+"的程序ID为：" + std::to_string(_programId));
     VertexShader vertexShader = VertexShader(vertexFilePath);
     FragmentShader fragmentShader = FragmentShader(fragFilePath);
     OPENGL_EXTRA_FUNCTIONS->glAttachShader(_programId, vertexShader.shaderId());
     OPENGL_EXTRA_FUNCTIONS->glAttachShader(_programId, fragmentShader.shaderId());
     OPENGL_EXTRA_FUNCTIONS->glLinkProgram(_programId);
+    GLint success;
+    OPENGL_EXTRA_FUNCTIONS->glGetProgramiv(_programId, GL_LINK_STATUS, &success);
+    if (!success) {
+        GLchar infoLog[512];
+        OPENGL_EXTRA_FUNCTIONS->glGetProgramInfoLog(_programId, 512, NULL, infoLog);
+        Logger::error("Shader Link错误: {}", infoLog);
+    }
     vertexShader.dispose();
     fragmentShader.dispose();
 }

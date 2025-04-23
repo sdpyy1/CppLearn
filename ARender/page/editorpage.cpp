@@ -87,6 +87,7 @@ EditorPage::EditorPage(QWidget* parent) :
     connect(_globalSetting,&GlobalSetting::onSettingsChanged, _sceneViewer, &SceneViewer::updateSetting);
     connect(_globalSetting,&GlobalSetting::changeRenderLineFlag, _sceneViewer, &SceneViewer::changeRenderFlag);
     connect(_globalSetting,&GlobalSetting::changeRenderPlaneFlag, _sceneViewer, &SceneViewer::changePlaneShow);
+    connect(_globalSetting,&GlobalSetting::addNewLight, _sceneViewer, &SceneViewer::addNewLight);
 
 }
 

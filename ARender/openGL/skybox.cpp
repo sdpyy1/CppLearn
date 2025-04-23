@@ -1,10 +1,4 @@
-#include <STBImage/stb_image.h>
-#include <vector>
-#include <string>
-
 #include "skybox.h"
-#include "shader.h"
-#include "camera.h"
 
 SkyBox::SkyBox(std::string path){
     faces.clear();
@@ -55,7 +49,7 @@ unsigned int SkyBox::loadCubemap(std::vector<std::string> faces)
         }
         else
         {
-            std::cout << "Cubemap texture failed to load at path: " << faces[i] << std::endl;
+            Logger::error("Cubemap texture failed to load at path: {}" , faces[i]);
             stbi_image_free(data);
         }
     }

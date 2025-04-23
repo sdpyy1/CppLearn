@@ -28,10 +28,13 @@ private:
     SkyBox* _sky = nullptr;
     // plane
     Plane * _plane = nullptr;
-    bool needPlane = false;
-    // Dir light
-    bool _dirLightOn = false;
-    DirLight* _dirLight = nullptr;
+    bool _needPlane = false;
+    // 光源列表
+    std::vector<Illuminer*> _lightList;
+    int _dirLightCount = 0;
+    int _pointLightCount = 0;
+    int _scopedLightCount = 0;
+    bool _haveNewLight = true;
     // Terrain
     Terrain* _terrain = nullptr;
     // Shader program for objects
@@ -110,6 +113,7 @@ public:
     void updateSetting(QPair<QString, QString> setting);
     void changeRenderFlag();
     void changePlaneShow();
+    void addNewLight(int type,float x,float y, float z,float r,float g,float b,float cutoff);
 signals:
     void onHover(Renderable* object);
     void onSelect(Renderable* object);

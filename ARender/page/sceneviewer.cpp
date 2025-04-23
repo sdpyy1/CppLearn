@@ -30,7 +30,7 @@ void SceneViewer::initializeGL() {
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    // glEnable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_FRAMEBUFFER_SRGB);
 
@@ -47,6 +47,10 @@ void SceneViewer::initializeGL() {
 
     // 摄像机
     _camera.setPosition(glm::vec3(0.0f, 0.0f, 10.0f));
+
+    DirLight * dirLightTest = new DirLight({3,3,3},{1,1,1});
+    _lightList.push_back(dirLightTest);
+    _dirLightCount ++;
 }
 
 // 调整窗口
@@ -78,13 +82,36 @@ void SceneViewer::paintGL() {
     _shaderProgram.bind();
     _shaderProgram.setUniform("view", view);
     _shaderProgram.setUniform("projection", projection);
+    int curDirLightCount = 0;
+    int curScopeLightCount = 0;
+    int curPointLightCount = 0;
+    // 设置光照
+    if(_haveNewLight){
+        _haveNewLight = false;
+        for(auto &light : _lightList){
+            Logger::debug("{}",light->getType());
+            if(light->getType() == 0){
+                // 点光源
+                light->updateShader(_shaderProgram,curPointLightCount++);
+            }else if(light->getType() == 1){
+                // 平行光
+                light->updateShader(_shaderProgram,curDirLightCount++);
+            }else if(light->getType() == 2){
+                // 聚光
+                light->updateShader(_shaderProgram,curScopeLightCount++);
+            }
+        }
+    }
 
+    _shaderProgram.setUniform("dirlightnr",_dirLightCount);
+    _shaderProgram.setUniform("pointlightnr",_pointLightCount);
+    _shaderProgram.setUniform("spotlightnr",_scopedLightCount);
     // Render objects
     for (auto object : _objects) {
         object->render(_shaderProgram);
     }
     // 渲染地板
-    if(needPlane){
+    if(_needPlane){
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model,{0,-10,-30});
         _shaderProgram.setUniform("model", model);
@@ -135,10 +162,6 @@ void SceneViewer::mousePressEvent(QMouseEvent* event) {
     setFocus();
 }
 SceneViewer::~SceneViewer() {
-    if (_dirLight) {
-        delete _dirLight;
-    }
-
     for (auto obj : _objects) {
         delete obj;
     }
@@ -518,7 +541,48 @@ void SceneViewer::addObject(Model* model) {
 
 void SceneViewer::changePlaneShow()
 {
-    needPlane = !needPlane;
+    _needPlane = !_needPlane;
+    parentWidget()->update();
+}
+
+void SceneViewer::addNewLight(int type,float x, float y, float z, float r, float g, float b,float cutoff)
+{
+    // 场景中添加光照
+    if(type == 0){
+        // 点光源
+        if(_pointLightCount == 5){
+            Logger::info("点光源已经有{}个了",_pointLightCount);
+            return;
+        }
+        ScopedLight * pointLight = new ScopedLight({x,y,z},{r,g,b});
+        pointLight->setCutOffAngle(360);   //  大于180就识别为点光源
+        _lightList.push_back(pointLight);
+        _pointLightCount ++;
+        _haveNewLight = true;
+    }else if(type == 1){
+        // 平行光
+        if(_dirLightCount == 5){
+            Logger::info("平行光已经有{}个了",_dirLightCount);
+            return;
+        }
+        DirLight * dirLight = new DirLight({x,y,z},{r,g,b});
+        _lightList.push_back(dirLight);
+        _dirLightCount++;
+        _haveNewLight = true;
+    }else if(type == 2){
+        // 聚光
+        if(_scopedLightCount == 5){
+            Logger::info("平行光已经有{}个了",_scopedLightCount);
+            return;
+        }
+        ScopedLight * scopedLight = new ScopedLight({x,y,z},{r,g,b});
+        scopedLight->setCutOffAngle(cutoff);
+        _lightList.push_back(scopedLight);
+        _scopedLightCount++;
+        _haveNewLight = true;
+    }else{
+        Logger::error("光源添加失败");
+    }
     parentWidget()->update();
 }
 
@@ -573,36 +637,6 @@ void SceneViewer::updateSetting(QPair<QString, QString> setting) {
         }
         if (!setting.second.isEmpty()) {
             _terrain = new Terrain(setting.second.toStdString());
-        }
-    }
-    else if (setting.first == "dirLight") {
-        if (setting.second == "true") {
-            _dirLightOn = true;
-        }
-        else {
-            _dirLightOn = false;
-        }
-    }
-    else if (setting.first == "dirLightColorR") {
-        _dirLight->setLightColor(glm::vec3(setting.second.toFloat(), _dirLight->lightColor().y, _dirLight->lightColor().z));
-    }
-    else if (setting.first == "dirLightColorG") {
-        _dirLight->setLightColor(glm::vec3(_dirLight->lightColor().x, setting.second.toFloat(), _dirLight->lightColor().z));
-    }
-    else if (setting.first == "dirLightColorB") {
-        _dirLight->setLightColor(glm::vec3(_dirLight->lightColor().x, _dirLight->lightColor().y, setting.second.toFloat()));
-    }
-    else if (setting.first == "dirLightIntensity") {
-        _dirLight->setIntensity(setting.second.toFloat());
-    }
-    else if (setting.first == "dirLightDir") {
-        // parse "x,y,z"
-        QStringList list = setting.second.split(",");
-        if (list.size() == 3) {
-            _dirLight->setLightDirection(glm::vec3(list[0].toFloat(), list[1].toFloat(), list[2].toFloat()));
-        }
-        else {
-            Logger::error("Invalid direction light direction setting");
         }
     }
     else {

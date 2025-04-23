@@ -3,15 +3,18 @@
 
 Illuminer::Illuminer(glm::vec3 color) :
     _lightColor(color)
-{}
+{
+}
 
 Illuminer::~Illuminer() {}
 
 DirLight::DirLight(glm::vec3 direction, glm::vec3 color) :
     Illuminer(color), _direction(direction)
-{}
+{
+}
 
-DirLight::~DirLight() {}
+DirLight::~DirLight() {
+}
 
 void DirLight::updateShader(ShaderProgram shader, int index) const {
     // Recall DirLight structure in fragment shader
@@ -51,7 +54,9 @@ ScopedLight::ScopedLight(int distance, glm::vec3 position, glm::vec3 direction, 
 
 ScopedLight::ScopedLight(glm::vec3 position, glm::vec3 direction, float cutOffAngle, int idealDistance, float linear, float quadratic, glm::vec3 color) :
     Illuminer(color), _position(position), _direction(direction), _cutOffAngle(cutOffAngle), _idealDistance(idealDistance), _attLinear(linear), _attQuadratic(quadratic)
-{}
+{
+
+}
 
 ScopedLight::~ScopedLight() {}
 

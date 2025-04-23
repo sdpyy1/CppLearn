@@ -99,7 +99,7 @@ public:
 
 inline void ShaderProgram::attachShader(const Shader& shader) const {
     if (_programId == 0) {
-        Logger::debug("Attaching a shader to an invalid ShaderProgram");
+        Logger::error("Attaching a shader to an invalid ShaderProgram");
         return;
     }
     OPENGL_EXTRA_FUNCTIONS->glAttachShader(_programId, shader.shaderId());
@@ -108,7 +108,7 @@ inline void ShaderProgram::attachShader(const Shader& shader) const {
 
 inline void ShaderProgram::bind() const {
     if (_programId == 0) {
-        Logger::debug("Binding an invalid ShaderProgram");
+        Logger::error("Binding an invalid ShaderProgram");
         return;
     }
     OPENGL_EXTRA_FUNCTIONS->glUseProgram(_programId);
@@ -128,7 +128,7 @@ inline void ShaderProgram::ensureInitialized() {
     if (_programId == 0) {
         _programId = OPENGL_EXTRA_FUNCTIONS->glCreateProgram();
         if (_programId == 0) {
-            Logger::debug("Failed to create a ShaderProgram");
+            Logger::error("Failed to create a ShaderProgram");
         }
     }
 }
@@ -137,7 +137,7 @@ inline void ShaderProgram::setUniform(const std::string& name, bool value) const
     // Check if the uniform exist
     int location = OPENGL_EXTRA_FUNCTIONS->glGetUniformLocation(_programId, name.c_str());
     if (location == -1) {
-        Logger::debug("Uniform " + name + " does not exist");
+        Logger::error("Uniform " + name + " does not exist");
         return;
     }
     // Set the uniform
@@ -148,7 +148,7 @@ inline void ShaderProgram::setUniform(const std::string& name, int value) const 
     // Check if the uniform exist
     int location = OPENGL_EXTRA_FUNCTIONS->glGetUniformLocation(_programId, name.c_str());
     if (location == -1) {
-        Logger::debug("Uniform " + name + " does not exist");
+        Logger::error("Uniform " + name + " does not exist");
         return;
     }
     // Set the uniform
@@ -159,7 +159,7 @@ inline void ShaderProgram::setUniform(const std::string& name, float value) cons
     // Check if the uniform exist
     int location = OPENGL_EXTRA_FUNCTIONS->glGetUniformLocation(_programId, name.c_str());
     if (location == -1) {
-        Logger::debug("Uniform " + name + " does not exist");
+        Logger::error("Uniform " + name + " does not exist");
         return;
     }
     // Set the uniform
@@ -170,7 +170,7 @@ inline void ShaderProgram::setUniform(const std::string& name, const glm::vec2& 
     // Check if the uniform exist
     int location = OPENGL_EXTRA_FUNCTIONS->glGetUniformLocation(_programId, name.c_str());
     if (location == -1) {
-        Logger::debug("Uniform " + name + " does not exist");
+        Logger::error("Uniform " + name + " does not exist");
         return;
     }
     // Set the uniform
@@ -181,7 +181,7 @@ inline void ShaderProgram::setUniform(const std::string& name, float x, float y)
     // Check if the uniform exist
     int location = OPENGL_EXTRA_FUNCTIONS->glGetUniformLocation(_programId, name.c_str());
     if (location == -1) {
-        Logger::debug("Uniform " + name + " does not exist");
+        Logger::error("Uniform " + name + " does not exist");
         return;
     }
     // Set the uniform
@@ -192,7 +192,7 @@ inline void ShaderProgram::setUniform(const std::string& name, const glm::vec3& 
     // Check if the uniform exist
     int location = OPENGL_EXTRA_FUNCTIONS->glGetUniformLocation(_programId, name.c_str());
     if (location == -1) {
-        Logger::debug("Uniform " + name + " does not exist");
+        Logger::error("Uniform " + name + " does not exist");
         return;
     }
     // Set the uniform
@@ -203,7 +203,7 @@ inline void ShaderProgram::setUniform(const std::string& name, float x, float y,
     // Check if the uniform exist
     int location = OPENGL_EXTRA_FUNCTIONS->glGetUniformLocation(_programId, name.c_str());
     if (location == -1) {
-        Logger::debug("Uniform " + name + " does not exist");
+        Logger::error("Uniform " + name + " does not exist");
         return;
     }
     // Set the uniform
@@ -214,7 +214,7 @@ inline void ShaderProgram::setUniform(const std::string& name, const glm::vec4& 
     // Check if the uniform exist
     int location = OPENGL_EXTRA_FUNCTIONS->glGetUniformLocation(_programId, name.c_str());
     if (location == -1) {
-        Logger::debug("Uniform " + name + " does not exist");
+        Logger::error("Uniform " + name + " does not exist");
         return;
     }
     // Set the uniform
@@ -225,7 +225,7 @@ inline void ShaderProgram::setUniform(const std::string& name, float x, float y,
     // Check if the uniform exist
     int location = OPENGL_EXTRA_FUNCTIONS->glGetUniformLocation(_programId, name.c_str());
     if (location == -1) {
-        Logger::debug("Uniform " + name + " does not exist");
+        Logger::error("Uniform " + name + " does not exist");
         return;
     }
     // Set the uniform
@@ -236,7 +236,7 @@ inline void ShaderProgram::setUniform(const std::string& name, const glm::mat2& 
     // Check if the uniform exist
     int location = OPENGL_EXTRA_FUNCTIONS->glGetUniformLocation(_programId, name.c_str());
     if (location == -1) {
-        Logger::debug("Uniform " + name + " does not exist");
+        Logger::error("Uniform " + name + " does not exist");
         return;
     }
     // Set the uniform
@@ -247,7 +247,7 @@ inline void ShaderProgram::setUniform(const std::string& name, const glm::mat3& 
     // Check if the uniform exist
     int location = OPENGL_EXTRA_FUNCTIONS->glGetUniformLocation(_programId, name.c_str());
     if (location == -1) {
-        Logger::debug("Uniform " + name + " does not exist");
+        Logger::error("Uniform " + name + " does not exist");
         return;
     }
     // Set the uniform
@@ -258,7 +258,7 @@ inline void ShaderProgram::setUniform(const std::string& name, const glm::mat4& 
     // Check if the uniform exist
     int location = OPENGL_EXTRA_FUNCTIONS->glGetUniformLocation(_programId, name.c_str());
     if (location == -1) {
-        Logger::debug("Uniform " + name + " does not exist");
+        Logger::error("Uniform " + name + " does not exist");
         return;
     }
     // Set the uniform

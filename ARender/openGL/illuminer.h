@@ -9,16 +9,16 @@
 class Illuminer {
 protected:
     glm::vec3 _lightColor;
-
+    int type = -1;
 public:
     Illuminer(glm::vec3 color);
     ~Illuminer();
-    
+    virtual int getType() = 0;
 protected:
     virtual glm::vec3 ambientLightColor() const = 0;
     virtual glm::vec3 diffuseLightColor() const = 0;
     virtual glm::vec3 specularLightColor() const = 0;
-
+public:
     virtual void updateShader(ShaderProgram shader, int index) const = 0;
     
 public:
@@ -31,11 +31,12 @@ class DirLight : public Illuminer{
 protected:
     glm::vec3 _direction;   // The outgoing direction of the light source
     float _intensity = 50;
-    
 public:
     DirLight(glm::vec3 direction = glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3 color = glm::vec3(1.0f));
     ~DirLight();
-    
+    int getType() override{
+        return 0;
+    }
 protected:
     virtual glm::vec3 ambientLightColor() const override { return glm::vec3(_intensity / 200.0f) * _lightColor; }
     virtual glm::vec3 diffuseLightColor() const override { return glm::vec3(_intensity / 100.0f) * _lightColor; }
@@ -60,7 +61,9 @@ protected:
     glm::vec3 _position;
     glm::vec3 _direction;
     float _cutOffAngle = 180.0f;
-    
+    int getType() override{
+        return isPointLight()?1:2;
+    }
     // Light property
     int _idealDistance = 32;     // ideally calculated distance 
     const float _attConstant = 1.0f;   // attenuation constant

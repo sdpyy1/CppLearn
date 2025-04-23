@@ -28,6 +28,8 @@ void Plane::render()
     OPENGL_EXTRA_FUNCTIONS->glBindTexture(GL_TEXTURE_2D, texture);
     OPENGL_EXTRA_FUNCTIONS->glDrawArrays(GL_TRIANGLES, 0, 6);
     OPENGL_EXTRA_FUNCTIONS->glBindVertexArray(0);
+    OPENGL_EXTRA_FUNCTIONS->glBindTexture(GL_TEXTURE_2D, 0);
+
 }
 unsigned int loadTexture(char const * path)
 {
