@@ -1,4 +1,3 @@
-
 class PointLight {
     /**
      * Creates an instance of PointLight.

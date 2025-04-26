@@ -30,26 +30,4 @@ class Material {
                 attribs: this.#flatten_attribs
             });
     }
-    
-     /**
-     * 设置网格的额外属性
-     * @param {Array} extraAttribs - 额外的attribute变量
-     */
-     setMeshAttribs(extraAttribs) {
-        for (let i = 0; i < extraAttribs.length; i++) {
-            this.#flatten_attribs.push(extraAttribs[i]);
-        }
-    }
- 
-    /**
-     * 编译着色器程序
-     * @param {WebGLRenderingContext} gl - WebGL渲染上下文
-     * @returns {Shader} 返回一个Shader实例
-     */
-    compile(gl) {
-        return new Shader(gl, this.#vsSrc, this.#fsSrc, {
-            uniforms: this.#flatten_uniforms,
-            attribs: this.#flatten_attribs
-        });
-    }
 }
