@@ -3,3 +3,5 @@ out/
 build/
 .idea/
 cmake-build-debug-mingw/
+.DS_Store
+.vscode/

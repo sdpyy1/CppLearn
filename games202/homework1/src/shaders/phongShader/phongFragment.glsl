@@ -83,30 +83,86 @@ void uniformDiskSamples( const in vec2 randomSeed ) {
   }
 }
 
-float findBlocker( sampler2D shadowMap,  vec2 uv, float zReceiver ) {
-	return 1.0;
-}
-
-float PCF(sampler2D shadowMap, vec4 coords) {
-  return 1.0;
-}
-
-float PCSS(sampler2D shadowMap, vec4 coords){
-
-  // STEP 1: avgblocker depth
-
-  // STEP 2: penumbra size
-
-  // STEP 3: filtering
-  
-  return 1.0;
-
-}
 
 
 float useShadowMap(sampler2D shadowMap, vec4 shadowCoord){
-  return 1.0;
+  // shadowmap中存储的深度
+  float lightDepth = unpack(texture2D(shadowMap, shadowCoord.xy));
+  // 着色点深度
+  float shadowDepth = shadowCoord.z;
+  float visibility = 1.0;
+  float bias = 0.01;
+  // 被挡住了
+  if (shadowDepth  > lightDepth + bias) {
+    visibility = 0.0;
+  }
+  return visibility;
 }
+
+float PCF(sampler2D shadowMap, vec4 coords,float Size) {
+  uniformDiskSamples(coords.xy);
+  // 采样数
+  float numSamples = 0.0;
+  // 没有遮挡的采样数
+  float numUnBlock = 0.0;
+  // 过滤核大小
+  float filterSize = Size;
+  float mapSize = 2048.0;
+  // 过滤核范围
+  float filterRange = filterSize / mapSize;
+  for(int i = 0;i<NUM_SAMPLES;i++){
+    vec2 samplexCoor = coords.xy + poissonDisk[i] * filterRange;
+    // 采样时可能会越界
+    if(samplexCoor.x > 0.0 && samplexCoor.x < 1.0 && samplexCoor.y > 0.0 && samplexCoor.y < 1.0) {
+      numSamples++;
+      if(useShadowMap(shadowMap,vec4(samplexCoor,coords.z,1.0)) == 1.0) {
+        numUnBlock++;
+      }
+    }
+  }
+  return numUnBlock/numSamples;
+}
+
+
+float findBlocker( sampler2D shadowMap,  vec2 uv, float zReceiver ) {
+	int numSamples = 0;
+  float sumDepth = 0.0;
+  float searchSize = 15.0;
+  float mapSize = 2048.0;
+  float searchRange = searchSize / mapSize;
+  for( int i = 0; i < BLOCKER_SEARCH_NUM_SAMPLES; i ++ ) {
+    vec2 sampleCoor = uv + poissonDisk[i] * searchRange;
+    // 采样时可能会越界
+    if(sampleCoor.x > 0.0 && sampleCoor.x < 1.0 && sampleCoor.y > 0.0 && sampleCoor.y < 1.0) {
+      float depth = unpack(texture2D(shadowMap, sampleCoor));
+      if(depth < zReceiver) {
+        sumDepth += depth;
+        numSamples++;
+      }
+    }
+  }
+  if(numSamples > 0) {
+    return sumDepth / float(numSamples);
+  } else {
+    return zReceiver;
+  }
+}
+
+float PCSS(sampler2D shadowMap, vec4 coords){
+  uniformDiskSamples(coords.xy);
+  // STEP 1: avgblocker depth
+  float avgBlockerDepth = findBlocker(shadowMap, coords.xy, coords.z);
+  // STEP 2: penumbra size
+  // 假设光源尺寸为20
+  float Wlight = 20.0;
+  float penumbraSize = (coords.z - avgBlockerDepth) * Wlight / avgBlockerDepth;
+  // STEP 3: filtering
+  // 把半影尺寸当做过滤核大小
+  return PCF(shadowMap, coords,penumbraSize);
+}
+
+
+
 
 vec3 blinnPhong() {
   vec3 color = texture2D(uSampler, vTextureCoord).rgb;
@@ -133,13 +189,16 @@ vec3 blinnPhong() {
 
 void main(void) {
 
-  float visibility;
-  //visibility = useShadowMap(uShadowMap, vec4(shadowCoord, 1.0));
-  //visibility = PCF(uShadowMap, vec4(shadowCoord, 1.0));
-  //visibility = PCSS(uShadowMap, vec4(shadowCoord, 1.0));
+  float visibility = 1.0;
+  // 透视投影时才需要
+  // vec3 shadowCoord = vPositionFromLight.xyz / vPositionFromLight.w;
+  vec3 shadowCoord = (vPositionFromLight.xyz+1.0)/2.0;
+  // visibility = useShadowMap(uShadowMap, vec4(shadowCoord, 1.0));
+  // visibility = PCF(uShadowMap, vec4(shadowCoord, 1.0),5);
+  visibility = PCSS(uShadowMap, vec4(shadowCoord, 1.0));
 
   vec3 phongColor = blinnPhong();
 
-  //gl_FragColor = vec4(phongColor * visibility, 1.0);
-  gl_FragColor = vec4(phongColor, 1.0);
+  gl_FragColor = vec4(phongColor * visibility, 1.0);
+  // gl_FragColor = vec4(phongColor, 1.0);
 }
