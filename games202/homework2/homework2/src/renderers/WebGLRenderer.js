@@ -1,3 +1,13 @@
+function getMat3ValueFromRGB(precomputeL){
+
+    let colorMat3 = [];
+    for(var i = 0; i<3; i++){
+        colorMat3[i] = mat3.fromValues( precomputeL[0][i], precomputeL[1][i], precomputeL[2][i],
+					precomputeL[3][i], precomputeL[4][i], precomputeL[5][i],
+					precomputeL[6][i], precomputeL[7][i], precomputeL[8][i] ); 
+	}
+    return colorMat3;
+}
 class WebGLRenderer {
     meshes = [];
     shadowMeshes = [];
@@ -60,11 +70,19 @@ class WebGLRenderer {
                     }
 
                     // Bonus - Fast Spherical Harmonic Rotation
-                    //let precomputeL_RGBMat3 = getRotationPrecomputeL(precomputeL[guiParams.envmapId], cameraModelMatrix);
-                    
-                    
+                    let precomputeL_RGBMat3 = getRotationPrecomputeL(precomputeL[guiParams.envmapId], cameraModelMatrix);
+                    // Edit Start
+                    let Mat3Value = getMat3ValueFromRGB(precomputeL[guiParams.envmapId])
+                    for(let j = 0; j < 3; j++){
+                        if (k == 'uPrecomputeL['+j+']') {
+                            gl.uniformMatrix3fv(
+                                this.meshes[i].shader.program.uniforms[k],
+                                false,
+                                Mat3Value[j]);
+                        }
+                    }
+                    // Edit End
                 }
-
                 this.meshes[i].draw(this.camera);
             }
         }
