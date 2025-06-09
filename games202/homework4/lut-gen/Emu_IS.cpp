@@ -25,27 +25,37 @@ Vec2f Hammersley(uint32_t i, uint32_t N) { // 0-1
 
 Vec3f ImportanceSampleGGX(Vec2f Xi, Vec3f N, float roughness) {
     float a = roughness * roughness;
-
     //TODO: in spherical space - Bonus 1
+    float theta = atan(a * sqrt(Xi.x) / sqrt(1.0f - Xi.x));
+    float phi = 2.0 * PI * Xi.y;
 
 
     //TODO: from spherical space to cartesian space - Bonus 1
- 
+    float sinTheta = sin(theta);
+    float consTheta = cos(theta);
+    Vec3f H = Vec3f(cos(phi) * sinTheta, sin(phi) * sinTheta, consTheta);
 
     //TODO: tangent coordinates - Bonus 1
-
+    Vec3f up = abs(N.z) < 0.999 ? Vec3f(0.0, 0.0, 1.0) : Vec3f(1.0, 0.0, 0.0);
+    Vec3f tangent = normalize(cross(up, N));
+    Vec3f bitangent = cross(N, tangent);
 
     //TODO: transform H to tangent space - Bonus 1
-    
-    return Vec3f(1.0f);
+    Vec3f sampleVec = tangent * H.x + bitangent * H.y + N * H.z;
+    return normalize(sampleVec);
 }
+
 
 float GeometrySchlickGGX(float NdotV, float roughness) {
     // TODO: To calculate Schlick G1 here - Bonus 1
-    
-    return 1.0f;
-}
+    float a = roughness;
+    float k = (a * a) / 2.0f;
 
+    float nom = NdotV;
+    float denom = NdotV * (1.0f - k) + k;
+
+    return nom / denom;
+}
 float GeometrySmith(float roughness, float NoV, float NoL) {
     float ggx2 = GeometrySchlickGGX(NoV, roughness);
     float ggx1 = GeometrySchlickGGX(NoL, roughness);
@@ -54,8 +64,8 @@ float GeometrySmith(float roughness, float NoV, float NoL) {
 }
 
 Vec3f IntegrateBRDF(Vec3f V, float roughness) {
-
     const int sample_count = 1024;
+    Vec3f Emu(0.0f);
     Vec3f N = Vec3f(0.0, 0.0, 1.0);
     for (int i = 0; i < sample_count; i++) {
         Vec2f Xi = Hammersley(i, sample_count);
@@ -66,15 +76,15 @@ Vec3f IntegrateBRDF(Vec3f V, float roughness) {
         float NoH = std::max(H.z, 0.0f);
         float VoH = std::max(dot(V, H), 0.0f);
         float NoV = std::max(dot(N, V), 0.0f);
-        
+        // Edit Start
         // TODO: To calculate (fr * ni) / p_o here - Bonus 1
-
+        float G = GeometrySmith(roughness, NoV, NoL);
+        float weight = VoH * G / (NoV * NoH);
+        Emu += Vec3f(1.0, 1.0, 1.0) * weight;
 
         // Split Sum - Bonus 2
-        
     }
-
-    return Vec3f(1.0f);
+    return Emu / sample_count;
 }
 
 int main() {

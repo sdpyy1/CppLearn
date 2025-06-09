@@ -6,6 +6,6 @@ cmake ..
 make -j8
 ./lut-Emu-MC
 ./lut-Eavg-MC
-# ./lut-Emu-IS
+./lut-Emu-IS
 # ./lut-Eavg-IS
 cd ..
