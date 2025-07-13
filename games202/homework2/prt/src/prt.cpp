@@ -112,6 +112,7 @@ namespace ProjEnv
                 }
             }
         }
+        // 表示球谐系数的个数
         constexpr int SHNum = (SHOrder + 1) * (SHOrder + 1);
         std::vector<Eigen::Array3f> SHCoeffiecents(SHNum);
         for (int i = 0; i < SHNum; i++)
@@ -127,8 +128,18 @@ namespace ProjEnv
                     // TODO: 此处你需要计算每个像素下cubemap某个面的球谐系数
                     Eigen::Vector3f dir = cubemapDirs[i * width * height + y * width + x];
                     int index = (y * width + x) * channel;
+                    // 当前像素的RGB值
                     Eigen::Array3f Le(images[i][index + 0], images[i][index + 1],
                                       images[i][index + 2]);
+                    // 计算当前像素的面积
+                    float delta_wi = CalcArea(x, y, width, height);
+                    Eigen::Vector3d _dir(Eigen::Vector3d(dir[0], dir[1], dir[2]).normalized());//这里dir要变成Eigen::Vector3d类型
+                    // 计算当前像素点对每个基函数系数的黎曼积分求法的贡献
+                    for(int l = 0;l < SHNum; l++){
+                        for(int m = -l; m <= l; m++){
+                            SHCoeffiecents[sh::GetIndex(l,m)] += Le * sh::EvalSH(l,m,_dir)*delta_wi;
+                        }
+                    }
                 }
             }
         }
@@ -173,7 +184,64 @@ public:
             throw NoriException("Unsupported type: %s.", type);
         }
     }
+//prt.cpp
+std::unique_ptr<std::vector<double>> computeInterreflectionSH(Eigen::MatrixXf* directTSHCoeffs, const Point3f& pos, const Normal3f& normal, const Scene* scene, int bounces)
+{
+    std::unique_ptr<std::vector<double>> coeffs(new std::vector<double>());
+    coeffs->assign(SHCoeffLength, 0.0);
 
+    if (bounces > m_Bounce)
+        return coeffs;
+
+    const int sample_side = static_cast<int>(floor(sqrt(m_SampleCount)));
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> rng(0.0, 1.0);
+    for (int t = 0; t < sample_side; t++) {
+        for (int p = 0; p < sample_side; p++) {
+            double alpha = (t + rng(gen)) / sample_side;
+            double beta = (p + rng(gen)) / sample_side;
+            double phi = 2.0 * M_PI * beta;
+            double theta = acos(2.0 * alpha - 1.0);
+	    //这边模仿ProjectFunction函数写
+
+            Eigen::Array3d d = sh::ToVector(phi, theta);
+            const auto wi = Vector3f(d.x(), d.y(), d.z());
+            double H = wi.normalized().dot(normal);
+            Intersection its;
+            if (H > 0.0 && scene->rayIntersect(Ray3f(pos, wi.normalized()), its))
+            {
+                MatrixXf normals = its.mesh->getVertexNormals();
+                Point3f idx = its.tri_index;
+                Point3f hitPos = its.p;
+                Vector3f bary = its.bary;
+
+                Normal3f hitNormal =
+                    Normal3f(normals.col(idx.x()).normalized() * bary.x() +
+                        normals.col(idx.y()).normalized() * bary.y() +
+                        normals.col(idx.z()).normalized() * bary.z())
+                    .normalized();
+
+                auto nextBouncesCoeffs = computeInterreflectionSH(directTSHCoeffs, hitPos, hitNormal, scene, bounces + 1);
+
+                for (int i = 0; i < SHCoeffLength; i++)
+                {
+                    auto interpolateSH = (directTSHCoeffs->col(idx.x()).coeffRef(i) * bary.x() +
+                        directTSHCoeffs->col(idx.y()).coeffRef(i) * bary.y() +
+                        directTSHCoeffs->col(idx.z()).coeffRef(i) * bary.z());
+
+                    (*coeffs)[i] += (interpolateSH + (*nextBouncesCoeffs)[i]) * H;
+                }
+            }
+        }
+    }
+
+    for (unsigned int i = 0; i < coeffs->size(); i++) {
+        (*coeffs)[i] /= sample_side * sample_side;
+    }
+
+    return coeffs;
+}
     virtual void preprocess(const Scene *scene) override
     {
 
@@ -206,28 +274,46 @@ public:
             auto shFunc = [&](double phi, double theta) -> double {
                 Eigen::Array3d d = sh::ToVector(phi, theta);
                 const auto wi = Vector3f(d.x(), d.y(), d.z());
+                float dot_product = wi.normalized().dot(n.normalized());
                 if (m_Type == Type::Unshadowed)
                 {
                     // TODO: here you need to calculate unshadowed transport term of a given direction
                     // TODO: 此处你需要计算给定方向下的unshadowed传输项球谐函数值
-                    return 0;
+                    return dot_product > 0.0 ? dot_product : 0;
                 }
                 else
                 {
                     // TODO: here you need to calculate shadowed transport term of a given direction
                     // TODO: 此处你需要计算给定方向下的shadowed传输项球谐函数值
-                    return 0;
+                    // 从顶点位置发射一条光线，与场景相交说明被遮挡了
+                    if(dot_product > 0.0 && !scene->rayIntersect(Ray3f(v, wi.normalized())))
+                    {
+                        return dot_product;
+                    }else{
+                        return 0;
+                    }
                 }
             };
             auto shCoeff = sh::ProjectFunction(SHOrder, shFunc, m_SampleCount);
             for (int j = 0; j < shCoeff->size(); j++)
             {
-                m_TransportSHCoeffs.col(i).coeffRef(j) = (*shCoeff)[j];
+                m_TransportSHCoeffs.col(i).coeffRef(j) = (*shCoeff)[j] / M_PI;
             }
         }
         if (m_Type == Type::Interreflection)
         {
             // TODO: leave for bonus
+            for (int i = 0; i < mesh->getVertexCount(); i++)
+            {
+                const Point3f& v = mesh->getVertexPositions().col(i);
+                const Normal3f& n = mesh->getVertexNormals().col(i).normalized();
+                auto indirectCoeffs = computeInterreflectionSH(&m_TransportSHCoeffs, v, n, scene, 1);
+                for (int j = 0; j < SHCoeffLength; j++)
+                {
+                    m_TransportSHCoeffs.col(i).coeffRef(j) += (*indirectCoeffs)[j];
+                }
+                std::cout << "computing interreflection light sh coeffs, current vertex idx: " << i << " total vertex idx: " << mesh->getVertexCount() << std::endl;
+            }
         }
 
         // Save in face format
