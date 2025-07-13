@@ -8,7 +8,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
-#include "macros.h"
+#include "../macros.h"
 class Shader
 {
 public:

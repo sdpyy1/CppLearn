@@ -4,10 +4,18 @@ set(CMAKE_CXX_STANDARD 20)
 
 INCLUDE_DIRECTORIES(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/third/include)
 # 定义复制文件夹的自定义命令
-add_executable(OpenGLDemo third/src/glad.c main.cpp camera.h Shader.h
+add_executable(OpenGLDemo third/src/glad.c main.cpp core/camera.h core/Shader.h
         macros.h
-        mesh.h
-        model.h)
+        model/mesh.h
+        model/model.h
+        core/VertexArray.cpp
+        core/VertexArray.h
+        core/VertexBuffer.cpp
+        core/VertexBuffer.h
+        core/IndexBuffer.cpp
+        core/IndexBuffer.h
+        core/WindowManager.cpp
+        core/WindowManager.h)
 add_custom_command(
         TARGET OpenGLDemo  # 替换为你的目标（如可执行文件）
         POST_BUILD          # 在构建完成后执行

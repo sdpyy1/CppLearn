@@ -9,7 +9,7 @@
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
 #include <string>
-#include "Shader.h"
+#include "../core/Shader.h"
 
 using namespace std;
 #define MAX_BONE_INFLUENCE 4
