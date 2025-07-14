@@ -1,34 +1,33 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <stb_image.h>
 
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 #include "core/Shader.h"
-#include "core/camera.h"
 #include "model/model.h"
 #include "core/WindowManager.h"
 #include "utils/shaderUtils.h"
+#include "utils/DefaultSceneSetup.h"
 #include <iostream>
 int main() {
-    WindowManager app(800, 600);
-    Model model("D:/CppLearn/OpenGL/assets/helmet_pbr/DamagedHelmet.gltf");
+    WindowManager app(1920, 1400);
+    Model model("D:/CppLearn/OpenGL/assets/desert-eagle/scene.gltf");
     Shader pbrShader("shader/pbr.vert", "shader/pbr.frag");
+    Shader basicShader("shader/basic.vert", "shader/basic.frag");
     glEnable(GL_DEPTH_TEST);
-
+    // 搭建一个基础场景
+    DefaultSceneSetup scene(app.camera, app.width, app.height);
     while (!glfwWindowShouldClose(app.window)) {
         app.ProcessInput();
-
         GL_CALL(glClearColor(0.1f, 0.1f, 0.1f, 1.0f));
         GL_CALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+        // 基础渲染
+        basicShader.use();
+        scene.draw(basicShader);
+        // PBR材质渲染
         pbrShader.use();
-        glm::mat4 modelMat(1.0f);
-        handlerShader(pbrShader, app.camera, app.width, app.height, modelMat);
-        // Begin Render.
+        handlerShader(pbrShader, app.camera, app.width, app.height, glm::mat4(0.2f));
         model.draw(pbrShader);
-        // End Render
         glfwSwapBuffers(app.window);
         glfwPollEvents();
     }

@@ -1,28 +1,22 @@
 #include "VertexArray.h"
 
-VertexArray::VertexArray()
-{
-    glGenVertexArrays(1, &m_RendererID);
-    glBindVertexArray(m_RendererID);
+VertexArray::VertexArray() {
+    glGenVertexArrays(1, &ID);
 }
 
-VertexArray::~VertexArray()
-{
-    glDeleteVertexArrays(1, &m_RendererID);
+VertexArray::~VertexArray() {
+    glDeleteVertexArrays(1, &ID);
 }
 
-void VertexArray::Bind() const
-{
-    glBindVertexArray(m_RendererID);
+void VertexArray::Bind() const {
+    glBindVertexArray(ID);
 }
 
-void VertexArray::Unbind() const
-{
+void VertexArray::Unbind() const {
     glBindVertexArray(0);
 }
 
-void VertexArray::AddVertexAttribute(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void* offset)
-{
+void VertexArray::AddVertexAttrib(unsigned int index, int size, GLenum type, GLboolean normalized, GLsizei stride, const void* pointer) {
     glEnableVertexAttribArray(index);
-    glVertexAttribPointer(index, size, type, normalized, stride, offset);
+    glVertexAttribPointer(index, size, type, normalized, stride, pointer);
 }

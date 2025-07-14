@@ -14,6 +14,8 @@ set(SOURCES
         core/IndexBuffer.cpp
         core/WindowManager.cpp
         utils/shaderUtils.h
+        utils/DefaultSceneSetup.cpp
+        utils/DefaultSceneSetup.h
 )
 
 add_executable(OpenGLRender ${SOURCES})

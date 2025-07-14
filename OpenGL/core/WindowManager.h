@@ -16,7 +16,7 @@ public:
 
     // 构造函数：初始化宽高和相机
     explicit WindowManager(int w = 800, int h = 600)
-            : width(w), height(h), camera(glm::vec3(0.0f, 0.0f, 3.0f)) {
+            : width(w), height(h), camera(glm::vec3(.0f, .0f, 10.0f)) {
         Init();
     }
 
