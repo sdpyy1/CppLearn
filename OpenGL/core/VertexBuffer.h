@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glad/glad.h>
+#include <cstddef>  // 或者 #include <stddef.h>
 
 class VertexBuffer
 {

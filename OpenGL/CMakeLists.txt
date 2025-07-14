@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 INCLUDE_DIRECTORIES(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/third/include)
 # 定义复制文件夹的自定义命令
 add_executable(OpenGLDemo third/src/glad.c main.cpp core/camera.h core/Shader.h
-        macros.h
+        utils/macros.h
         model/mesh.h
         model/model.h
         core/VertexArray.cpp
