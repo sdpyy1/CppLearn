@@ -7,7 +7,7 @@
 
 class WindowManager {
 public:
-    GLFWwindow* window;
+    GLFWwindow* window = nullptr;
     Camera camera;
     // timing
     float deltaTime = 0.0f;	// time between current frame and last frame
@@ -15,8 +15,10 @@ public:
     int width, height;
 
     // 构造函数：初始化宽高和相机
-    WindowManager(int w = 800, int h = 600)
-            : width(w), height(h), camera(glm::vec3(0.0f, 0.0f, 3.0f)) {}
+    explicit WindowManager(int w = 800, int h = 600)
+            : width(w), height(h), camera(glm::vec3(0.0f, 0.0f, 3.0f)) {
+        Init();
+    }
 
     bool Init();
 

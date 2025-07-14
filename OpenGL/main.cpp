@@ -10,26 +10,29 @@
 #include "core/camera.h"
 #include "model/model.h"
 #include "core/WindowManager.h"
-
+#include "utils/shaderUtils.h"
 #include <iostream>
-
 int main() {
     WindowManager app(800, 600);
-    if (!app.Init())
-        return -1;
+    Model model("D:/CppLearn/OpenGL/assets/helmet_pbr/DamagedHelmet.gltf");
+    Shader pbrShader("shader/pbr.vert", "shader/pbr.frag");
+    glEnable(GL_DEPTH_TEST);
 
     while (!glfwWindowShouldClose(app.window)) {
-
         app.ProcessInput();
 
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // 这里写渲染逻辑...
-
+        GL_CALL(glClearColor(0.1f, 0.1f, 0.1f, 1.0f));
+        GL_CALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+        pbrShader.use();
+        glm::mat4 modelMat(1.0f);
+        handlerShader(pbrShader, app.camera, app.width, app.height, modelMat);
+        // Begin Render.
+        model.draw(pbrShader);
+        // End Render
         glfwSwapBuffers(app.window);
         glfwPollEvents();
     }
+
 
     glfwTerminate();
     return 0;

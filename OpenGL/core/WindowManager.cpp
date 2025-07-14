@@ -26,7 +26,7 @@ bool WindowManager::Init() {
         std::cerr << "Failed to initialize GLAD\n";
         return false;
     }
-    glfwSetWindowUserPointer(window, this);  // ✅ 这一句非常重要！
+    glfwSetWindowUserPointer(window, this);
 
     SetCallbacks();
 
