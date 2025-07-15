@@ -21,13 +21,13 @@ void DefaultSceneSetup::setupFloorMesh() {
             0, 2, 3
     };
 
-    vao.Bind();
-    vbo.SetData(vertices, sizeof(vertices));
-    ibo.SetData(indices, sizeof(indices));
+    vao.bind();
+    vbo.setData(vertices, sizeof(vertices));
+    ibo.setData(indices, sizeof(indices));
 
-    vao.AddVertexAttrib(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);                   // pos
-    vao.AddVertexAttrib(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float))); // normal
-    vao.AddVertexAttrib(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float))); // uv
+    vao.addAttrib(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);                   // pos
+    vao.addAttrib(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float))); // normal
+    vao.addAttrib(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float))); // uv
 }
 
 void DefaultSceneSetup::draw(Shader& shader) {
@@ -43,15 +43,15 @@ void DefaultSceneSetup::draw(Shader& shader) {
     // 设置 MVP 矩阵
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)width / (float)height, 0.1f, 100.0f);
-    glm::mat4 view = camera.GetViewMatrix();
+    glm::mat4 view = camera.getViewMatrix();
     shader.use();
     shader.setMat4("projection", projection);
     shader.setMat4("view", view);
     shader.setMat4("model", model);
-    vao.Bind();
-    ibo.Bind();
+    vao.bind();
+    ibo.bind();
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-    vao.Unbind();
+    vao.unbind();
 
     glBindTexture(GL_TEXTURE_2D, 0); // 可选：解绑纹理，保持状态整洁
 }

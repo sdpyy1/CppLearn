@@ -1,11 +1,13 @@
 #version 330 core
-layout(location = 0) in vec3 aPos;      // 顶点位置
-layout(location = 1) in vec3 aNormal;   // 法线
-layout(location = 2) in vec2 aTexCoords; // UV
+layout(location = 0) in vec3 aPos;
+layout(location = 1) in vec3 aNormal;
+layout(location = 2) in vec2 aTexCoords;
+layout(location = 3) in vec3 aTangent;
+layout(location = 4) in vec3 aBitangent;
 
 out vec3 FragPos;
-out vec3 Normal;
 out vec2 TexCoords;
+out mat3 TBN;
 
 uniform mat4 model;
 uniform mat4 view;
@@ -13,10 +15,16 @@ uniform mat4 projection;
 
 void main()
 {
-    FragPos = vec3(model * vec4(aPos, 1.0)); // 世界空间位置
-    Normal = mat3(transpose(inverse(model))) * aNormal; // 世界空间法线
+    // 世界空间位置
+    vec3 fragPosWorld = vec3(model * vec4(aPos, 1.0));
+    FragPos = fragPosWorld;
     TexCoords = aTexCoords;
 
-    gl_Position = projection * view * vec4(FragPos, 1.0);
-}
+    // 法线、切线、副切线变换到世界空间
+    vec3 T = normalize(mat3(model) * aTangent);
+    vec3 B = normalize(mat3(model) * aBitangent);
+    vec3 N = normalize(mat3(model) * aNormal);
+    TBN = mat3(T, B, N);
 
+    gl_Position = projection * view * vec4(fragPosWorld, 1.0);
+}

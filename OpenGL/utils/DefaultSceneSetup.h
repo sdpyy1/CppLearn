@@ -1,9 +1,9 @@
 #pragma once
 #include "../core/Shader.h"
-#include "../core/camera.h"
-#include "../core/VertexArray.h"
-#include "../core/VertexBuffer.h"
-#include "../core/IndexBuffer.h"
+#include "../core/Camera.h"
+#include "../core/VAO.h"
+#include "../core/VBO.h"
+#include "../core/EBO.h"
 
 class DefaultSceneSetup {
 public:
@@ -13,9 +13,9 @@ public:
     int height;
 
 private:
-    VertexArray vao;
-    VertexBuffer vbo;
-    IndexBuffer ibo;
+    VAO vao;
+    VBO vbo;
+    EBO ibo;
     Camera& camera;
 
 

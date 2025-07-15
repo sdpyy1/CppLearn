@@ -5,7 +5,7 @@ bool WindowManager::firstMouse = true;
 float WindowManager::lastX = 400.0f;
 float WindowManager::lastY = 300.0f;
 
-bool WindowManager::Init() {
+bool WindowManager::initWindow() {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -28,7 +28,7 @@ bool WindowManager::Init() {
     }
     glfwSetWindowUserPointer(window, this);
 
-    SetCallbacks();
+    setCallbacks();
 
     glViewport(0, 0, width, height);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -36,7 +36,8 @@ bool WindowManager::Init() {
     return true;
 }
 
-void WindowManager::ProcessInput() {
+void WindowManager::processInput()
+{
     auto currentFrame = static_cast<float>(glfwGetTime());
     deltaTime = currentFrame - lastFrame;
     lastFrame = currentFrame;
@@ -51,15 +52,25 @@ void WindowManager::ProcessInput() {
         camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS){
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        glfwSetScrollCallback(window, nullptr);
+        glfwSetCursorPosCallback(window, nullptr);
+    }
+    if (glfwGetKey(window, GLFW_KEY_G) == GLFW_RELEASE){
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        glfwSetCursorPosCallback(window, mouse_callback);
+    }
+
 }
 
-void WindowManager::SetCallbacks() {
+void WindowManager::setCallbacks() {
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
 }
 
-WindowManager* WindowManager::  GetInstance(GLFWwindow* window) {
+WindowManager* WindowManager::GetInstance(GLFWwindow* window) {
     return reinterpret_cast<WindowManager*>(glfwGetWindowUserPointer(window));
 }
 

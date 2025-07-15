@@ -2,9 +2,8 @@
 out vec4 FragColor;
 
 in vec3 FragPos;
-in vec3 Normal;
 in vec2 TexCoords;
-
+in mat3 TBN;
 uniform vec3 camPos;
 uniform vec3 lightPos;
 uniform vec3 lightColor;
@@ -21,19 +20,10 @@ const float PI = 3.14159265359;
 
 vec3 getNormalFromMap()
 {
-    vec3 tangentNormal = texture(texture_normal, TexCoords).xyz * 2.0 - 1.0;
+    vec3 normalTS = texture(texture_normal, TexCoords).rgb;
+    normalTS = normalTS * 2.0 - 1.0; // 转换为 [-1,1]
 
-    vec3 Q1 = dFdx(FragPos);
-    vec3 Q2 = dFdy(FragPos);
-    vec2 st1 = dFdx(TexCoords);
-    vec2 st2 = dFdy(TexCoords);
-
-    vec3 N = normalize(Normal);
-    vec3 T = normalize(Q1 * st2.t - Q2 * st1.t);
-    vec3 B = -normalize(cross(N, T));
-    mat3 TBN = mat3(T, B, N);
-
-    return normalize(TBN * tangentNormal);
+    return normalize(TBN * normalTS);
 }
 
 // Distribution: GGX
@@ -80,11 +70,14 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 
 void main()
 {
-    vec3 albedo     = pow(texture(texture_albedo, TexCoords).rgb, vec3(2.2)); // gamma correct
+    // vec3 albedo     = pow(texture(texture_albedo, TexCoords).rgb, vec3(2.2)); // gamma correct
+    vec3 albedo     = texture(texture_albedo, TexCoords).rgb;
+
     float metallic  = texture(texture_metallic, TexCoords).r;
     float roughness = texture(texture_roughness, TexCoords).r;
     float ao        = texture(texture_ao, TexCoords).r;
-    vec3 emission     = pow(texture(texture_emission, TexCoords).rgb, vec3(2.2)); // gamma correct
+    // vec3 emission     = pow(texture(texture_emission, TexCoords).rgb, vec3(2.2)); // gamma correct
+    vec3 emission     = texture(texture_emission, TexCoords).rgb;
 
     vec3 N = getNormalFromMap();
     vec3 V = normalize(camPos - FragPos);

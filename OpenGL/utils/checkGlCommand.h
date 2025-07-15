@@ -4,6 +4,7 @@
 
 #ifndef OPENGL_MACROS_H
 #define OPENGL_MACROS_H
+#include <iostream>
 #define GL_CALL(x) \
     do { \
         x; \
