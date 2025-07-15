@@ -138,6 +138,8 @@ public:
         GL_CALL(glDeleteShader(fragment));
         GL_CALL(glDeleteShader(geometry));
     }
+
+
     // activate the shader
     // ------------------------------------------------------------------------
     void use() const

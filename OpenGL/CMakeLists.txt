@@ -13,9 +13,11 @@ set(SOURCES
         core/VertexBuffer.cpp
         core/IndexBuffer.cpp
         core/WindowManager.cpp
-        utils/shaderUtils.h
         utils/DefaultSceneSetup.cpp
-        utils/DefaultSceneSetup.h
+        pass/GeometryPass.h
+        pass/LightingPass.cpp
+        utils/imageLoader.cpp
+        model/model.cpp
 )
 
 add_executable(OpenGLRender ${SOURCES})
@@ -38,5 +40,12 @@ add_custom_command(TARGET OpenGLRender POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_CURRENT_SOURCE_DIR}/shader
         $<TARGET_FILE_DIR:OpenGLRender>/shader
+        COMMENT "Copy entire shader directory to output folder"
+)
+
+add_custom_command(TARGET OpenGLRender POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_CURRENT_SOURCE_DIR}/assets
+        $<TARGET_FILE_DIR:OpenGLRender>/assets
         COMMENT "Copy entire shader directory to output folder"
 )
