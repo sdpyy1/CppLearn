@@ -1,7 +1,6 @@
 #include "Camera.h"
 
 #include <iostream>
-#include <__ostream/basic_ostream.h>
 
 Camera::Camera(int window_w, int window_h,
                glm::vec3 position, glm::vec3 up,

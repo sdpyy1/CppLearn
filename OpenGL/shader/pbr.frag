@@ -70,14 +70,12 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 
 void main()
 {
-    // vec3 albedo     = pow(texture(texture_albedo, TexCoords).rgb, vec3(2.2)); // gamma correct
-    vec3 albedo     = texture(texture_albedo, TexCoords).rgb;
+     vec3 albedo     = pow(texture(texture_albedo, TexCoords).rgb, vec3(2.2)); // gamma correct
 
     float metallic  = texture(texture_metallic, TexCoords).r;
-    float roughness = texture(texture_roughness, TexCoords).r;
+    float roughness = texture(texture_roughness, TexCoords).g;
     float ao        = texture(texture_ao, TexCoords).r;
-    // vec3 emission     = pow(texture(texture_emission, TexCoords).rgb, vec3(2.2)); // gamma correct
-    vec3 emission     = texture(texture_emission, TexCoords).rgb;
+     vec3 emission     = pow(texture(texture_emission, TexCoords).rgb, vec3(2.2)); // gamma correct
 
     vec3 N = getNormalFromMap();
     vec3 V = normalize(camPos - FragPos);

@@ -37,6 +37,6 @@ void Scene::setVPAndUseShader(Shader& shader) const
     shader.setMat4("view", view);
 
     shader.setVec3("camPos", camera->Position);
-    // shader.setVec3("lightPos", glm::vec3(1.0f, 1.0f, 1.0f));
-    // shader.setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+     shader.setVec3("lightPos", glm::vec3(1.0f, 1.0f, 1.0f));
+     shader.setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
 }

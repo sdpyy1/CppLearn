@@ -3,7 +3,7 @@
 GeometryPass::GeometryPass(Scene& scene)
     : scene(scene),
       shader("shader/geometry.vert", "shader/geometry.frag"),
-      debugShader("shader/fullscreen_debug.vert", "shader/fullscreen_debug.frag"),
+      debugShader("shader/gBufferDebug.vert", "shader/gBufferDebug.frag"),
       width(scene.width), height(scene.height),
       debugVAO(0), gBuffer(0),
       gPosition(0), gNormal(0), gAlbedo(0), gMaterial(0)
@@ -119,6 +119,8 @@ void GeometryPass::initDebug()
 
 void GeometryPass::debug()
 {
+    GL_CALL(glDisable(GL_DEPTH_TEST));
+
     debugShader.use();
     debugShader.setFloat("near", scene.camera->Near);
     debugShader.setFloat("far", scene.camera->Far);
@@ -159,4 +161,5 @@ void GeometryPass::debug()
 
     GL_CALL(glBindVertexArray(0));
     GL_CALL(glViewport(0, 0, width, height));
+    GL_CALL(glEnable(GL_DEPTH_TEST));
 }

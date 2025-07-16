@@ -19,11 +19,12 @@ enum class LightType
 class Light
 {
 public:
+    glm::vec3 position;
     glm::vec3 color; // 光颜色，范围0~1
     float intensity; // 光强度 >= 0
 
-    explicit Light(const glm::vec3& c = glm::vec3(1.0f), float i = 1.0f)
-        : color(c), intensity(i)
+    explicit Light(const glm::vec3& c = glm::vec3(1.0f), glm::vec3 position = glm::vec3(1.0f),float i = 1.0f)
+        : color(c), intensity(i), position(position)
     {
     }
 
@@ -49,7 +50,7 @@ public:
     DirectionalLight(const glm::vec3& dir = glm::vec3(-0.2f, -1.0f, -0.3f),
                      const glm::vec3& c = glm::vec3(1.0f),
                      float i = 1.0f)
-        : Light(c, i), direction(glm::normalize(dir))
+        : Light(c, dir,i), direction(glm::normalize(dir))
     {
     }
 
@@ -64,7 +65,6 @@ public:
 class PointLight : public Light
 {
 public:
-    glm::vec3 position;
     float constant; // 常数项衰减
     float linear; // 线性衰减
     float quadratic; // 二次衰减
@@ -75,7 +75,7 @@ public:
                float constantAtt = 1.0f,
                float linearAtt = 0.09f,
                float quadraticAtt = 0.032f)
-        : Light(c, i), position(pos),
+        : Light(c, pos, i),
           constant(constantAtt), linear(linearAtt), quadratic(quadraticAtt)
     {
     }
@@ -89,7 +89,6 @@ public:
 class SpotLight : public Light
 {
 public:
-    glm::vec3 position;
     glm::vec3 direction;
     float cutOff; // 内截锥角的余弦值 (cosine of inner cone angle)
     float outerCutOff; // 外截锥角的余弦值 (cosine of outer cone angle)
@@ -107,8 +106,7 @@ public:
               float constantAtt = 1.0f,
               float linearAtt = 0.09f,
               float quadraticAtt = 0.032f)
-        : Light(c, i),
-          position(pos),
+        : Light(c, pos,i),
           direction(glm::normalize(dir)),
           constant(constantAtt),
           linear(linearAtt),
