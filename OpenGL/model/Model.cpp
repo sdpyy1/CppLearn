@@ -69,7 +69,7 @@ void Model::loadModel(const string& path)
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(path,
                                              aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs |
-                                             aiProcess_CalcTangentSpace | aiProcess_PreTransformVertices);
+                                             aiProcess_CalcTangentSpace | aiProcess_PreTransformVertices | aiProcess_GlobalScale);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
@@ -149,7 +149,22 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
     }
 
     aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+    // 打印所有导入的纹理
+    for (unsigned int i = 0; i < scene->mNumMaterials; ++i) {
+        aiMaterial* material = scene->mMaterials[i];
 
+        std::cout << "Material " << i << ":\n";
+        for (int type = aiTextureType_NONE; type <= aiTextureType_UNKNOWN; ++type) {
+            aiTextureType texType = static_cast<aiTextureType>(type);
+            unsigned int texCount = material->GetTextureCount(texType);
+            for (unsigned int j = 0; j < texCount; ++j) {
+                aiString path;
+                if (material->GetTexture(texType, j, &path) == AI_SUCCESS) {
+                    std::cout << "  Texture Type " << type << " : " << path.C_Str() << "\n";
+                }
+            }
+        }
+    }
     vector<Texture> albedoMaps = loadMaterialTextures(material, aiTextureType_BASE_COLOR, "texture_albedo");
     textures.insert(textures.end(), albedoMaps.begin(), albedoMaps.end());
 

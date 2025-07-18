@@ -6,14 +6,19 @@
 #define PRECOMPUTER_H
 #include "../core/Shader.h"
 #include "glad/glad.h"
+#include "glm/ext/matrix_clip_space.hpp"
+#include "glm/ext/matrix_transform.hpp"
 
 class Scene;
 
 class preComputer {
 public:
+
     Scene & scene;
     explicit preComputer(Scene & scene):scene(scene){};
     GLuint computeIrradianceMap(GLuint envCubemap);
+    GLuint computePrefilterMap(GLuint envCubemap);
+    GLuint computeLutMap(GLuint envCubemap);
 };
 
 

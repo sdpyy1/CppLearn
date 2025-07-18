@@ -16,16 +16,29 @@
 
 int main()
 {
+
     WindowManager app(800, 600);
     Scene scene(&app.camera);
-
+    // Material maps
     Model model("assets/helmet_pbr/DamagedHelmet.gltf");
+    // Model model("assets/gun/gun.FBX");
+    // Mesh &mesh = model.meshes[0];
+    // mesh.loadNewTexture("assets/gun/Textures/Cerberus_A.tga","texture_albedo");
+    // mesh.loadNewTexture("assets/gun/Textures/Raw/Cerberus_AO.tga","texture_ao");
+    // mesh.loadNewTexture("assets/gun/Textures/Cerberus_M.tga","texture_metallic");
+    // mesh.loadNewTexture("assets/gun/Textures/Cerberus_N.tga","texture_normal");
+    // mesh.loadNewTexture("assets/gun/Textures/Cerberus_R.tga","texture_roughness");
+
     // TODO:cubemap加载目前必须放在模型加载之后
     GLuint envCubemap = scene.loadCubemap();
     preComputer preComputer(scene);
     GLuint irradianceMap = preComputer.computeIrradianceMap(envCubemap);
-    PointLight pointLight(glm::vec3(.0f, .0f, 5.0f), glm::vec3(1.0f, 1.0f, 1.0f), 1.0f);
+    GLuint prefilterMap = preComputer.computePrefilterMap(envCubemap);
+    GLuint lutMap = preComputer.computeLutMap(envCubemap);
 
+    glDisable(GL_FRAMEBUFFER_SRGB);
+
+    PointLight pointLight(glm::vec3(.0f, .0f, 5.0f), glm::vec3(1.0f, 1.0f, 1.0f), 1.0f);
     scene.addModel(model);
     scene.addLight(std::make_shared<PointLight>(pointLight));
 
@@ -44,16 +57,19 @@ int main()
         GL_CALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
         // G-Buffer Pass
         geometryPass.render();
-
         geometryPass.debug();
         // PBR材质渲染
         pbrShader.use();
-        int unit = 0;
-        glActiveTexture(GL_TEXTURE0 + unit);
+        glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
-        pbrShader.setInt("irradianceMap", unit);
+        pbrShader.setInt("irradianceMap", 0);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
+        pbrShader.setInt("prefilterMap", 1);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, lutMap);
+        pbrShader.setInt("lutMap", 2);
         scene.drawAll(pbrShader);
-
 
         // 天空盒
         glDepthFunc(GL_LEQUAL);

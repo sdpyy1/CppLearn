@@ -18,6 +18,8 @@ public:
     Camera* camera = nullptr;
     GLuint cubeVAO = 0;
     GLuint cubeVBO = 0;
+    GLuint quadVAO = 0;
+    GLuint quadVBO = 0;
     explicit Scene(Camera* camera);
 
     void addModel(const Model& model);
@@ -26,6 +28,8 @@ public:
     void drawAll(Shader& shader);
     void setVPAndUseShader(Shader& shader) const;
     void renderCube();
+    void renderQuad();
+
     GLuint loadCubemap();
 };
 

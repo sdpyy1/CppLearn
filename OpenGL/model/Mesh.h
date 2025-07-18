@@ -39,6 +39,7 @@ public:
     unsigned int VAO;
 
     Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures);
+    void loadNewTexture(const string& path,const string& typeName);
 
     void draw(Shader& shader);
 
