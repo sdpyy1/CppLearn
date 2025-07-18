@@ -11,6 +11,7 @@ file(GLOB PASS_SOURCES "pass/*.cpp")
 file(GLOB MODEL_SOURCES "model/*.cpp")
 file(GLOB HELPER_SOURCES "helper/*.cpp")
 file(GLOB UTILS_SOURCES "utils/*.cpp")
+file(GLOB PRCOMPUTE_SOURCES "precompute/*.cpp")
 
 set(SOURCES
         third/src/glad.c
@@ -20,6 +21,7 @@ set(SOURCES
         ${MODEL_SOURCES}
         ${HELPER_SOURCES}
         ${UTILS_SOURCES}
+        ${PRCOMPUTE_SOURCES}
 )
 
 

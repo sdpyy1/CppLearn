@@ -12,6 +12,8 @@
 #include "pass/LightingPass.h"
 #include <iostream>
 
+#include "precompute/preComputer.h"
+
 int main()
 {
     WindowManager app(800, 600);
@@ -20,6 +22,8 @@ int main()
     Model model("assets/helmet_pbr/DamagedHelmet.gltf");
     // TODO:cubemap加载目前必须放在模型加载之后
     GLuint envCubemap = scene.loadCubemap();
+    preComputer preComputer(scene);
+    preComputer.computeIrradianceMap(envCubemap);
     PointLight pointLight(glm::vec3(.0f, .0f, 5.0f), glm::vec3(1.0f, 1.0f, 1.0f), 1.0f);
 
     scene.addModel(model);
@@ -45,13 +49,13 @@ int main()
         // PBR材质渲染
         pbrShader.use();
         scene.drawAll(pbrShader);
-        // render skybox (render as last to prevent overdraw)
+
+
+        // 天空盒
         glDepthFunc(GL_LEQUAL);
         skyboxShader.use();
-        glm::mat4 view = glm::mat4(glm::mat3(scene.camera->getViewMatrix()));
         skyboxShader.setMat4("projection", scene.camera->getProjectionMatrix());
-
-        skyboxShader.setMat4("view", view);
+        skyboxShader.setMat4("view", scene.camera->getViewMatrix());
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
         scene.renderCube();
