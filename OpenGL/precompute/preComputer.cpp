@@ -60,4 +60,5 @@ GLuint preComputer::computeIrradianceMap(GLuint envCubemap)
         scene.renderCube();
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    return irradianceMap;
 }

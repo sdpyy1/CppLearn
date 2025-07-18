@@ -120,7 +120,7 @@ GLuint Scene::loadCubemap()
     Shader equirectangularToCubemapShader("shader/HDR2cubemap.vert", "shader/HDR2cubemap.frag");
     stbi_set_flip_vertically_on_load(true);
     int width, height, nrComponents;
-    float *data = stbi_loadf("assets/HDR/voortrekker_interior_4k.hdr", &width, &height, &nrComponents, 0);
+    float *data = stbi_loadf("assets/HDR/evening_museum_courtyard_4k.hdr", &width, &height, &nrComponents, 0);
     unsigned int hdrTexture;
     if (data)
     {

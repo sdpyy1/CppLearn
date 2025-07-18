@@ -23,7 +23,7 @@ int main()
     // TODO:cubemap加载目前必须放在模型加载之后
     GLuint envCubemap = scene.loadCubemap();
     preComputer preComputer(scene);
-    preComputer.computeIrradianceMap(envCubemap);
+    GLuint irradianceMap = preComputer.computeIrradianceMap(envCubemap);
     PointLight pointLight(glm::vec3(.0f, .0f, 5.0f), glm::vec3(1.0f, 1.0f, 1.0f), 1.0f);
 
     scene.addModel(model);
@@ -48,6 +48,10 @@ int main()
         geometryPass.debug();
         // PBR材质渲染
         pbrShader.use();
+        int unit = 0;
+        glActiveTexture(GL_TEXTURE0 + unit);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
+        pbrShader.setInt("irradianceMap", unit);
         scene.drawAll(pbrShader);
 
 

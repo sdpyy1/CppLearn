@@ -8,11 +8,12 @@ Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture
 
 void Mesh::draw(Shader& shader)
 {
+    // 预留前5个纹理通道
     for (unsigned int i = 0; i < textures.size(); i++)
     {
-        glActiveTexture(GL_TEXTURE0 + i);
+        glActiveTexture(GL_TEXTURE0 + i+5);
         string name = textures[i].type;
-        glUniform1i(glGetUniformLocation(shader.ID, name.c_str()), i);
+        glUniform1i(glGetUniformLocation(shader.ID, name.c_str()), i+5);
         glBindTexture(GL_TEXTURE_2D, textures[i].id);
     }
     glBindVertexArray(VAO);
