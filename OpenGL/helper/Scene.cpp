@@ -143,13 +143,15 @@ void Scene::renderQuad()
     glBindVertexArray(0);
 }
 
-GLuint Scene::loadCubemap()
+GLuint Scene::loadCubemap(const char *path)
 {
     Shader equirectangularToCubemapShader("shader/HDR2cubemap.vert", "shader/HDR2cubemap.frag");
+
+    // 加载HDR图片
     stbi_set_flip_vertically_on_load(true);
     int width, height, nrComponents;
-    float *data = stbi_loadf("assets/HDR/voortrekker_interior_4k.hdr", &width, &height, &nrComponents, 0);
-    unsigned int hdrTexture;
+    float *data = stbi_loadf(path, &width, &height, &nrComponents, 0);
+    GLuint hdrTexture;
     if (data)
     {
         GL_CALL(glGenTextures(1, &hdrTexture));
@@ -168,7 +170,7 @@ GLuint Scene::loadCubemap()
         std::cout << "Failed to load HDR image." << std::endl;
     }
 
-    unsigned int captureFBO, captureRBO;
+    GLuint captureFBO, captureRBO;
     GL_CALL(glGenFramebuffers(1, &captureFBO));
     GL_CALL(glGenRenderbuffers(1, &captureRBO));
 
@@ -177,7 +179,7 @@ GLuint Scene::loadCubemap()
     GL_CALL(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 1000, 1000));
     GL_CALL(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, captureRBO));
 
-    unsigned int envCubemap;
+    GLuint envCubemap;
     GL_CALL(glGenTextures(1, &envCubemap));
     GL_CALL(glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap));
     for (unsigned int i = 0; i < 6; ++i)

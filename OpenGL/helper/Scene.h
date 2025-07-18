@@ -30,7 +30,7 @@ public:
     void renderCube();
     void renderQuad();
 
-    GLuint loadCubemap();
+    GLuint loadCubemap(const char *path);
 };
 
 #endif //OPENGLRENDER_SCENE_H

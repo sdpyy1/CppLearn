@@ -16,32 +16,35 @@
 
 int main()
 {
-
-    WindowManager app(800, 600);
+    WindowManager app(1280, 720);
     Scene scene(&app.camera);
     // Material maps
     Model model("assets/helmet_pbr/DamagedHelmet.gltf");
-    // Model model("assets/gun/gun.FBX");
-    // Mesh &mesh = model.meshes[0];
-    // mesh.loadNewTexture("assets/gun/Textures/Cerberus_A.tga","texture_albedo");
-    // mesh.loadNewTexture("assets/gun/Textures/Raw/Cerberus_AO.tga","texture_ao");
-    // mesh.loadNewTexture("assets/gun/Textures/Cerberus_M.tga","texture_metallic");
-    // mesh.loadNewTexture("assets/gun/Textures/Cerberus_N.tga","texture_normal");
-    // mesh.loadNewTexture("assets/gun/Textures/Cerberus_R.tga","texture_roughness");
+//     Model model("assets/gun/gun.FBX");
+//     Mesh &mesh = model.meshes[0];
+//     mesh.loadNewTexture("assets/gun/Textures/Cerberus_A.tga","texture_albedo");
+//     mesh.loadNewTexture("assets/gun/Textures/Raw/Cerberus_AO.tga","texture_ao");
+//     mesh.loadNewTexture("assets/gun/Textures/Cerberus_M.tga","texture_metallic");
+//     mesh.loadNewTexture("assets/gun/Textures/Cerberus_N.tga","texture_normal");
+//     mesh.loadNewTexture("assets/gun/Textures/Cerberus_R.tga","texture_roughness");
 
     // TODO:cubemap加载目前必须放在模型加载之后
-    GLuint envCubemap = scene.loadCubemap();
+    GLuint envCubemap = scene.loadCubemap("assets/HDR/4.hdr");
     preComputer preComputer(scene);
     GLuint irradianceMap = preComputer.computeIrradianceMap(envCubemap);
     GLuint prefilterMap = preComputer.computePrefilterMap(envCubemap);
     GLuint lutMap = preComputer.computeLutMap(envCubemap);
 
-    glDisable(GL_FRAMEBUFFER_SRGB);
-
     PointLight pointLight(glm::vec3(.0f, .0f, 5.0f), glm::vec3(1.0f, 1.0f, 1.0f), 1.0f);
     scene.addModel(model);
     scene.addLight(std::make_shared<PointLight>(pointLight));
-
+    // configure global opengl state
+    // -----------------------------
+    glEnable(GL_DEPTH_TEST);
+    // set depth function to less than AND equal for skybox depth trick.
+    glDepthFunc(GL_LEQUAL);
+    // enable seamless cubemap sampling for lower mip levels in the pre-filter map.
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
     Shader pbrShader("shader/pbr.vert", "shader/pbr.frag");
     Shader skyboxShader("shader/skybox.vert", "shader/skybox.frag");
     GeometryPass geometryPass(scene);
