@@ -70,6 +70,7 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 
 void main()
 {
+    // 只考虑直接光照
      vec3 albedo     = pow(texture(texture_albedo, TexCoords).rgb, vec3(2.2)); // gamma correct
 
     float metallic  = texture(texture_metallic, TexCoords).r;

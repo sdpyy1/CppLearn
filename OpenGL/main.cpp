@@ -14,29 +14,29 @@
 
 int main()
 {
-    WindowManager app(1280, 1280);
+    WindowManager app(800, 600);
     Scene scene(&app.camera);
-    // Model model("assets/desert-eagle/scene.gltf");
+
     Model model("assets/helmet_pbr/DamagedHelmet.gltf");
-    //    Model model("C:/Users/Administrator/Desktop/未命名.obj");
-    //    Model model("D:/CppLearn/OpenGL/assets/backpack/backpack.obj");
+    // TODO:cubemap加载目前必须放在模型加载之后
+    GLuint envCubemap = scene.loadCubemap();
     PointLight pointLight(glm::vec3(.0f, .0f, 5.0f), glm::vec3(1.0f, 1.0f, 1.0f), 1.0f);
-    PointLight pointLight1(glm::vec3(.0f, .0f, -4.0f), glm::vec3(1.0f, 1.0f, 1.0f), 1.0f);
-    PointLight pointLight2(glm::vec3(.0f, 4.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), 1.0f);
+
     scene.addModel(model);
     scene.addLight(std::make_shared<PointLight>(pointLight));
-    scene.addLight(std::make_shared<PointLight>(pointLight1));
-    scene.addLight(std::make_shared<PointLight>(pointLight2));
+
     Shader pbrShader("shader/pbr.vert", "shader/pbr.frag");
+    Shader skyboxShader("shader/skybox.vert", "shader/skybox.frag");
     GeometryPass geometryPass(scene);
     geometryPass.init();
     LightingPass lighting(scene,geometryPass.gPosition, geometryPass.gNormal, geometryPass.gAlbedo, geometryPass.gMaterial);
     lighting.init();
 
+
     while (!glfwWindowShouldClose(app.window))
     {
         app.processInput();
-        GL_CALL(glClearColor(0.1f, 0.1f, 0.1f, 1.0f));
+        GL_CALL(glClearColor(0.2f, 0.3f, 0.3f, 1.0f));
         GL_CALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
         // G-Buffer Pass
         geometryPass.render();
@@ -45,7 +45,17 @@ int main()
         // PBR材质渲染
         pbrShader.use();
         scene.drawAll(pbrShader);
-//        lighting.render();
+        // render skybox (render as last to prevent overdraw)
+        glDepthFunc(GL_LEQUAL);
+        skyboxShader.use();
+        glm::mat4 view = glm::mat4(glm::mat3(scene.camera->getViewMatrix()));
+        skyboxShader.setMat4("projection", scene.camera->getProjectionMatrix());
+
+        skyboxShader.setMat4("view", view);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+        scene.renderCube();
+        glDepthFunc(GL_LESS);
 
         glfwSwapBuffers(app.window);
         glfwPollEvents();

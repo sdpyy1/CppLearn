@@ -16,7 +16,8 @@ public:
     std::vector<Model> models;
     std::vector<std::shared_ptr<Light>> lights;
     Camera* camera = nullptr;
-
+    GLuint cubeVAO = 0;
+    GLuint cubeVBO = 0;
     explicit Scene(Camera* camera);
 
     void addModel(const Model& model);
@@ -24,6 +25,8 @@ public:
 
     void drawAll(Shader& shader);
     void setVPAndUseShader(Shader& shader) const;
+    void renderCube();
+    GLuint loadCubemap();
 };
 
 #endif //OPENGLRENDER_SCENE_H
