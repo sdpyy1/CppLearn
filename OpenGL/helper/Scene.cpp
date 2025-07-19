@@ -184,7 +184,6 @@ GLuint Scene::loadCubemapFromHDR(const char *path)
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, captureRBO);
 
     // cubemap创建
-    GLuint envCubemap;
     glGenTextures(1, &envCubemap);
     glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
     for (unsigned int i = 0; i < 6; ++i)
@@ -355,4 +354,20 @@ GLuint Scene::loadCubemapFromSkybox(const string &path) {
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
     return textureID;
+}
+
+void Scene::createDefaultModel(const string &name) {
+    if (name == "helmet"){
+        Model model("assets/helmet_pbr/DamagedHelmet.gltf");
+        addModel(model);
+    } else if(name == "gun"){
+         Model model("assets/gun/gun.FBX");
+         Mesh &mesh = model.meshes[0];
+         mesh.loadNewTexture("assets/gun/Textures/Cerberus_A.tga","texture_albedo");
+         mesh.loadNewTexture("assets/gun/Textures/Raw/Cerberus_AO.tga","texture_ao");
+         mesh.loadNewTexture("assets/gun/Textures/Cerberus_M.tga","texture_metallic");
+         mesh.loadNewTexture("assets/gun/Textures/Cerberus_N.tga","texture_normal");
+         mesh.loadNewTexture("assets/gun/Textures/Cerberus_R.tga","texture_roughness");
+        addModel(model);
+    }
 }

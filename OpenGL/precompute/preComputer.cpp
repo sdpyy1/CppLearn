@@ -6,7 +6,7 @@
 
 #include "../helper/Scene.h"
 
-GLuint preComputer::computeIrradianceMap(GLuint envCubemap)
+GLuint preComputer::computeIrradianceMap()
 {
     const glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
     const glm::mat4 captureViews[] =
@@ -45,7 +45,7 @@ GLuint preComputer::computeIrradianceMap(GLuint envCubemap)
     irradianceMapShader.setInt("environmentMap", 0);
     irradianceMapShader.setMat4("projection", captureProjection);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, scene.envCubemap);
 
     glViewport(0, 0, 32, 32); // don't forget to configure the viewport to the capture dimensions.
     glBindFramebuffer(GL_FRAMEBUFFER, FrameBuffer);
@@ -62,7 +62,7 @@ GLuint preComputer::computeIrradianceMap(GLuint envCubemap)
     return irradianceMap;
 }
 
-GLuint preComputer::computePrefilterMap(GLuint envCubemap)
+GLuint preComputer::computePrefilterMap()
 {
     const glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
     const glm::mat4 captureViews[] =
@@ -100,7 +100,7 @@ GLuint preComputer::computePrefilterMap(GLuint envCubemap)
     prefilterShader.setInt("environmentMap", 0);
     prefilterShader.setMat4("projection", captureProjection);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, scene.envCubemap);
 
     glBindFramebuffer(GL_FRAMEBUFFER, FrameBuffer);
 
@@ -131,7 +131,7 @@ GLuint preComputer::computePrefilterMap(GLuint envCubemap)
     return prefilterMap;
 }
 
-GLuint preComputer::computeLutMap(GLuint envCubemap)
+GLuint preComputer::computeLutMap()
 {
     Shader lutShader = Shader("shader/lut.vert","shader/lut.frag");
 

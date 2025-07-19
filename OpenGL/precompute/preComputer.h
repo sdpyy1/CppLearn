@@ -16,9 +16,9 @@ public:
 
     Scene & scene;
     explicit preComputer(Scene & scene):scene(scene){};
-    GLuint computeIrradianceMap(GLuint envCubemap);
-    GLuint computePrefilterMap(GLuint envCubemap);
-    GLuint computeLutMap(GLuint envCubemap);
+    GLuint computeIrradianceMap();
+    GLuint computePrefilterMap();
+    GLuint computeLutMap();
 };
 
 

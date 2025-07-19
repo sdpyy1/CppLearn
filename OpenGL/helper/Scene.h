@@ -13,7 +13,7 @@ class Scene
 public:
     int width;
     int height;
-
+    GLuint envCubemap = 0;
     std::vector<Model> models;
     std::vector<std::shared_ptr<Light>> lights;
     Camera* camera = nullptr;
@@ -35,6 +35,7 @@ public:
     void renderSphere();
     GLuint loadCubemapFromHDR(const char *path);
     GLuint loadCubemapFromSkybox(const string &path);
+    void createDefaultModel(const string& name);
 };
 
 #endif //OPENGLRENDER_SCENE_H
