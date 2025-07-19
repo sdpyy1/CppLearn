@@ -13,6 +13,7 @@ class Scene
 public:
     int width;
     int height;
+
     std::vector<Model> models;
     std::vector<std::shared_ptr<Light>> lights;
     Camera* camera = nullptr;
@@ -20,6 +21,8 @@ public:
     GLuint cubeVBO = 0;
     GLuint quadVAO = 0;
     GLuint quadVBO = 0;
+    unsigned int sphereVAO = 0;
+    unsigned int indexCount;
     explicit Scene(Camera* camera);
 
     void addModel(const Model& model);
@@ -29,8 +32,9 @@ public:
     void setVPAndUseShader(Shader& shader) const;
     void renderCube();
     void renderQuad();
-
-    GLuint loadCubemap(const char *path);
+    void renderSphere();
+    GLuint loadCubemapFromHDR(const char *path);
+    GLuint loadCubemapFromSkybox(const string &path);
 };
 
 #endif //OPENGLRENDER_SCENE_H

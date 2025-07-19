@@ -103,7 +103,9 @@ GLuint preComputer::computePrefilterMap(GLuint envCubemap)
     glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
 
     glBindFramebuffer(GL_FRAMEBUFFER, FrameBuffer);
+
     unsigned int maxMipLevels = 5;
+    // 单独生成5张map，对应不同的粗糙度，来组成mipmap
     for (unsigned int mip = 0; mip < maxMipLevels; ++mip)
     {
         // reisze framebuffer according to mip-level size.

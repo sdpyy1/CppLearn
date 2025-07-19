@@ -6,24 +6,24 @@ set(CMAKE_CXX_STANDARD 20)
 INCLUDE_DIRECTORIES(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/third/include)
 
 # 源文件
-file(GLOB CORE_SOURCES "core/*.cpp")
-file(GLOB PASS_SOURCES "pass/*.cpp")
-file(GLOB MODEL_SOURCES "model/*.cpp")
-file(GLOB HELPER_SOURCES "helper/*.cpp")
-file(GLOB UTILS_SOURCES "utils/*.cpp")
-file(GLOB PRCOMPUTE_SOURCES "precompute/*.cpp")
+#file(GLOB CORE_SOURCES "core/*.cpp")
+#file(GLOB PASS_SOURCES "pass/*.cpp")
+#file(GLOB MODEL_SOURCES "model/*.cpp")
+#file(GLOB HELPER_SOURCES "helper/*.cpp")
+#file(GLOB UTILS_SOURCES "utils/*.cpp")
+#file(GLOB PRCOMPUTE_SOURCES "precompute/*.cpp")
 
 set(SOURCES
         third/src/glad.c
         main.cpp
         utils/checkGlCommand.h
         utils/imageLoader.cpp
-        ${CORE_SOURCES}
-        ${PASS_SOURCES}
-        ${MODEL_SOURCES}
-        ${HELPER_SOURCES}
-        ${UTILS_SOURCES}
-        ${PRCOMPUTE_SOURCES}
+#        ${CORE_SOURCES}
+#        ${PASS_SOURCES}
+#        ${MODEL_SOURCES}
+#        ${HELPER_SOURCES}
+#        ${UTILS_SOURCES}
+#        ${PRCOMPUTE_SOURCES}
 )
 
 
