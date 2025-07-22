@@ -12,7 +12,15 @@
 using std::vector;
 using std::string;
 
-#define MAX_BONE_INFLUENCE 4
+struct BoneInfo {
+    glm::mat4 offsetMatrix;       // 骨骼偏移矩阵（初始绑定姿态的逆矩阵）
+    glm::mat4 finalTransformation; // 最终动画计算出的骨骼变换矩阵
+
+    BoneInfo() {
+        offsetMatrix = glm::mat4(1.0f);
+        finalTransformation = glm::mat4(1.0f);
+    }
+};
 
 struct Vertex
 {
@@ -21,6 +29,19 @@ struct Vertex
     glm::vec2 TexCoords;
     glm::vec3 Tangent;
     glm::vec3 Bitangent;
+    int boneIDs[4] = {0};
+    float weights[4] = {0.0f};
+
+    void AddBoneData(int boneID, float weight) {
+        for (int i = 0; i < 4; i++) {
+            if (weights[i] == 0.0f) {
+                boneIDs[i] = boneID;
+                weights[i] = weight;
+                return;
+            }
+        }
+        // 超过4个骨骼影响就忽略（或处理溢出）
+    }
 };
 struct PBRMaterial {
     GLuint albedo     = 0;

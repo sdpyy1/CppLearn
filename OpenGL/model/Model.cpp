@@ -11,7 +11,17 @@ GLuint Model::defaultMetallic  = 0;
 GLuint Model::defaultRoughness = 0;
 GLuint Model::defaultAO        = 0;
 GLuint Model::defaultBlack     = 0;
+glm::mat4 AssimpToGlm(const aiMatrix4x4& from)
+{
+    glm::mat4 to;
 
+    to[0][0] = from.a1; to[1][0] = from.a2; to[2][0] = from.a3; to[3][0] = from.a4;
+    to[0][1] = from.b1; to[1][1] = from.b2; to[2][1] = from.b3; to[3][1] = from.b4;
+    to[0][2] = from.c1; to[1][2] = from.c2; to[2][2] = from.c3; to[3][2] = from.c4;
+    to[0][3] = from.d1; to[1][3] = from.d2; to[2][3] = from.d3; to[3][3] = from.d4;
+
+    return to;
+}
 GLuint createNewTextureWithSwizzledChannels(GLuint srcTexID) {
     glBindTexture(GL_TEXTURE_2D, srcTexID);
     int width, height;
@@ -108,7 +118,7 @@ void Model::loadModel(const string& path)
                                              aiProcess_Triangulate  // 全部转化为三角形
                                              | aiProcess_FlipUVs // y坐标反转
                                              |aiProcess_CalcTangentSpace  // 计算切线副切线
-                                             | aiProcess_PreTransformVertices // 适用于静态模型
+//                                             | aiProcess_PreTransformVertices // 适用于静态模型
                                              | aiProcess_GlobalScale // FBX文件大小单位不一致，缩小模型
                                              );
 
@@ -183,8 +193,31 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
         for (unsigned int j = 0; j < face.mNumIndices; j++)
             indices.push_back(face.mIndices[j]);
     }
+    // 在processMesh末尾，遍历mBones：
+    for (unsigned int i = 0; i < mesh->mNumBones; i++) {
+        aiBone *bone = mesh->mBones[i];
+        std::string boneName(bone->mName.C_Str());
 
+        int boneIndex = 0;
+        if (boneMapping.find(boneName) == boneMapping.end()) {
+            boneIndex = numBones;
+            numBones++;
+            boneMapping[boneName] = boneIndex;
 
+            BoneInfo bi;
+            bi.offsetMatrix = AssimpToGlm(bone->mOffsetMatrix);
+            boneInfo.push_back(bi);
+        } else {
+            boneIndex = boneMapping[boneName];
+        }
+
+        // 给顶点分配骨骼权重
+        for (unsigned int j = 0; j < bone->mNumWeights; j++) {
+            unsigned int vertexID = bone->mWeights[j].mVertexId;
+            float weight = bone->mWeights[j].mWeight;
+            vertices[vertexID].AddBoneData(boneIndex, weight);
+        }
+    }
 
     // 开始处理材质
     aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
@@ -290,7 +323,6 @@ void Model::calculateOrientationFix() {
     }
 
     glm::vec3 size = maxPos - minPos;
-    std::cout << "Size X: " << size.x << ", Y: " << size.y << ", Z: " << size.z << std::endl;
 
     // 判断模型高度在哪个轴方向上最大
     if (size.y > size.x && size.y > size.z)

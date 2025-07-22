@@ -26,8 +26,8 @@ int main()
     // 搭建场景
     PointLight pointLight(glm::vec3(.0f, .0f, -5.0f), glm::vec3(1.0f, 1.0f, 1.0f), 1.0f);
 //    scene.addDefaultModel("helmet");
-    scene.addDefaultModel("gun");
-//    scene.addModel( "assets/asw/scene.gltf");
+//    scene.addDefaultModel("gun");
+    scene.addModel( "assets/asw/scene.gltf");
 //    scene.addLight(std::make_shared<PointLight>(pointLight));
 
     // IBL

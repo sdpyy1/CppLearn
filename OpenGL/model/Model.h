@@ -12,6 +12,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <map>
 
 using std::string;
 using std::vector;
@@ -24,7 +25,9 @@ public:
     string directory;
     bool gammaCorrection = false;
     glm::mat4 modelMatrix;
-
+    std::map<std::string, int> boneMapping; // boneName -> index
+    std::vector<BoneInfo> boneInfo;
+    int numBones = 0;
     explicit Model(const string& path, bool gamma = false);
 
     void draw(Shader& shader);
@@ -43,6 +46,8 @@ private:
 
 
     void calculateOrientationFix();
+
+    void ReadNodeHierarchy(float animationTime, const aiNode *node, const glm::mat4 &parentTransform);
 };
 
 #endif // OPENGL_MODEL_H
