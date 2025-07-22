@@ -1,4 +1,7 @@
 #include "WindowManager.h"
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
 #include <iostream>
 
 
@@ -33,6 +36,18 @@ bool WindowManager::initWindow() {
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(myDebugCallback, nullptr);
+
+    // ImGui 初始化
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+// 设置风格（可选）
+    ImGui::StyleColorsDark();
+
+// 初始化 ImGui 平台与渲染器绑定
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 430"); // 传入你的GLSL版本
     return true;
 }
 
@@ -72,15 +87,12 @@ void WindowManager::framebuffer_size_callback(GLFWwindow* window, int width, int
     app->width = width;
     app->height = height;
     glViewport(0, 0, width, height);
-
 }
 
 void WindowManager::mouse_callback(GLFWwindow* window, double xpos, double ypos) {
     WindowManager* app = GetInstance(window);
-    if (!app) {
-        std::cout << "WindowManager::mouse_callback: Invalid window" << std::endl;
+    if (!app || !app->mouseHide) // 鼠标显示时不处理摄像机
         return;
-    }
 
     if (app->firstMouse) {
         app->lastX = static_cast<float>(xpos);
@@ -107,10 +119,7 @@ void WindowManager::key_callback(GLFWwindow* window, int key, int scancode, int 
     if (key == GLFW_KEY_LEFT_ALT && action == GLFW_PRESS) {
         if (app->mouseHide) {
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-            glfwSetScrollCallback(window, nullptr);
-            glfwSetCursorPosCallback(window, nullptr);
             app->mouseHide = false;
-
             // 重置鼠标位置，避免大偏移
             double xpos, ypos;
             glfwGetCursorPos(window, &xpos, &ypos);
@@ -119,10 +128,7 @@ void WindowManager::key_callback(GLFWwindow* window, int key, int scancode, int 
             app->firstMouse = true;  // 重新开始鼠标偏移计算
         } else {
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-            glfwSetScrollCallback(window, scroll_callback);
-            glfwSetCursorPosCallback(window, mouse_callback);
             app->mouseHide = true;
-
             // 隐藏鼠标时也重置鼠标位置缓存
             double xpos, ypos;
             glfwGetCursorPos(window, &xpos, &ypos);

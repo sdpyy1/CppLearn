@@ -13,11 +13,13 @@ file(GLOB HELPER_SOURCES "helper/*.cpp")
 file(GLOB UTILS_SOURCES "utils/*.cpp")
 file(GLOB PRCOMPUTE_SOURCES "precompute/*.cpp")
 
+# imGUI需要
+set(IMGUI_DIR ${CMAKE_SOURCE_DIR}/third/include/imGUI)
+set(IMGUI_BACKENDS_DIR ${IMGUI_DIR}/backends)
 set(SOURCES
         third/src/glad.c
         main.cpp
-        utils/checkGlCommand.h
-        utils/imageLoader.cpp
+        ${UTILS_SOURCES}
         ${CORE_SOURCES}
         ${PASS_SOURCES}
         ${MODEL_SOURCES}
@@ -25,13 +27,27 @@ set(SOURCES
         ${UTILS_SOURCES}
         ${PRCOMPUTE_SOURCES}
 )
+add_library(imgui
+        ${IMGUI_DIR}/imgui.cpp
+        ${IMGUI_DIR}/imgui_draw.cpp
+        ${IMGUI_DIR}/imgui_tables.cpp
+        ${IMGUI_DIR}/imgui_widgets.cpp
+#        ${IMGUI_DIR}/imgui_demo.cpp
+        ${IMGUI_BACKENDS_DIR}/imgui_impl_glfw.cpp
+        ${IMGUI_BACKENDS_DIR}/imgui_impl_opengl3.cpp
+)
 
+target_include_directories(imgui PUBLIC
+        ${IMGUI_DIR}
+        ${IMGUI_BACKENDS_DIR}
+)
 
 add_executable(OpenGLRender ${SOURCES})
-
 if (WIN32)
     target_link_libraries(OpenGLRender ${CMAKE_CURRENT_SOURCE_DIR}/third/lib/libassimp.dll.a)
     target_link_libraries(OpenGLRender ${CMAKE_CURRENT_SOURCE_DIR}/third/lib/libglfw3.a)
+    target_link_libraries(OpenGLRender imgui)
+
 elseif (APPLE)
     find_package(assimp REQUIRED)
     target_link_libraries(OpenGLRender assimp::assimp)

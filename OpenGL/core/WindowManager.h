@@ -11,7 +11,6 @@ class WindowManager
 public:
     GLFWwindow* window = nullptr;
     Camera camera;
-
     int width, height;
     bool mouseHide = true;
 

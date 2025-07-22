@@ -10,26 +10,27 @@
 #include "pass/GeometryPass.h"
 #include "pass/LightingPass.h"
 #include "precompute/preComputer.h"
+#include "imgui_impl_opengl3.h"
+#include "imgui_impl_glfw.h"
 
 int main()
 {
-    WindowManager app(1280, 720);
+    WindowManager app(2560, 1920);
 
     Scene scene(&app.camera);
     // 加载Shader
-    Shader pbrShader("shader/pbr.vert", "shader/pbr.frag");
     Shader skyboxShader("shader/skybox.vert", "shader/skybox.frag");
 
     // 搭建场景
     PointLight pointLight(glm::vec3(.0f, .0f, -5.0f), glm::vec3(1.0f, 1.0f, 1.0f), 1.0f);
-    scene.addDefaultModel("helmet");
-//    scene.addDefaultModel("gun");
+//    scene.addDefaultModel("helmet");
+    scene.addDefaultModel("gun");
 //    scene.addModel( "assets/asw/scene.gltf");
 //    scene.addLight(std::make_shared<PointLight>(pointLight));
 
     // IBL
     // TODO:cubemap加载目前必须放在模型加载之后
-    scene.loadCubemapFromHDR("assets/HDR/2.hdr");
+    scene.loadCubemapFromHDR("assets/HDR/4.hdr");
 //    scene.loadCubemapFromSkybox("assets/cubemap/Skybox");
     preComputer preComputer(scene);
     GLuint irradianceMap = preComputer.computeIrradianceMap();
@@ -44,16 +45,34 @@ int main()
 
     while (!glfwWindowShouldClose(app.window))
     {
-        app.processInput();
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+        ImGui::Begin("My Debug Window");
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        ImGui::Text("Hello, world!");
+        if (ImGui::Button("left Click btn"))
+        {
+            // 按钮被点击时执行的代码
+            std::cout << "Button clicked!" << std::endl;
+        }
+//        ImGui::SetWindowPos({100,100});
+        ImVec2 nSize = { 300, 200 };
+        ImGui::SetWindowSize(nSize);
+        static float lightIntensity = 1.0f;
+        ImGui::SliderFloat("Light Intensity", &lightIntensity, 0.0f, 10.0f);
+        ImGui::End();
+        app.processInput();
+
         // G-Buffer Pass
         geometryPass.render();
-        geometryPass.debugRender();
 
         // light Pass
         lighting.lightingShader.bind();
+        glEnable(GL_DEPTH_TEST);
         // IBL开启
         glActiveTexture(GL_TEXTURE15);glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);lighting.lightingShader.setInt("irradianceMap", 15);
         glActiveTexture(GL_TEXTURE14);glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);lighting.lightingShader.setInt("prefilterMap", 14);
@@ -75,11 +94,15 @@ int main()
         glDepthFunc(GL_LESS);
         skyboxShader.unBind();
 
+        // --- 渲染 ImGui ---
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(app.window);
         glfwPollEvents();
     }
-
-
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
     glfwTerminate();
     return 0;
 }
