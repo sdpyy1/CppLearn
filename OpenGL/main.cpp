@@ -26,8 +26,8 @@ int main()
     // 搭建场景
     PointLight pointLight(glm::vec3(.0f, .0f, -5.0f), glm::vec3(1.0f, 1.0f, 1.0f), 1.0f);
 //    scene.addDefaultModel("helmet");
-//    scene.addDefaultModel("gun");
-    scene.addModel( "assets/asw/scene.gltf");
+    scene.addDefaultModel("gun");
+//    scene.addModel( "assets/asw/scene.gltf");
 //    scene.addLight(std::make_shared<PointLight>(pointLight));
 
     // IBL
@@ -48,8 +48,8 @@ int main()
     while (!glfwWindowShouldClose(app.window))
     {
         app.processInput();
-        GL_CALL(glClearColor(0.2f, 0.3f, 0.3f, 1.0f));
-        GL_CALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // G-Buffer Pass
         geometryPass.render();
@@ -66,7 +66,7 @@ int main()
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, lutMap);
         pbrShader.setInt("lutMap", 2);
-        scene.drawAll(pbrShader);
+        GL_CALL(scene.drawAll(pbrShader));
         // 天空盒
         glDepthFunc(GL_LEQUAL);
         skyboxShader.use();
@@ -74,7 +74,7 @@ int main()
         skyboxShader.setMat4("view", scene.camera->getViewMatrix());
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_CUBE_MAP, scene.envCubemap);
-        scene.renderCube();
+        GL_CALL(scene.renderCube());
         glDepthFunc(GL_LESS);
 
         glfwSwapBuffers(app.window);

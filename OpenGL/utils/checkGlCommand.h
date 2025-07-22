@@ -5,12 +5,23 @@
 #ifndef OPENGL_MACROS_H
 #define OPENGL_MACROS_H
 #include <iostream>
-#define GL_CALL(x) \
-    do { \
-        x; \
-        GLenum error = glGetError(); \
-        if (error != GL_NO_ERROR) { \
-            std::cerr << "OpenGL error: " << error << " at " << __FILE__ << ":" << __LINE__ << std::endl; \
-        } \
-    } while (0)
+
+#define ASSERT(x) if (!(x)) __debugbreak();
+#define GL_CALL(x) GLClearError();x;ASSERT(GLLogCall(#x, __FILE__, __LINE__))
+
+static  void GLClearError()
+{
+    while (glGetError() != GL_NO_ERROR);
+}
+static bool  GLLogCall(const char* function, const char* file, int line)
+{
+    while (GLenum error = glGetError())
+    {
+        std::cout << "[OpenGL Error] (" << error << ")" << function <<
+                  " " << file << ":" << line << std::endl;
+        return false;
+    }
+    return true;
+}
+
 #endif //OPENGL_MACROS_H
