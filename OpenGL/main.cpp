@@ -25,15 +25,14 @@ int main()
 
     // 搭建场景
     PointLight pointLight(glm::vec3(.0f, .0f, -5.0f), glm::vec3(1.0f, 1.0f, 1.0f), 1.0f);
-    scene.addDefaultModel("helmet");
-//    scene.addDefaultModel("gun");
-//    Model model("assets/asw/scene.gltf");
-//    scene.addModel( model);
+//    scene.addDefaultModel("helmet");
+    scene.addDefaultModel("gun");
+//    scene.addModel( "assets/asw/scene.gltf");
 //    scene.addLight(std::make_shared<PointLight>(pointLight));
 
     // IBL
     // TODO:cubemap加载目前必须放在模型加载之后
-    scene.loadCubemapFromHDR("assets/HDR/4.hdr");
+    scene.loadCubemapFromHDR("assets/HDR/2.hdr");
 //    scene.loadCubemapFromSkybox("assets/cubemap/Skybox");
     preComputer preComputer(scene);
     GLuint irradianceMap = preComputer.computeIrradianceMap();

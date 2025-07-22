@@ -23,7 +23,7 @@ public:
     vector<Mesh> meshes;
     string directory;
     bool gammaCorrection = false;
-    glm::mat4 modelMatrix{1.0f};
+    glm::mat4 modelMatrix;
 
     explicit Model(const string& path, bool gamma = false);
 
@@ -42,6 +42,7 @@ private:
     unsigned int TextureFromFile(const char* path, const string& directory);
 
 
+    void calculateOrientationFix();
 };
 
 #endif // OPENGL_MODEL_H

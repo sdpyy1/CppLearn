@@ -3,6 +3,8 @@
 #include <iostream>
 #include <stb_image.h>
 #include <cstring>
+#include <glm/ext/matrix_transform.hpp>
+
 GLuint Model::defaultAlbedo    = 0;
 GLuint Model::defaultNormal    = 0;
 GLuint Model::defaultMetallic  = 0;
@@ -49,6 +51,8 @@ Model::Model(const string& path, bool gamma)
     {
         std::cout << "\ttexture:{" << texture.type << "}" << std::endl;
     }
+    calculateOrientationFix();
+
 }
 
 void Model::draw(Shader& shader)
@@ -97,7 +101,6 @@ unsigned int Model::TextureFromFile(const char* path, const string& directory)
 
     return textureID;
 }
-
 void Model::loadModel(const string& path)
 {
     Assimp::Importer importer;
@@ -271,4 +274,31 @@ vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type,
         }
     }
     return textures;
+}
+
+void Model::calculateOrientationFix() {
+    glm::vec3 minPos(FLT_MAX);
+    glm::vec3 maxPos(-FLT_MAX);
+
+    for (const auto& mesh : meshes)
+    {
+        for (const auto& vertex : mesh.vertices)
+        {
+            minPos = glm::min(minPos, vertex.Position);
+            maxPos = glm::max(maxPos, vertex.Position);
+        }
+    }
+
+    glm::vec3 size = maxPos - minPos;
+    std::cout << "Size X: " << size.x << ", Y: " << size.y << ", Z: " << size.z << std::endl;
+
+    // 判断模型高度在哪个轴方向上最大
+    if (size.y > size.x && size.y > size.z)
+    {
+        modelMatrix = glm::rotate(glm::mat4(1.0f),
+                                            glm::radians(90.0f),
+                                            glm::vec3(1.0f, 0.0f, 0.0f));
+    }else{
+        modelMatrix = glm::mat4(1.0f);
+    }
 }
