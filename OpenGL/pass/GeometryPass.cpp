@@ -153,7 +153,7 @@ void GeometryPass::debugRender()
     // 左上 - Position
     GL_CALL(glViewport(0, h, w, h));
     GL_CALL(glActiveTexture(GL_TEXTURE0));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D, gMaterial));
+    GL_CALL(glBindTexture(GL_TEXTURE_2D, gAlbedo));
     debugShader.setInt("gBufferTexture", 0);
     debugShader.setInt("visualizeMode", 0);
     GL_CALL(glDrawArrays(GL_TRIANGLES, 0, 6));
@@ -166,7 +166,7 @@ void GeometryPass::debugRender()
 
     // 左下 - Albedo
     GL_CALL(glViewport(0, 0, w, h));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D, gPosition));
+    GL_CALL(glBindTexture(GL_TEXTURE_2D, gEmission));
     debugShader.setInt("visualizeMode", 0);
     GL_CALL(glDrawArrays(GL_TRIANGLES, 0, 6));
 

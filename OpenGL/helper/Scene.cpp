@@ -99,18 +99,17 @@ void Scene::renderCube()
         glGenVertexArrays(1, &cubeVAO);
         glGenBuffers(1, &cubeVBO);
         // fill buffer
+        glBindVertexArray(cubeVAO);
         glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
         // link vertex attributes
-        glBindVertexArray(cubeVAO);
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(1);
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
         glEnableVertexAttribArray(2);
         glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
+        glBindVertexArray(0); //
     }
     // render Cube
     glBindVertexArray(cubeVAO);
@@ -149,7 +148,6 @@ void Scene::renderQuad()
 GLuint Scene::loadCubemapFromHDR(const char *path)
 {
     Shader HDR2CubemapShader("shader/HDR2Cubemap.vert", "shader/HDR2Cubemap.frag");
-
     // 加载环境贴图
     stbi_set_flip_vertically_on_load(true);
     int width, height, nrComponents;
@@ -168,6 +166,8 @@ GLuint Scene::loadCubemapFromHDR(const char *path)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         stbi_image_free(data);
+        // 不加这一行模型用assimp导入时会出错
+        stbi_set_flip_vertically_on_load(false);
     }
     else
     {
@@ -227,13 +227,16 @@ GLuint Scene::loadCubemapFromHDR(const char *path)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         renderCube();
     }
-
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     // then let OpenGL generate mipmaps from first mip face (combatting visible dots artifact)
     glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
     glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+    glBindTexture(GL_TEXTURE_2D, 0);
     HDR2CubemapShader.unBind();
+    glViewport(0, 0, camera->width, camera->height);
 
     return envCubemap;
 }
