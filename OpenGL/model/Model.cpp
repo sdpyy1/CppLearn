@@ -118,7 +118,7 @@ void Model::loadModel(const string& path)
                                              aiProcess_Triangulate  // 全部转化为三角形
                                              | aiProcess_FlipUVs // y坐标反转
                                              |aiProcess_CalcTangentSpace  // 计算切线副切线
-                                             | aiProcess_PreTransformVertices // 适用于静态模型
+                                             | aiProcess_PreTransformVertices // 适用于静态模型  开启后无骨骼信息
                                              | aiProcess_GlobalScale // FBX文件大小单位不一致，缩小模型
                                              );
 
