@@ -9,7 +9,7 @@
 ///
 /// Exposes comparison functions for vector types that take a user defined epsilon values.
 ///
-/// Include <glm/ext/vector_relational.hpp> to use the features of this extension.
+/// Include <glm/ext/vector_relational.hpp> to bind the features of this extension.
 ///
 /// @see core_vector_relational
 /// @see ext_scalar_relational

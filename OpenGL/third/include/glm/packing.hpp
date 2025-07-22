@@ -11,7 +11,7 @@
 ///
 /// These functions do not operate component-wise, rather as described in each case.
 ///
-/// Include <glm/packing.hpp> to use these core features.
+/// Include <glm/packing.hpp> to bind these core features.
 
 #pragma once
 

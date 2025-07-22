@@ -6,7 +6,7 @@
 /// @defgroup gtc_constants GLM_GTC_constants
 /// @ingroup gtc
 ///
-/// Include <glm/gtc/constants.hpp> to use the features of this extension.
+/// Include <glm/gtc/constants.hpp> to bind the features of this extension.
 ///
 /// Provide a list of constants and precomputed useful values.
 

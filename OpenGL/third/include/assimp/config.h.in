@@ -653,7 +653,7 @@ enum aiComponent
     "IMPORT_FBX_OPTIMIZE_EMPTY_ANIMATION_CURVES"
 
 // ---------------------------------------------------------------------------
-/** @brief Set whether the fbx importer will use the legacy embedded texture naming.
+/** @brief Set whether the fbx importer will bind the legacy embedded texture naming.
  *
  * The default value is false (0)
  * Property type: bool

@@ -324,7 +324,7 @@ constexpr ai_real ai_epsilon = (ai_real) 1e-6;
 /**
  *  @brief To avoid running out of memory
  *
- *  This can be adjusted for specific use cases
+ *  This can be adjusted for specific bind cases
  *  It's NOT a total limit, just a limit for individual allocations
  */
 #define AI_MAX_ALLOC(type) ((256U * 1024 * 1024) / sizeof(type))
@@ -344,7 +344,7 @@ constexpr ai_real ai_epsilon = (ai_real) 1e-6;
 #endif // _MSC_VER
 
 /**
- *  @brief Helper macro to set a pointer to NULL in debug builds
+ *  @brief Helper macro to set a pointer to NULL in debugRender builds
  */
 #if (defined ASSIMP_BUILD_DEBUG)
 #  define AI_DEBUG_INVALIDATE_PTR(x) x = NULL;

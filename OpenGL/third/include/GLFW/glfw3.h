@@ -7,14 +7,14 @@
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
- * arising from the use of this software.
+ * arising from the bind of this software.
  *
- * Permission is granted to anyone to use this software for any purpose,
+ * Permission is granted to anyone to bind this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
  *
  * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software. If you use this software
+ *    claim that you wrote the original software. If you bind this software
  *    in a product, an acknowledgment in the product documentation would
  *    be appreciated but is not required.
  *
@@ -44,7 +44,7 @@ extern "C" {
  *  This is the header file of the GLFW 3 API.  It defines all its types and
  *  declares all its functions.
  *
- *  For more information about how to use this file, see @ref build_include.
+ *  For more information about how to bind this file, see @ref build_include.
  */
 /*! @defgroup context Context reference
  *  @brief Functions and types related to OpenGL and OpenGL ES contexts.
@@ -303,7 +303,7 @@ extern "C" {
 
 /*! @brief One.
  *
- *  This is only semantic sugar for the number 1.  You can instead use `1` or
+ *  This is only semantic sugar for the number 1.  You can instead bind `1` or
  *  `true` or `_True` or `GL_TRUE` or `VK_TRUE` or anything else that is equal
  *  to one.
  *
@@ -312,7 +312,7 @@ extern "C" {
 #define GLFW_TRUE                   1
 /*! @brief Zero.
  *
- *  This is only semantic sugar for the number 0.  You can instead use `0` or
+ *  This is only semantic sugar for the number 0.  You can instead bind `0` or
  *  `false` or `_False` or `GL_FALSE` or `VK_FALSE` or anything else that is
  *  equal to zero.
  *
@@ -2224,7 +2224,7 @@ GLFWAPI int glfwInit(void);
  *  This function destroys all remaining windows and cursors, restores any
  *  modified gamma ramps and frees any other allocated resources.  Once this
  *  function is called, you must again call @ref glfwInit successfully before
- *  you will be able to use most GLFW functions.
+ *  you will be able to bind most GLFW functions.
  *
  *  If GLFW has been successfully initialized, this function should be called
  *  before the application exits.  If initialization fails, there is no need to
@@ -2287,7 +2287,7 @@ GLFWAPI void glfwInitHint(int hint, int value);
 
 /*! @brief Sets the init allocator to the desired value.
  *
- *  To use the default allocator, call this function with a `NULL` argument.
+ *  To bind the default allocator, call this function with a `NULL` argument.
  *
  *  If you specify an allocator struct, every member must be a valid function
  *  pointer.  If any member is `NULL`, this function will emit @ref
@@ -2297,8 +2297,8 @@ GLFWAPI void glfwInitHint(int hint, int value);
  *  documentation for @ref GLFWallocatefun, @ref GLFWreallocatefun and @ref
  *  GLFWdeallocatefun for details.
  *
- *  @param[in] allocator The allocator to use at the next initialization, or
- *  `NULL` to use the default one.
+ *  @param[in] allocator The allocator to bind at the next initialization, or
+ *  `NULL` to bind the default one.
  *
  *  @errors Possible errors include @ref GLFW_INVALID_VALUE.
  *
@@ -2399,11 +2399,11 @@ GLFWAPI void glfwGetVersion(int* major, int* minor, int* rev);
  *  compile-time options.  It should not be confused with the OpenGL or OpenGL ES version
  *  string, queried with `glGetString`.
  *
- *  __Do not use the version string__ to parse the GLFW library version.  The
+ *  __Do not bind the version string__ to parse the GLFW library version.  The
  *  @ref glfwGetVersion function provides the version of the running library
  *  binary in numerical format.
  *
- *  __Do not use the version string__ to parse what platforms are supported.  The @ref
+ *  __Do not bind the version string__ to parse what platforms are supported.  The @ref
  *  glfwPlatformSupported function lets you query platform support.
  *
  *  @return The ASCII encoded GLFW version string.
@@ -2471,7 +2471,7 @@ GLFWAPI int glfwGetError(const char** description);
  *
  *  Because the description string may have been generated specifically for that
  *  error, it is not guaranteed to be valid after the callback has returned.  If
- *  you wish to use it after the callback returns, you need to make a copy.
+ *  you wish to bind it after the callback returns, you need to make a copy.
  *
  *  Once set, the error callback remains set even after the library has been
  *  terminated.
@@ -2972,7 +2972,7 @@ GLFWAPI const GLFWgammaramp* glfwGetGammaRamp(GLFWmonitor* monitor);
  *  GLFW_SRGB_CAPABLE hint.
  *
  *  @param[in] monitor The monitor whose gamma ramp to set.
- *  @param[in] ramp The gamma ramp to use.
+ *  @param[in] ramp The gamma ramp to bind.
  *
  *  @errors Possible errors include @ref GLFW_NOT_INITIALIZED, @ref GLFW_PLATFORM_ERROR
  *  and @ref GLFW_FEATURE_UNAVAILABLE (see remarks).
@@ -3097,7 +3097,7 @@ GLFWAPI void glfwWindowHintString(int hint, const char* value);
  *  should be created are specified with [window hints](@ref window_hints).
  *
  *  Successful creation does not change which context is current.  Before you
- *  can use the newly created context, you need to
+ *  can bind the newly created context, you need to
  *  [make it current](@ref context_current).  For information about the `share`
  *  parameter, see @ref context_sharing.
  *
@@ -3125,7 +3125,7 @@ GLFWAPI void glfwWindowHintString(int hint, const char* value);
  *  full screen mode with @ref glfwSetWindowMonitor.  This will not affect its
  *  OpenGL or OpenGL ES context.
  *
- *  By default, newly created windows use the placement recommended by the
+ *  By default, newly created windows bind the placement recommended by the
  *  window system.  To create the window at a specific position, set the @ref
  *  GLFW_POSITION_X and @ref GLFW_POSITION_Y window hints before creation.  To
  *  restore the default behavior, set either or both hints back to
@@ -3146,7 +3146,7 @@ GLFWAPI void glfwWindowHintString(int hint, const char* value);
  *  @param[in] height The desired height, in screen coordinates, of the window.
  *  This must be greater than zero.
  *  @param[in] title The initial, UTF-8 encoded window title.
- *  @param[in] monitor The monitor to use for full screen mode, or `NULL` for
+ *  @param[in] monitor The monitor to bind for full screen mode, or `NULL` for
  *  windowed mode.
  *  @param[in] share The window whose context to share resources with, or `NULL`
  *  to not share resources.
@@ -3188,7 +3188,7 @@ GLFWAPI void glfwWindowHintString(int hint, const char* value);
  *  hint is `GLFW_TRUE` and the `NSHighResolutionCapable` key is enabled in the
  *  application bundle's `Info.plist`.  For more information, see
  *  [High Resolution Guidelines for OS X][hidpi-guide] in the Mac Developer
- *  Library.  The GLFW test and example programs use a custom `Info.plist`
+ *  Library.  The GLFW test and example programs bind a custom `Info.plist`
  *  template for this, which can be found as `CMake/Info.plist.in` in the source
  *  tree.
  *
@@ -3217,7 +3217,7 @@ GLFWAPI void glfwWindowHintString(int hint, const char* value);
  *
  *  @remark @x11 The class part of the `WM_CLASS` window property will by
  *  default be set to the window title passed to this function.  The instance
- *  part will use the contents of the `RESOURCE_NAME` environment variable, if
+ *  part will bind the contents of the `RESOURCE_NAME` environment variable, if
  *  present and not empty, or fall back to the window title.  Set the
  *  [GLFW_X11_CLASS_NAME](@ref GLFW_X11_CLASS_NAME_hint) and
  *  [GLFW_X11_INSTANCE_NAME](@ref GLFW_X11_INSTANCE_NAME_hint) window hints to
@@ -3450,7 +3450,7 @@ GLFWAPI void glfwGetWindowPos(GLFWwindow* window, int* xpos, int* ypos);
  *  corner of the content area of the specified windowed mode window.  If the
  *  window is a full screen window, this function does nothing.
  *
- *  __Do not use this function__ to move an already visible window unless you
+ *  __Do not bind this function__ to move an already visible window unless you
  *  have very good reasons for doing so, as it will confuse and annoy the user.
  *
  *  The window manager may put limits on what positions are allowed.  GLFW
@@ -3768,7 +3768,7 @@ GLFWAPI float glfwGetWindowOpacity(GLFWwindow* window);
  *
  *  The initial opacity value for newly created windows is one.
  *
- *  A window created with framebuffer transparency may not use whole window
+ *  A window created with framebuffer transparency may not bind whole window
  *  transparency.  The results of doing this are undefined.
  *
  *  @param[in] window The window to set the opacity for.
@@ -3942,7 +3942,7 @@ GLFWAPI void glfwHideWindow(GLFWwindow* window);
  *  with @ref glfwShowWindow. Set the
  *  [GLFW_FOCUS_ON_SHOW](@ref GLFW_FOCUS_ON_SHOW_hint) to disable this behavior.
  *
- *  __Do not use this function__ to steal focus from other applications unless
+ *  __Do not bind this function__ to steal focus from other applications unless
  *  you are certain that is what the user wants.  Focus stealing can be
  *  extremely disruptive.
  *
@@ -4091,7 +4091,7 @@ GLFWAPI void glfwSetWindowMonitor(GLFWwindow* window, GLFWmonitor* monitor, int 
  *  window_attribs_fb for more information.
  *
  *  @remark Zero is a valid value for many window and context related
- *  attributes so you cannot use a return value of zero as an indication of
+ *  attributes so you cannot bind a return value of zero as an indication of
  *  errors.  However, this function should not fail as long as it is passed
  *  valid arguments and the library has been [initialized](@ref intro_init).
  *
@@ -4503,7 +4503,7 @@ GLFWAPI GLFWwindowcontentscalefun glfwSetWindowContentScaleCallback(GLFWwindow* 
  *
  *  On some platforms, a window move, resize or menu operation will cause event
  *  processing to block.  This is due to how event processing is designed on
- *  those platforms.  You can use the
+ *  those platforms.  You can bind the
  *  [window refresh callback](@ref window_refresh) to redraw the contents of
  *  your window when necessary during such operations.
  *
@@ -4548,7 +4548,7 @@ GLFWAPI void glfwPollEvents(void);
  *
  *  On some platforms, a window move, resize or menu operation will cause event
  *  processing to block.  This is due to how event processing is designed on
- *  those platforms.  You can use the
+ *  those platforms.  You can bind the
  *  [window refresh callback](@ref window_refresh) to redraw the contents of
  *  your window when necessary during such operations.
  *
@@ -4595,7 +4595,7 @@ GLFWAPI void glfwWaitEvents(void);
  *
  *  On some platforms, a window move, resize or menu operation will cause event
  *  processing to block.  This is due to how event processing is designed on
- *  those platforms.  You can use the
+ *  those platforms.  You can bind the
  *  [window refresh callback](@ref window_refresh) to redraw the contents of
  *  your window when necessary during such operations.
  *
@@ -4773,7 +4773,7 @@ GLFWAPI int glfwRawMouseMotionSupported(void);
  *  modifier keys, intended for displaying key bindings to the user.  For dead
  *  keys, it is typically the diacritic it would add to a character.
  *
- *  __Do not use this function__ for [text input](@ref input_char).  You will
+ *  __Do not bind this function__ for [text input](@ref input_char).  You will
  *  break text input for many languages even if it happens to work for yours.
  *
  *  If the key is `GLFW_KEY_UNKNOWN`, the scancode is used to identify the key,
@@ -4873,13 +4873,13 @@ GLFWAPI int glfwGetKeyScancode(int key);
  *  that key has already been released.
  *
  *  The key functions deal with physical keys, with [key tokens](@ref keys)
- *  named after their use on the standard US keyboard layout.  If you want to
- *  input text, use the Unicode character callback instead.
+ *  named after their bind on the standard US keyboard layout.  If you want to
+ *  input text, bind the Unicode character callback instead.
  *
  *  The [modifier key bit masks](@ref mods) are not key tokens and cannot be
  *  used with this function.
  *
- *  __Do not use this function__ to implement [text input](@ref input_char).
+ *  __Do not bind this function__ to implement [text input](@ref input_char).
  *
  *  @param[in] window The desired window.
  *  @param[in] key The desired [keyboard key](@ref keys).  `GLFW_KEY_UNKNOWN` is
@@ -4975,7 +4975,7 @@ GLFWAPI void glfwGetCursorPos(GLFWwindow* window, double* xpos, double* ypos);
  *  window.  The window must have input focus.  If the window does not have
  *  input focus when this function is called, it fails silently.
  *
- *  __Do not use this function__ to implement things like camera controls.  GLFW
+ *  __Do not bind this function__ to implement things like camera controls.  GLFW
  *  already provides the `GLFW_CURSOR_DISABLED` cursor mode that hides the
  *  cursor, transparently re-centers it and provides unconstrained cursor
  *  motion.  See @ref glfwSetInputMode for more information.
@@ -5075,7 +5075,7 @@ GLFWAPI GLFWcursor* glfwCreateCursor(const GLFWimage* image, int xhot, int yhot)
  *  GLFW_CURSOR_UNAVAILABLE error and returns `NULL`.
  *
  *  @param[in] shape One of the [standard shapes](@ref shapes).
- *  @return A new cursor ready to use or `NULL` if an
+ *  @return A new cursor ready to bind or `NULL` if an
  *  [error](@ref error_handling) occurred.
  *
  *  @errors Possible errors include @ref GLFW_NOT_INITIALIZED, @ref
@@ -5154,7 +5154,7 @@ GLFWAPI void glfwSetCursor(GLFWwindow* window, GLFWcursor* cursor);
  *
  *  The key functions deal with physical keys, with layout independent
  *  [key tokens](@ref keys) named after their values in the standard US keyboard
- *  layout.  If you want to input text, use the
+ *  layout.  If you want to input text, bind the
  *  [character callback](@ref glfwSetCharCallback) instead.
  *
  *  When a window loses input focus, it will generate synthetic key release
@@ -5423,7 +5423,7 @@ GLFWAPI GLFWscrollfun glfwSetScrollCallback(GLFWwindow* window, GLFWscrollfun ca
  *
  *  Because the path array and its strings may have been generated specifically
  *  for that event, they are not guaranteed to be valid after the callback has
- *  returned.  If you wish to use them after the callback returns, you need to
+ *  returned.  If you wish to bind them after the callback returns, you need to
  *  make a deep copy.
  *
  *  @param[in] window The window whose callback to set.
@@ -6328,7 +6328,7 @@ GLFWAPI int glfwVulkanSupported(void);
  *  to check whether Vulkan is at least minimally available.
  *
  *  If Vulkan is available but no set of extensions allowing window surface
- *  creation was found, this function returns `NULL`.  You may still use Vulkan
+ *  creation was found, this function returns `NULL`.  You may still bind Vulkan
  *  for off-screen rendering and compute work.
  *
  *  @param[out] count Where to store the number of extensions in the returned

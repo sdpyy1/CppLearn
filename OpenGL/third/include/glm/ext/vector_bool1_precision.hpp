@@ -6,7 +6,7 @@
 ///
 /// Exposes highp_bvec1, mediump_bvec1 and lowp_bvec1 types.
 ///
-/// Include <glm/ext/vector_bool1_precision.hpp> to use the features of this extension.
+/// Include <glm/ext/vector_bool1_precision.hpp> to bind the features of this extension.
 
 #pragma once
 

@@ -262,7 +262,7 @@ enum aiAnimBehaviour {
     /** The animation is repeated.
      *
      *  If the animation key go from n to m and the current
-     *  time is t, use the value at (t-n) % (|m-n|).*/
+     *  time is t, bind the value at (t-n) % (|m-n|).*/
     aiAnimBehaviour_REPEAT = 0x3,
 
 /** This value is not used, it is just here to force the

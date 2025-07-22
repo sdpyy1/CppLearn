@@ -12,7 +12,7 @@
 ///
 /// These all operate component-wise. The description is per component.
 ///
-/// Include <glm/trigonometric.hpp> to use these core features.
+/// Include <glm/trigonometric.hpp> to bind these core features.
 ///
 /// @see ext_vector_trigonometric
 

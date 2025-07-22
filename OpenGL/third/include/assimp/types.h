@@ -256,11 +256,11 @@ struct aiColor3D {
  *
  *  For most applications, it will be absolutely sufficient to interpret the
  *  aiString as ASCII data and work with it as one would work with a plain char*.
- *  Windows users in need of proper support for i.e asian characters can use the
+ *  Windows users in need of proper support for i.e asian characters can bind the
  *  MultiByteToWideChar(), WideCharToMultiByte() WinAPI functionality to convert the
  *  UTF-8 strings to their working character set (i.e. MBCS, WideChar).
  *
- *  We use this representation instead of std::string to be C-compatible. The
+ *  We bind this representation instead of std::string to be C-compatible. The
  *  (binary) length of such a string is limited to AI_MAXLEN characters (including the
  *  the terminating zero).
  */

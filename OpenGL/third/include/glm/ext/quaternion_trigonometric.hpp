@@ -6,7 +6,7 @@
 ///
 /// Provides trigonometric functions for quaternion types
 ///
-/// Include <glm/ext/quaternion_trigonometric.hpp> to use the features of this extension.
+/// Include <glm/ext/quaternion_trigonometric.hpp> to bind the features of this extension.
 ///
 /// @see ext_quaternion_float
 /// @see ext_quaternion_double

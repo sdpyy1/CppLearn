@@ -6,7 +6,7 @@
 ///
 /// Exposes sized unsigned integer vector of 3 components type.
 ///
-/// Include <glm/ext/vector_uint3_sized.hpp> to use the features of this extension.
+/// Include <glm/ext/vector_uint3_sized.hpp> to bind the features of this extension.
 ///
 /// @see ext_scalar_uint_sized
 /// @see ext_vector_int3_sized

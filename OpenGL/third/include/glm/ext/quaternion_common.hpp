@@ -6,7 +6,7 @@
 ///
 /// Provides common functions for quaternion types
 ///
-/// Include <glm/ext/quaternion_common.hpp> to use the features of this extension.
+/// Include <glm/ext/quaternion_common.hpp> to bind the features of this extension.
 ///
 /// @see ext_scalar_common
 /// @see ext_vector_common
@@ -39,7 +39,7 @@ namespace glm
 
 	/// Spherical linear interpolation of two quaternions.
 	/// The interpolation is oriented and the rotation is performed at constant speed.
-	/// For short path spherical linear interpolation, use the slerp function.
+	/// For short path spherical linear interpolation, bind the slerp function.
 	///
 	/// @param x A quaternion
 	/// @param y A quaternion

@@ -33,19 +33,13 @@ public:
     GLuint loadCubemapFromSkybox(const string &path);
 
 private:
-    GLuint defaultAlbedo = 0;
-    GLuint defaultNormal = 0;
-    GLuint defaultMetallic = 0;
-    GLuint defaultRoughness = 0;
-    GLuint defaultAO = 0;
-    GLuint defaultEmissive = 0;
     GLuint cubeVAO = 0;
     GLuint cubeVBO = 0;
     GLuint quadVAO = 0;
     GLuint quadVBO = 0;
     unsigned int sphereVAO = 0;
     unsigned int indexCount = 0;
-    void setVPAndUseShader(Shader& shader) const;
+    void setVP(Shader& shader) const;
 
     void createDefaultTexture();
 

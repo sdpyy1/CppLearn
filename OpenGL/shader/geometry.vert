@@ -7,8 +7,10 @@ layout(location = 4) in vec3 aBitangent;
 
 out vec3 FragPos;
 out vec2 TexCoords;
-out mat3 TBN;
 
+out vec3 T;
+out vec3 B;
+out vec3 N;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
@@ -21,10 +23,9 @@ void main()
     TexCoords = aTexCoords;
 
     // 法线、切线、副切线变换到世界空间
-    vec3 T = normalize(mat3(model) * aTangent);
-    vec3 B = normalize(mat3(model) * aBitangent);
-    vec3 N = normalize(mat3(model) * aNormal);
-    TBN = mat3(T, B, N);
+    T = normalize(mat3(model) * aTangent);
+    B = normalize(mat3(model) * aBitangent);
+    N = normalize(mat3(model) * aNormal);
 
     gl_Position = projection * view * vec4(fragPosWorld, 1.0);
 }

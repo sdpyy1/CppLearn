@@ -7,7 +7,7 @@
 /// @defgroup gtc_type_ptr GLM_GTC_type_ptr
 /// @ingroup gtc
 ///
-/// Include <glm/gtc/type_ptr.hpp> to use the features of this extension.
+/// Include <glm/gtc/type_ptr.hpp> to bind the features of this extension.
 ///
 /// Handles the interaction between pointers and vector, matrix types.
 ///
@@ -29,7 +29,7 @@
 /// glUniformMatrix4fv(uniformMatrixLoc, 1, GL_FALSE, glm::value_ptr(someMatrix));
 /// @endcode
 ///
-/// <glm/gtc/type_ptr.hpp> need to be included to use the features of this extension.
+/// <glm/gtc/type_ptr.hpp> need to be included to bind the features of this extension.
 
 #pragma once
 

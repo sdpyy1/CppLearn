@@ -6,7 +6,7 @@
 ///
 /// Exposes comparison functions for quaternion types that take a user defined epsilon values.
 ///
-/// Include <glm/ext/quaternion_relational.hpp> to use the features of this extension.
+/// Include <glm/ext/quaternion_relational.hpp> to bind the features of this extension.
 ///
 /// @see core_vector_relational
 /// @see ext_vector_relational

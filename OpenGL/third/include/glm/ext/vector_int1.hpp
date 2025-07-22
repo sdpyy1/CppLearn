@@ -6,7 +6,7 @@
 ///
 /// Exposes ivec1 vector type.
 ///
-/// Include <glm/ext/vector_int1.hpp> to use the features of this extension.
+/// Include <glm/ext/vector_int1.hpp> to bind the features of this extension.
 ///
 /// @see ext_vector_uint1 extension.
 /// @see ext_vector_int1_precision extension.

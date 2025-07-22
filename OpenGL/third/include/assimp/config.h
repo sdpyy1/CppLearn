@@ -50,7 +50,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *  default value. See the doc for the mentioned methods for more details.
  *
  *  <br><br>
- *  The corresponding functions for use with the plain-c API are:
+ *  The corresponding functions for bind with the plain-c API are:
  *  #aiSetImportPropertyInteger,
  *  #aiSetImportPropertyFloat,
  *  #aiSetImportPropertyString
@@ -187,7 +187,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *  no optimization is performed (read: meshes with equal materials are not
  *  joined. The total number of meshes won't change).
  *
- * This option could be of use for you if the scene hierarchy contains
+ * This option could be of bind for you if the scene hierarchy contains
  * important additional information which you intend to parse.
  * For rendering, you can still render all meshes in the scene without
  * any transformations.
@@ -207,7 +207,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     "PP_PTV_NORMALIZE"
 
 // ---------------------------------------------------------------------------
-/** @brief Configures the #aiProcess_PreTransformVertices step to use
+/** @brief Configures the #aiProcess_PreTransformVertices step to bind
  *  a users defined matrix as the scene root node transformation before
  *  transforming vertices.
  *  Property type: bool. Default value: false.
@@ -216,7 +216,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     "PP_PTV_ADD_ROOT_TRANSFORMATION"
 
 // ---------------------------------------------------------------------------
-/** @brief Configures the #aiProcess_PreTransformVertices step to use
+/** @brief Configures the #aiProcess_PreTransformVertices step to bind
  *  a users defined matrix as the scene root node transformation before
  *  transforming vertices. This property correspond to the 'a1' component
  *  of the transformation matrix.
@@ -403,12 +403,12 @@ enum aiComponent
 
     /** Removes all bone weights from all meshes.
      * The scenegraph nodes corresponding to the bones are NOT removed.
-     * use the #aiProcess_OptimizeGraph step to do this */
+     * bind the #aiProcess_OptimizeGraph step to do this */
     aiComponent_BONEWEIGHTS = 0x20,
 
     /** Removes all node animations (aiScene::mAnimations).
      * The corresponding scenegraph nodes are NOT removed.
-     * use the #aiProcess_OptimizeGraph step to do this */
+     * bind the #aiProcess_OptimizeGraph step to do this */
     aiComponent_ANIMATIONS = 0x40,
 
     /** Removes all embedded textures (aiScene::mTextures) */
@@ -416,12 +416,12 @@ enum aiComponent
 
     /** Removes all light sources (aiScene::mLights).
      * The corresponding scenegraph nodes are NOT removed.
-     * use the #aiProcess_OptimizeGraph step to do this */
+     * bind the #aiProcess_OptimizeGraph step to do this */
     aiComponent_LIGHTS = 0x100,
 
     /** Removes all cameras (aiScene::mCameras).
      * The corresponding scenegraph nodes are NOT removed.
-     * use the #aiProcess_OptimizeGraph step to do this */
+     * bind the #aiProcess_OptimizeGraph step to do this */
     aiComponent_CAMERAS = 0x200,
 
     /** Removes all meshes (aiScene::mMeshes). */
@@ -465,7 +465,7 @@ enum aiComponent
  *  Specifies which primitive types are removed by the step.
  *
  *  This is a bitwise combination of the aiPrimitiveType flags.
- *  Specifying all of them is illegal, of course. A typical use would
+ *  Specifying all of them is illegal, of course. A typical bind would
  *  be to exclude all line and point meshes from the import. This
  *  is an integer property, its default value is 0.
  */
@@ -519,7 +519,7 @@ enum aiComponent
 /** @brief A hint to assimp to favour speed against import quality.
  *
  * Enabling this option may result in faster loading, but it needn't.
- * It represents just a hint to loaders and post-processing steps to use
+ * It represents just a hint to loaders and post-processing steps to bind
  * faster code paths, if possible.
  * This property is expected to be an integer, != 0 stands for true.
  * The default value is 0.
@@ -533,7 +533,7 @@ enum aiComponent
 // ###########################################################################
 
 // ---------------------------------------------------------------------------
-/** @brief Importers which parse JSON may use this to obtain a pointer to a
+/** @brief Importers which parse JSON may bind this to obtain a pointer to a
  * rapidjson::IRemoteSchemaDocumentProvider.
  *
  * The default value is nullptr
@@ -653,7 +653,7 @@ enum aiComponent
     "IMPORT_FBX_OPTIMIZE_EMPTY_ANIMATION_CURVES"
 
 // ---------------------------------------------------------------------------
-/** @brief Set whether the fbx importer will use the legacy embedded texture naming.
+/** @brief Set whether the fbx importer will bind the legacy embedded texture naming.
  *
  * The default value is false (0)
  * Property type: bool
@@ -706,7 +706,7 @@ enum aiComponent
  * By default this is the first frame.
  * \note The default value is 0. This option applies to all importers.
  *   However, it is also possible to override the global setting
- *   for a specific loader. You can use the AI_CONFIG_IMPORT_XXX_KEYFRAME
+ *   for a specific loader. You can bind the AI_CONFIG_IMPORT_XXX_KEYFRAME
  *   options (where XXX is a placeholder for the file format for which you
  *   want to override the global setting).
  * Property type: integer.
@@ -1014,7 +1014,7 @@ enum aiComponent
 #define AI_CONFIG_IMPORT_IFC_SKIP_SPACE_REPRESENTATIONS "IMPORT_IFC_SKIP_SPACE_REPRESENTATIONS"
 
 // ---------------------------------------------------------------------------
-/** @brief Specifies whether the IFC loader will use its own, custom triangulation
+/** @brief Specifies whether the IFC loader will bind its own, custom triangulation
  *   algorithm to triangulate wall and floor meshes.
  *
  * If this property is set to false, walls will be either triangulated by
@@ -1079,10 +1079,10 @@ enum aiComponent
 #define AI_CONFIG_IMPORT_COLLADA_IGNORE_UNIT_SIZE "IMPORT_COLLADA_IGNORE_UNIT_SIZE"
 
 // ---------------------------------------------------------------------------
-/** @brief Specifies whether the Collada loader should use Collada names.
+/** @brief Specifies whether the Collada loader should bind Collada names.
  *
  * If this property is set to true, the Collada names will be used as the node and
- * mesh names. The default is to use the id tag (resp. sid tag, if no id tag is present)
+ * mesh names. The default is to bind the id tag (resp. sid tag, if no id tag is present)
  * instead.
  * Property type: Bool. Default value: false.
  */
@@ -1090,7 +1090,7 @@ enum aiComponent
 
 // ---------- All the Export defines ------------
 
-/** @brief Specifies the xfile use double for real values of float
+/** @brief Specifies the xfile bind double for real values of float
  *
  * Property type: Bool. Default value: false.
  */
@@ -1108,9 +1108,9 @@ enum aiComponent
  */
 #define AI_CONFIG_EXPORT_POINT_CLOUDS "EXPORT_POINT_CLOUDS"
 
-/** @brief Specifies whether to use the deprecated KHR_materials_pbrSpecularGlossiness extension
+/** @brief Specifies whether to bind the deprecated KHR_materials_pbrSpecularGlossiness extension
  * 
- * When this flag is undefined any material with specularity will use the new KHR_materials_specular
+ * When this flag is undefined any material with specularity will bind the new KHR_materials_specular
  * extension. Enabling this flag will revert to the deprecated extension. Note that exporting
  * KHR_materials_pbrSpecularGlossiness with extensions other than KHR_materials_unlit is unsupported,
  * including the basic pbrMetallicRoughness spec.
@@ -1147,13 +1147,13 @@ enum aiComponent
  * 
  * Some formats require auxiliary files to be written, that need to be linked back into 
  * the original file. For example, OBJ files export materials to a separate MTL file and
- * use the `mtllib` keyword to reference this file.
+ * bind the `mtllib` keyword to reference this file.
  * 
  * When exporting blobs using #ExportToBlob, assimp does not know the name of the blob
  * file and thus outputs `mtllib $blobfile.mtl`, which might not be desired, since the 
  * MTL file might be called differently. 
  * 
- * This property can be used to give the exporter a hint on how to use the magic 
+ * This property can be used to give the exporter a hint on how to bind the magic
  * `$blobfile` keyword. If the exporter detects the keyword and is provided with a name
  * for the blob, it instead uses this name.
  */

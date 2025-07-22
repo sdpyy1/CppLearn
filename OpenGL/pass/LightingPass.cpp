@@ -1,12 +1,13 @@
 #include "LightingPass.h"
+#include "../utils/checkGlCommand.h"
 
-LightingPass::LightingPass(Scene &s, GLuint gPosition, GLuint gNormal, GLuint gAlbedo, GLuint gMaterial)
-        : lightingShader("shader/phong.vert", "shader/phong.frag"),
-          gPosition(gPosition), gNormal(gNormal), gAlbedo(gAlbedo), gMaterial(gMaterial),
-          scene(s), quadVAO(0) {}
+LightingPass::LightingPass(Scene &s, GLuint gPosition, GLuint gNormal, GLuint gAlbedo, GLuint gMaterial,GLuint gEmission,GLuint gDepth)
+        : lightingShader("shader/pbr_gBuffer.vert", "shader/pbr_gBuffer.frag"),
+          gPosition(gPosition), gNormal(gNormal), gAlbedo(gAlbedo), gMaterial(gMaterial), gEmission(gEmission),gDepth(gDepth),scene(s), quadVAO(0) {}
 
 void LightingPass::init() {
     initQuad();  // 创建全屏 quad VAO
+    isInit = true;
 }
 
 void LightingPass::initQuad() {
@@ -39,29 +40,47 @@ void LightingPass::initQuad() {
 }
 
 void LightingPass::render() {
-    lightingShader.use();
+    if (!isInit){
+        std::cerr << "LightingPass not init!" << std::endl;
+        return;
+    }
+    GL_CALL(lightingShader.bind());
 
-    // 设置 uniform
-    lightingShader.setInt("gPosition", 0);
-    lightingShader.setInt("gNormal", 1);
-    lightingShader.setInt("gAlbedo", 2);
-    lightingShader.setInt("gMaterial", 3);
-    lightingShader.setVec3("viewPos", scene.camera->Position);
-    lightingShader.setInt("lightCount", scene.lights.size());
+    // 设置 uniforms
+    GL_CALL(lightingShader.setInt("gPosition", 0));
+    GL_CALL(lightingShader.setInt("gNormal", 1));
+    GL_CALL(lightingShader.setInt("gAlbedo", 2));
+    GL_CALL(lightingShader.setInt("gMaterial", 3));
+    GL_CALL(lightingShader.setInt("gEmission", 4));
+    GL_CALL(lightingShader.setInt("gDepth", 5));
+    GL_CALL(lightingShader.setVec3("camPos", scene.camera->Position));
 
-    for (int i = 0; i < scene.lights.size(); ++i) {
-        std::string base = "lights[" + std::to_string(i) + "]";
-        lightingShader.setVec3(base + ".position", scene.lights[i]->position);
-        lightingShader.setVec3(base + ".color", scene.lights[i]->color);
+    if (!scene.lights.empty()) {
+        GL_CALL(lightingShader.setVec3("lightPos", scene.lights[0]->position));
+        GL_CALL(lightingShader.setVec3("lightColor", scene.lights[0]->color));
     }
 
-    // 绑定 G-Buffer
-    glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, gPosition);
-    glActiveTexture(GL_TEXTURE1); glBindTexture(GL_TEXTURE_2D, gNormal);
-    glActiveTexture(GL_TEXTURE2); glBindTexture(GL_TEXTURE_2D, gAlbedo);
-    glActiveTexture(GL_TEXTURE3); glBindTexture(GL_TEXTURE_2D, gMaterial);
 
-    glBindVertexArray(quadVAO);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-    glBindVertexArray(0);
+    // 绑定 G-Buffer
+    GL_CALL(glActiveTexture(GL_TEXTURE0));
+    GL_CALL(glBindTexture(GL_TEXTURE_2D, gPosition));
+
+    GL_CALL(glActiveTexture(GL_TEXTURE1));
+    GL_CALL(glBindTexture(GL_TEXTURE_2D, gNormal));
+
+    GL_CALL(glActiveTexture(GL_TEXTURE2));
+    GL_CALL(glBindTexture(GL_TEXTURE_2D, gAlbedo));
+
+    GL_CALL(glActiveTexture(GL_TEXTURE3));
+    GL_CALL(glBindTexture(GL_TEXTURE_2D, gMaterial));
+
+    GL_CALL(glActiveTexture(GL_TEXTURE4));
+    GL_CALL(glBindTexture(GL_TEXTURE_2D, gEmission));
+    GL_CALL(glActiveTexture(GL_TEXTURE5));
+    GL_CALL(glBindTexture(GL_TEXTURE_2D, gDepth));
+
+    GL_CALL(glBindVertexArray(quadVAO));
+    GL_CALL(glDrawArrays(GL_TRIANGLES, 0, 6));
+    GL_CALL(glBindVertexArray(0));
 }
+

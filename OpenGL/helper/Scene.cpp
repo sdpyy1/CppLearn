@@ -24,7 +24,7 @@ void Scene::addLight(const std::shared_ptr<Light>& light)
 
 void Scene::drawAll(Shader& shader)
 {
-    setVPAndUseShader(shader);
+    setVP(shader);
     for (auto& model : models)
     {
         shader.setMat4("model", model.modelMatrix);
@@ -32,9 +32,8 @@ void Scene::drawAll(Shader& shader)
     }
 }
 
-void Scene::setVPAndUseShader(Shader& shader) const
+void Scene::setVP(Shader& shader) const
 {
-    shader.use();
     glm::mat4 projection = camera->getProjectionMatrix();
     glm::mat4 view = camera->getViewMatrix();
 
@@ -212,7 +211,7 @@ GLuint Scene::loadCubemapFromHDR(const char *path)
                     glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
             };
 
-    HDR2CubemapShader.use();
+    HDR2CubemapShader.bind();
     HDR2CubemapShader.setInt("equirectangularMap", 0);
     HDR2CubemapShader.setMat4("projection", captureProjection);
     glActiveTexture(GL_TEXTURE0);
@@ -234,6 +233,7 @@ GLuint Scene::loadCubemapFromHDR(const char *path)
     // then let OpenGL generate mipmaps from first mip face (combatting visible dots artifact)
     glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
     glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+    HDR2CubemapShader.unBind();
 
     return envCubemap;
 }

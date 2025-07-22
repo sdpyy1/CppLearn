@@ -6,7 +6,7 @@
 ///
 /// Exposes sized signed integer scalar types.
 ///
-/// Include <glm/ext/scalar_int_sized.hpp> to use the features of this extension.
+/// Include <glm/ext/scalar_int_sized.hpp> to bind the features of this extension.
 ///
 /// @see ext_scalar_uint_sized
 

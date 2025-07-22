@@ -114,7 +114,7 @@ public:
     // -------------------------------------------------------------------
     /** @brief Invert the matrix.
      *  If the matrix is not invertible all elements are set to qnan.
-     *  Beware, use (f != f) to check whether a TReal f is qnan.
+     *  Beware, bind (f != f) to check whether a TReal f is qnan.
      */
     aiMatrix3x3t& Inverse();
     TReal Determinant() const;

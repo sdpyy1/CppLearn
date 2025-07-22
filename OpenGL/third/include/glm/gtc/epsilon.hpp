@@ -7,7 +7,7 @@
 /// @defgroup gtc_epsilon GLM_GTC_epsilon
 /// @ingroup gtc
 ///
-/// Include <glm/gtc/epsilon.hpp> to use the features of this extension.
+/// Include <glm/gtc/epsilon.hpp> to bind the features of this extension.
 ///
 /// Comparison functions for a user defined epsilon values.
 

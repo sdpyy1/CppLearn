@@ -6,7 +6,7 @@ GeometryPass::GeometryPass(Scene& scene)
       debugShader("shader/gBufferDebug.vert", "shader/gBufferDebug.frag"),
       width(scene.width), height(scene.height),
       debugVAO(0), gBuffer(0),
-      gPosition(0), gNormal(0), gAlbedo(0), gMaterial(0)
+      gPosition(0), gNormal(0), gAlbedo(0), gMaterial(0),gEmission(0)
 {
 }
 
@@ -14,13 +14,14 @@ void GeometryPass::init()
 {
     InitGBuffer();
     initDebug();
+    isInit = true;
 }
 
 void GeometryPass::InitGBuffer()
 {
     GL_CALL(glGenFramebuffers(1, &gBuffer));
     GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, gBuffer));
-
+    GL_CALL(glViewport(0, 0, width, height);)
     // 1. Position (RGB16F)
     GL_CALL(glGenTextures(1, &gPosition));
     GL_CALL(glBindTexture(GL_TEXTURE_2D, gPosition));
@@ -53,6 +54,15 @@ void GeometryPass::InitGBuffer()
     GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
     GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, gMaterial, 0));
 
+    // 5. Emission info (RGBA8)
+    glGenTextures(1, &gEmission);
+    glBindTexture(GL_TEXTURE_2D, gEmission);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+    GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, gEmission, 0));
+
+    // attach 到 FBO 的 color attachmentN，比如 GL_COLOR_ATTACHMENT4
     // Depth renderbuffer
     glGenTextures(1, &gDepth);
     glBindTexture(GL_TEXTURE_2D, gDepth);
@@ -66,9 +76,9 @@ void GeometryPass::InitGBuffer()
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, gDepth, 0);
 
-    // Draw buffers
-    GLuint attachments[4] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3};
-    glDrawBuffers(4, attachments);
+    // 添加了新颜色缓冲后，必须添加在这
+    GLuint attachments[5] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4};
+    glDrawBuffers(5, attachments);
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     {
@@ -80,11 +90,18 @@ void GeometryPass::InitGBuffer()
 
 void GeometryPass::render()
 {
+    if(!isInit){
+        std::cerr << "GeometryPass not init!" << std::endl;
+        return;
+    }
+    shader.bind();
     glEnable(GL_DEPTH_TEST);
     glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     GL_CALL(scene.drawAll(shader));
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, scene.width, scene.height);
+    shader.unBind();
 }
 
 void GeometryPass::initDebug()
@@ -117,16 +134,16 @@ void GeometryPass::initDebug()
     glBindVertexArray(0);
 }
 
-void GeometryPass::debug()
+void GeometryPass::debugRender()
 {
+    debugShader.bind();
     GL_CALL(glDisable(GL_DEPTH_TEST));
+    glDepthMask(GL_FALSE);  // 禁止写深度
 
-    debugShader.use();
     debugShader.setFloat("near", scene.camera->Near);
     debugShader.setFloat("far", scene.camera->Far);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    GL_CALL(glDisable(GL_DEPTH_TEST));
 
     int w = width / 2;
     int h = height / 2;
@@ -136,7 +153,7 @@ void GeometryPass::debug()
     // 左上 - Position
     GL_CALL(glViewport(0, h, w, h));
     GL_CALL(glActiveTexture(GL_TEXTURE0));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D, gPosition));
+    GL_CALL(glBindTexture(GL_TEXTURE_2D, gMaterial));
     debugShader.setInt("gBufferTexture", 0);
     debugShader.setInt("visualizeMode", 0);
     GL_CALL(glDrawArrays(GL_TRIANGLES, 0, 6));
@@ -149,17 +166,20 @@ void GeometryPass::debug()
 
     // 左下 - Albedo
     GL_CALL(glViewport(0, 0, w, h));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D, gAlbedo));
+    GL_CALL(glBindTexture(GL_TEXTURE_2D, gPosition));
     debugShader.setInt("visualizeMode", 0);
     GL_CALL(glDrawArrays(GL_TRIANGLES, 0, 6));
 
     // 右下 - gDepth
     GL_CALL(glViewport(w, 0, w, h));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D, gMaterial));
-    debugShader.setInt("visualizeMode", 0);
+    GL_CALL(glBindTexture(GL_TEXTURE_2D, gDepth));
+    debugShader.setInt("visualizeMode", 2);
     GL_CALL(glDrawArrays(GL_TRIANGLES, 0, 6));
 
     GL_CALL(glBindVertexArray(0));
     GL_CALL(glViewport(0, 0, width, height));
     GL_CALL(glEnable(GL_DEPTH_TEST));
+    glDepthMask(GL_TRUE);  // 恢复写深度
+
+    debugShader.unBind();
 }

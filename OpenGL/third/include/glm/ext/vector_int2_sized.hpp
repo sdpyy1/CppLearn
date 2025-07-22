@@ -6,7 +6,7 @@
 ///
 /// Exposes sized signed integer vector of 2 components type.
 ///
-/// Include <glm/ext/vector_int2_sized.hpp> to use the features of this extension.
+/// Include <glm/ext/vector_int2_sized.hpp> to bind the features of this extension.
 ///
 /// @see ext_scalar_int_sized
 /// @see ext_vector_uint2_sized

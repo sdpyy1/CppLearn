@@ -4,7 +4,7 @@
 
 bool WindowManager::initWindow() {
     glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 #ifdef __APPLE__
@@ -31,7 +31,8 @@ bool WindowManager::initWindow() {
 
     // 不显示鼠标
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
+    glEnable(GL_DEBUG_OUTPUT);
+    glDebugMessageCallback(myDebugCallback, nullptr);
     return true;
 }
 
@@ -71,6 +72,7 @@ void WindowManager::framebuffer_size_callback(GLFWwindow* window, int width, int
     app->width = width;
     app->height = height;
     glViewport(0, 0, width, height);
+
 }
 
 void WindowManager::mouse_callback(GLFWwindow* window, double xpos, double ypos) {

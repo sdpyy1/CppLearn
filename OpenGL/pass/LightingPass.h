@@ -7,16 +7,16 @@
 
 class LightingPass : public RenderPass {
 public:
-    LightingPass(Scene &scene, GLuint gPosition, GLuint gNormal, GLuint gAlbedo, GLuint gMaterial);
+    LightingPass(Scene &scene, GLuint gPosition, GLuint gNormal, GLuint gAlbedo, GLuint gMaterial, GLuint gEmission,GLuint gDepth);
 
     void init() override;
     void render() override;
-
+    Shader lightingShader;
 private:
     void initQuad();
 
-    Shader lightingShader;
+
     GLuint quadVAO;
-    GLuint gPosition, gNormal, gAlbedo, gMaterial;
+    GLuint gPosition, gNormal, gAlbedo, gMaterial, gEmission,gDepth;
     Scene &scene;
 };

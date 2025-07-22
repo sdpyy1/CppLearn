@@ -18,7 +18,7 @@ private:
     GLuint gBuffer;
 
 public:
-    GLuint gPosition, gNormal, gAlbedo, gMaterial, gDepth;
+    GLuint gPosition, gNormal, gAlbedo, gMaterial, gDepth,gEmission;
 
     explicit GeometryPass(Scene& scene);
 
@@ -26,7 +26,7 @@ public:
     void init() override;
     void render() override;
 
-    void debug();
+    void debugRender();
 
 private:
     void InitGBuffer();

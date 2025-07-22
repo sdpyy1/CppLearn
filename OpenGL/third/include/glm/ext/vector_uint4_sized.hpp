@@ -6,7 +6,7 @@
 ///
 /// Exposes sized unsigned integer vector of 4 components type.
 ///
-/// Include <glm/ext/vector_uint4_sized.hpp> to use the features of this extension.
+/// Include <glm/ext/vector_uint4_sized.hpp> to bind the features of this extension.
 ///
 /// @see ext_scalar_uint_sized
 /// @see ext_vector_int4_sized

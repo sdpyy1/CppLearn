@@ -6,7 +6,7 @@
 ///
 /// Exposes single-precision floating point vector type with one component.
 ///
-/// Include <glm/ext/vector_float1.hpp> to use the features of this extension.
+/// Include <glm/ext/vector_float1.hpp> to bind the features of this extension.
 ///
 /// @see ext_vector_float1_precision extension.
 /// @see ext_vector_double1 extension.

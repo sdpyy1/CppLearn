@@ -8,6 +8,7 @@ uniform sampler2D gPosition;
 uniform sampler2D gNormal;
 uniform sampler2D gAlbedo;
 uniform sampler2D gMaterial;
+uniform sampler2D gEmission;
 
 // 摄像机位置
 uniform vec3 viewPos;
@@ -32,7 +33,7 @@ void main() {
     float metallic = material.r;
     float roughness = material.g;
     float ao = material.b;
-    float emission = material.a;
+    vec3 emission = texture(gEmission, TexCoords).rgb;
 
     // 光照累加器
     vec3 result = vec3(0.0);

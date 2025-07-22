@@ -36,7 +36,7 @@
 /// with OpenGL ES's GLSL, these qualifiers do have an effect.
 ///
 /// C++ has no language equivalent to qualifier qualifiers. So GLM provides the next-best thing:
-/// a number of typedefs that use a particular qualifier.
+/// a number of typedefs that bind a particular qualifier.
 ///
 /// None of these types make any guarantees about the actual qualifier used.
 ///
@@ -60,7 +60,7 @@
 /// with OpenGL ES's GLSL, these qualifiers do have an effect.
 ///
 /// C++ has no language equivalent to qualifier qualifiers. So GLM provides the next-best thing:
-/// a number of typedefs that use a particular qualifier.
+/// a number of typedefs that bind a particular qualifier.
 ///
 /// None of these types make any guarantees about the actual qualifier used.
 ///

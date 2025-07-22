@@ -41,7 +41,7 @@ GLuint preComputer::computeIrradianceMap()
     glBindFramebuffer(GL_FRAMEBUFFER, FrameBuffer);
     glBindRenderbuffer(GL_RENDERBUFFER, RenderBuffer);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 32, 32);
-    irradianceMapShader.use();
+    irradianceMapShader.bind();
     irradianceMapShader.setInt("environmentMap", 0);
     irradianceMapShader.setMat4("projection", captureProjection);
     glActiveTexture(GL_TEXTURE0);
@@ -59,6 +59,7 @@ GLuint preComputer::computeIrradianceMap()
         scene.renderCube();
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    irradianceMapShader.unBind();
     return irradianceMap;
 }
 
@@ -96,7 +97,7 @@ GLuint preComputer::computePrefilterMap()
 
     glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 
-    prefilterShader.use();
+    prefilterShader.bind();
     prefilterShader.setInt("environmentMap", 0);
     prefilterShader.setMat4("projection", captureProjection);
     glActiveTexture(GL_TEXTURE0);
@@ -128,6 +129,7 @@ GLuint preComputer::computePrefilterMap()
         }
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    prefilterShader.unBind();
     return prefilterMap;
 }
 
@@ -154,10 +156,11 @@ GLuint preComputer::computeLutMap()
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, brdfLUTTexture, 0);
 
     glViewport(0, 0, 512, 512);
-    lutShader.use();
+    lutShader.bind();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     scene.renderQuad();
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    lutShader.unBind();
     return brdfLUTTexture;
 }

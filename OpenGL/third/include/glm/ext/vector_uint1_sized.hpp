@@ -6,7 +6,7 @@
 ///
 /// Exposes sized unsigned integer vector types.
 ///
-/// Include <glm/ext/vector_uint1_sized.hpp> to use the features of this extension.
+/// Include <glm/ext/vector_uint1_sized.hpp> to bind the features of this extension.
 ///
 /// @see ext_scalar_uint_sized
 /// @see ext_vector_int1_sized

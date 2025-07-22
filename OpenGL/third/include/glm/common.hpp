@@ -10,7 +10,7 @@
 ///
 /// These all operate component-wise. The description is per component.
 ///
-/// Include <glm/common.hpp> to use these core features.
+/// Include <glm/common.hpp> to bind these core features.
 
 #pragma once
 

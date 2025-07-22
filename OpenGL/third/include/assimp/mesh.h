@@ -439,7 +439,7 @@ enum aiPrimitiveType {
      * At the moment, only quads (concave or convex) are supported, meaning that polygons are 'seen' as
      * triangles, as usual after a triangulation pass.
      *
-     * To get an NGON encoded mesh, please use the aiProcess_Triangulate post process.
+     * To get an NGON encoded mesh, please bind the aiProcess_Triangulate post process.
      *
      * @see aiProcess_Triangulate
      * @link https://github.com/KhronosGroup/glTF/pull/1620
@@ -625,7 +625,7 @@ enum aiMorphingMethod {
  * is presented in channels with each channel containing a single per-vertex
  * information such as a set of texture coordinates or a normal vector.
  * If a data pointer is non-null, the corresponding data stream is present.
- * From C++-programs you can also use the comfort functions Has*() to
+ * From C++-programs you can also bind the comfort functions Has*() to
  * test for the presence of various data streams.
  *
  * A Mesh uses only a single material which is referenced by a material ID.

@@ -61,7 +61,7 @@ template<typename TReal> class aiMatrix3x3t;
 template<typename TReal> class aiQuaterniont;
 
 // ---------------------------------------------------------------------------
-/** @brief Represents a row-major 4x4 matrix, use this for homogeneous
+/** @brief Represents a row-major 4x4 matrix, bind this for homogeneous
  *   coordinates.
  *
  *  There's much confusion about matrix layouts (column vs. row order).
@@ -132,7 +132,7 @@ public:
     // -------------------------------------------------------------------
     /** @brief Invert the matrix.
      *  If the matrix is not invertible all elements are set to qnan.
-     *  Beware, use (f != f) to check whether a TReal f is qnan.
+     *  Beware, bind (f != f) to check whether a TReal f is qnan.
      */
     aiMatrix4x4t& Inverse();
 

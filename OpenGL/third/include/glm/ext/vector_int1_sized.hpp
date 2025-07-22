@@ -6,7 +6,7 @@
 ///
 /// Exposes sized signed integer vector types.
 ///
-/// Include <glm/ext/vector_int1_sized.hpp> to use the features of this extension.
+/// Include <glm/ext/vector_int1_sized.hpp> to bind the features of this extension.
 ///
 /// @see ext_scalar_int_sized
 /// @see ext_vector_uint1_sized

@@ -8,7 +8,7 @@
 ///
 /// Provides GLSL matrix functions.
 ///
-/// Include <glm/matrix.hpp> to use these core features.
+/// Include <glm/matrix.hpp> to bind these core features.
 
 #pragma once
 

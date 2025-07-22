@@ -9,15 +9,12 @@
 #include "helper/Scene.h"
 #include "pass/GeometryPass.h"
 #include "pass/LightingPass.h"
-#include <iostream>
-
 #include "precompute/preComputer.h"
-
-
 
 int main()
 {
     WindowManager app(1280, 720);
+
     Scene scene(&app.camera);
     // 加载Shader
     Shader pbrShader("shader/pbr.vert", "shader/pbr.frag");
@@ -25,8 +22,8 @@ int main()
 
     // 搭建场景
     PointLight pointLight(glm::vec3(.0f, .0f, -5.0f), glm::vec3(1.0f, 1.0f, 1.0f), 1.0f);
-//    scene.addDefaultModel("helmet");
-    scene.addDefaultModel("gun");
+    scene.addDefaultModel("helmet");
+//    scene.addDefaultModel("gun");
 //    scene.addModel( "assets/asw/scene.gltf");
 //    scene.addLight(std::make_shared<PointLight>(pointLight));
 
@@ -42,7 +39,7 @@ int main()
     // 初始化Pass
     GeometryPass geometryPass(scene);
     geometryPass.init();
-    LightingPass lighting(scene,geometryPass.gPosition, geometryPass.gNormal, geometryPass.gAlbedo, geometryPass.gMaterial);
+    LightingPass lighting(scene, geometryPass.gPosition, geometryPass.gNormal, geometryPass.gAlbedo,geometryPass.gMaterial, geometryPass.gEmission,geometryPass.gDepth);
     lighting.init();
 
     while (!glfwWindowShouldClose(app.window))
@@ -53,29 +50,30 @@ int main()
 
         // G-Buffer Pass
         geometryPass.render();
-        geometryPass.debug();
+        geometryPass.debugRender();
 
-        // PBR材质渲染
-        pbrShader.use();
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
-        pbrShader.setInt("irradianceMap", 0);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
-        pbrShader.setInt("prefilterMap", 1);
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, lutMap);
-        pbrShader.setInt("lutMap", 2);
-        GL_CALL(scene.drawAll(pbrShader));
+        // light Pass
+        lighting.lightingShader.bind();
+        // IBL开启
+        glActiveTexture(GL_TEXTURE15);glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);lighting.lightingShader.setInt("irradianceMap", 15);
+        glActiveTexture(GL_TEXTURE14);glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);lighting.lightingShader.setInt("prefilterMap", 14);
+        glActiveTexture(GL_TEXTURE13);glBindTexture(GL_TEXTURE_2D, lutMap);lighting.lightingShader.setInt("lutMap", 13);
+        GL_CALL(lighting.render());
+
+        lighting.lightingShader.unBind();
+
+
         // 天空盒
+        skyboxShader.bind();
+        glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LEQUAL);
-        skyboxShader.use();
         skyboxShader.setMat4("projection", scene.camera->getProjectionMatrix());
         skyboxShader.setMat4("view", scene.camera->getViewMatrix());
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_CUBE_MAP, scene.envCubemap);
         GL_CALL(scene.renderCube());
         glDepthFunc(GL_LESS);
+        skyboxShader.unBind();
 
         glfwSwapBuffers(app.window);
         glfwPollEvents();

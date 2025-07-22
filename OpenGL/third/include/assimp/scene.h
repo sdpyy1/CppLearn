@@ -226,7 +226,7 @@ struct ASSIMP_API aiNode {
  * if the validation is successful but some issues have been found.
  * This can for example mean that a texture that does not exist is referenced
  * by a material or that the bone weights for a vertex don't sum to 1.0 ... .
- * In most cases you should still be able to use the import. This flag could
+ * In most cases you should still be able to bind the import. This flag could
  * be useful for applications which don't capture Assimp's log output.
  */
 #define AI_SCENE_FLAGS_VALIDATION_WARNING   0x4

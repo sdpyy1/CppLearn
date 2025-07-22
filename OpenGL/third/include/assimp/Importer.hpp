@@ -114,7 +114,7 @@ namespace Assimp {
 * If you do not assign a custom IO handler, a default handler using the
 * standard C++ IO logic will be used.
 *
-* @note One Importer instance is not thread-safe. If you use multiple
+* @note One Importer instance is not thread-safe. If you bind multiple
 * threads for loading, each thread should maintain its own Importer instance.
 */
 class ASSIMP_API Importer {
@@ -169,7 +169,7 @@ public:
      *
      * @param pImp Importer to be unregistered.
      * @return AI_SUCCESS if the loader has been removed. The function
-     *   fails if the loader is currently in use (this could happen
+     *   fails if the loader is currently in bind (this could happen
      *   if the #Importer instance is used by more than one thread) or
      *   if it has not yet been registered.
      */
@@ -193,7 +193,7 @@ public:
      *
      * @param pImp Step to be unregistered.
      * @return AI_SUCCESS if the step has been removed. The function
-     *   fails if the step is currently in use (this could happen
+     *   fails if the step is currently in bind (this could happen
      *   if the #Importer instance is used by more than one thread) or
      *   if it has not yet been registered.
      */
@@ -311,8 +311,8 @@ public:
         void *sErrorReturn = nullptr) const;
 
     // -------------------------------------------------------------------
-    /** Supplies a custom IO handler to the importer to use to open and
-     * access files. If you need the importer to use custom IO logic to
+    /** Supplies a custom IO handler to the importer to bind to open and
+     * access files. If you need the importer to bind custom IO logic to
      * access the files, you need to provide a custom implementation of
      * IOSystem and IOFile to the importer. Then create an instance of
      * your custom IOSystem implementation and supply it by this function.
@@ -320,7 +320,7 @@ public:
      * The Importer takes ownership of the object and will destroy it
      * afterwards. The previously assigned handler will be deleted.
      * Pass nullptr to take again ownership of your IOSystem and reset Assimp
-     * to use its default implementation.
+     * to bind its default implementation.
      *
      * @param pIOHandler The IO handler to be used in all file accesses
      *   of the Importer.
@@ -329,7 +329,7 @@ public:
 
     // -------------------------------------------------------------------
     /** Retrieves the IO handler that is currently set.
-     * You can use #IsDefaultIOHandler() to check whether the returned
+     * You can bind #IsDefaultIOHandler() to check whether the returned
      * interface is the default IO handler provided by ASSIMP. The default
      * handler is active as long the application doesn't supply its own
      * custom IO handler via #SetIOHandler().
@@ -360,7 +360,7 @@ public:
 
     // -------------------------------------------------------------------
     /** Retrieves the progress handler that is currently set.
-     * You can use #IsDefaultProgressHandler() to check whether the returned
+     * You can bind #IsDefaultProgressHandler() to check whether the returned
      * interface is the default handler provided by ASSIMP. The default
      * handler is active as long the application doesn't supply its own
      * custom handler via #SetProgressHandler().
@@ -404,7 +404,7 @@ public:
      *   a successful import. Provide a bitwise combination of the
      *   #aiPostProcessSteps flags. If you wish to inspect the imported
      *   scene first in order to fine-tune your post-processing setup,
-     *   consider to use #ApplyPostProcessing().
+     *   consider to bind #ApplyPostProcessing().
      * @return A pointer to the imported data, nullptr if the import failed.
      *   The pointer to the scene remains in possession of the Importer
      *   instance. Use GetOrphanedScene() to take ownership of it.
@@ -433,7 +433,7 @@ public:
      *   a successful import. Provide a bitwise combination of the
      *   #aiPostProcessSteps flags. If you wish to inspect the imported
      *   scene first in order to fine-tune your post-processing setup,
-     *   consider to use #ApplyPostProcessing().
+     *   consider to bind #ApplyPostProcessing().
      * @param pHint An additional hint to the library. If this is a non
      *   empty string, the library looks for a loader to support
      *   the file extension specified by pHint and passes the file to
@@ -450,7 +450,7 @@ public:
      * data across multiple files or even directories. Examples include
      * OBJ or MD3, which outsource parts of their material info into
      * external scripts. If you need full functionality, provide
-     * a custom IOSystem to make Assimp find these files and use
+     * a custom IOSystem to make Assimp find these files and bind
      * the regular ReadFile() API.
      */
     const aiScene *ReadFileFromMemory(
@@ -463,7 +463,7 @@ public:
     /** Apply post-processing to an already-imported scene.
      *
      *  This is strictly equivalent to calling #ReadFile() with the same
-     *  flags. However, you can use this separate function to inspect
+     *  flags. However, you can bind this separate function to inspect
      *  the imported scene first to fine-tune your post-processing setup.
      *  @param pFlags Provide a bitwise combination of the
      *   #aiPostProcessSteps flags.
@@ -572,7 +572,7 @@ public:
      * files with this file extension.
      * @param szOut String to receive the extension list.
      *   Format of the list: "*.3ds;*.obj;*.dae". This is useful for
-     *   use with the WinAPI call GetOpenFileName(Ex). */
+     *   bind with the WinAPI call GetOpenFileName(Ex). */
     void GetExtensionList(aiString &szOut) const;
 
     // -------------------------------------------------------------------
@@ -634,7 +634,7 @@ public:
      * This refers to the currently loaded file, see #ReadFile().
      * @param in Data structure to be filled.
      * @note The returned memory statistics refer to the actual
-     *   size of the use data of the aiScene. Heap-related overhead
+     *   size of the bind data of the aiScene. Heap-related overhead
      *   is (naturally) not included.*/
     void GetMemoryRequirements(aiMemoryInfo &in) const;
 
@@ -643,12 +643,12 @@ public:
      *
      * 'Extra verbose' means the data structure is validated after *every*
      * single post processing step to make sure everyone modifies the data
-     * structure in a well-defined manner. This is a debug feature and not
-     * intended for use in production environments. */
+     * structure in a well-defined manner. This is a debugRender feature and not
+     * intended for bind in production environments. */
     void SetExtraVerbose(bool bDo);
 
     // -------------------------------------------------------------------
-    /** Private, do not use. */
+    /** Private, do not bind. */
     ImporterPimpl *Pimpl() { return pimpl; }
     const ImporterPimpl *Pimpl() const { return pimpl; }
 

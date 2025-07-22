@@ -151,7 +151,7 @@ struct aiTexture {
      * If mHeight != 0 this member is show how data is packed. Hint will consist of
      * two parts: channel order and channel bitness (count of the bits for every
      * color channel). For simple parsing by the viewer it's better to not omit
-     * absent color channel and just use 0 for bitness. For example:
+     * absent color channel and just bind 0 for bitness. For example:
      * 1. Image contain RGBA and 8 bit per channel, achFormatHint == "rgba8888";
      * 2. Image contain ARGB and 8 bit per channel, achFormatHint == "argb8888";
      * 3. Image contain RGB and 5 bit for R and B channels and 6 bit for G channel, achFormatHint == "rgba5650";

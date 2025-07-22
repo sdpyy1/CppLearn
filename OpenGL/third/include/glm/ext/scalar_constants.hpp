@@ -6,7 +6,7 @@
 ///
 /// Provides a list of constants and precomputed useful values.
 ///
-/// Include <glm/ext/scalar_constants.hpp> to use the features of this extension.
+/// Include <glm/ext/scalar_constants.hpp> to bind the features of this extension.
 
 #pragma once
 

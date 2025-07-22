@@ -135,7 +135,7 @@ enum aiTextureMapMode {
 // ---------------------------------------------------------------------------
 /** @brief Defines how the mapping coords for a texture are generated.
  *
- *  Real-time applications typically require full UV coordinates, so the use of
+ *  Real-time applications typically require full UV coordinates, so the bind of
  *  the aiProcess_GenUVCoords step is highly recommended. It generates proper
  *  UV channels for non-UV mapped objects, as long as an accurate description
  *  how the mapping should look like (e.g spherical) is given.
@@ -178,7 +178,7 @@ enum aiTextureMapping {
  *  rendering results depend on implementation details in the rendering
  *  pipelines of these applications. Assimp loads all texture references from
  *  the model file and tries to determine which of the predefined texture
- *  types below is the best choice to match the original use of the texture
+ *  types below is the best choice to match the original bind of the texture
  *  as closely as possible.<br>
  *
  *  In content pipelines you'll usually define how textures have to be handled,
@@ -279,10 +279,10 @@ enum aiTextureType {
     aiTextureType_REFLECTION = 11,
 
     /** PBR Materials
-     * PBR definitions from maya and other modelling packages now use this standard.
+     * PBR definitions from maya and other modelling packages now bind this standard.
      * This was originally introduced around 2012.
      * Support for this is in game engines like Godot, Unreal or Unity3D.
-     * Modelling packages which use this are very common now.
+     * Modelling packages which bind this are very common now.
      */
 
     aiTextureType_BASE_COLOR = 12,
@@ -303,7 +303,7 @@ enum aiTextureType {
     /** PBR Material Modifiers
     * Some modern renderers have further PBR modifiers that may be overlaid
     * on top of the 'base' PBR materials for additional realism.
-    * These use multiple texture maps, so only the base type is directly defined
+    * These bind multiple texture maps, so only the base type is directly defined
     */
 
     /** Sheen
@@ -440,7 +440,7 @@ enum aiShadingMode {
     * Bidirectional scattering/reflectance distribution function (BSDF/BRDF)
     * There are multiple methods under this banner, and model files may provide
     * data for more than one PBR-BRDF method.
-    * Applications should use the set of provided properties to determine which
+    * Applications should bind the set of provided properties to determine which
     * of their preferred PBR rendering methods are likely to be available
     * eg:
     * - If AI_MATKEY_METALLIC_FACTOR is set, then a Metallic/Roughness is available
@@ -459,7 +459,7 @@ enum aiShadingMode {
  *  @brief Defines some mixed flags for a particular texture.
  *
  *  Usually you'll instruct your cg artists how textures have to look like ...
- *  and how they will be processed in your application. However, if you use
+ *  and how they will be processed in your application. However, if you bind
  *  Assimp for completely generic loading purposes you might also need to
  *  process these flags in order to display as many 'unknown' 3D models as
  *  possible correctly.
@@ -591,7 +591,7 @@ struct aiUVTransform {
 enum aiPropertyTypeInfo {
     /** Array of single-precision (32 Bit) floats
      *
-     *  It is possible to use aiGetMaterialInteger[Array]() (or the C++-API
+     *  It is possible to bind aiGetMaterialInteger[Array]() (or the C++-API
      *  aiMaterial::Get()) to query properties stored in floating-point format.
      *  The material system performs the type conversion automatically.
     */
@@ -599,7 +599,7 @@ enum aiPropertyTypeInfo {
 
     /** Array of double-precision (64 Bit) floats
      *
-     *  It is possible to use aiGetMaterialInteger[Array]() (or the C++-API
+     *  It is possible to bind aiGetMaterialInteger[Array]() (or the C++-API
      *  aiMaterial::Get()) to query properties stored in floating-point format.
      *  The material system performs the type conversion automatically.
     */
@@ -614,7 +614,7 @@ enum aiPropertyTypeInfo {
 
     /** Array of (32 Bit) integers
      *
-     *  It is possible to use aiGetMaterialFloat[Array]() (or the C++-API
+     *  It is possible to bind aiGetMaterialFloat[Array]() (or the C++-API
      *  aiMaterial::Get()) to query properties stored in integer format.
      *  The material system performs the type conversion automatically.
     */
@@ -636,7 +636,7 @@ enum aiPropertyTypeInfo {
 /** @brief Data structure for a single material property
  *
  *  As an user, you'll probably never need to deal with this data structure.
- *  Just use the provided aiGetMaterialXXX() or aiMaterial::Get() family
+ *  Just bind the provided aiGetMaterialXXX() or aiMaterial::Get() family
  *  of functions to query material properties easily. Processing them
  *  manually is faster, but it is not the recommended way. It isn't worth
  *  the effort. <br>
@@ -648,7 +648,7 @@ enum aiPropertyTypeInfo {
  *       2nd: Public, but ignored by the #aiProcess_RemoveRedundantMaterials
  *       post-processing step.
  *    ~<name>
- *       A temporary property for internal use.
+ *       A temporary property for internal bind.
  *  @endcode
  *  @see aiMaterial
  */
@@ -677,7 +677,7 @@ struct aiMaterialProperty {
     /** Type information for the property.
      *
      * Defines the data layout inside the data buffer. This is used
-     * by the library internally to perform debug checks and to
+     * by the library internally to perform debugRender checks and to
      * utilize proper type conversions.
      * (It's probably a hacky solution, but it works.)
      */
@@ -716,7 +716,7 @@ struct aiMaterialProperty {
 /** @brief Data structure for a material
 *
 *  Material data is stored using a key-value structure. A single key-value
-*  pair is called a 'material property'. C++ users should use the provided
+*  pair is called a 'material property'. C++ users should bind the provided
 *  member functions of aiMaterial to process material properties, C users
 *  have to stick with the aiGetMaterialXXX family of unbound functions.
 *  The library defines a set of standard keys (AI_MATKEY_XXX).

@@ -6,7 +6,7 @@
 ///
 /// Exposes single-precision floating point quaternion type with various precision in term of ULPs.
 ///
-/// Include <glm/ext/quaternion_float_precision.hpp> to use the features of this extension.
+/// Include <glm/ext/quaternion_float_precision.hpp> to bind the features of this extension.
 
 #pragma once
 

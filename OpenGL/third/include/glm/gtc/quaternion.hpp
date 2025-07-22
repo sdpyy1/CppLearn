@@ -7,7 +7,7 @@
 /// @defgroup gtc_quaternion GLM_GTC_quaternion
 /// @ingroup gtc
 ///
-/// Include <glm/gtc/quaternion.hpp> to use the features of this extension.
+/// Include <glm/gtc/quaternion.hpp> to bind the features of this extension.
 ///
 /// Defines a templated quaternion type and several quaternion operations.
 

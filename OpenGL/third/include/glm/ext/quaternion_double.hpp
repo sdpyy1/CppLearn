@@ -6,7 +6,7 @@
 ///
 /// Exposes double-precision floating point quaternion type.
 ///
-/// Include <glm/ext/quaternion_double.hpp> to use the features of this extension.
+/// Include <glm/ext/quaternion_double.hpp> to bind the features of this extension.
 ///
 /// @see ext_quaternion_float
 /// @see ext_quaternion_double_precision

@@ -8,7 +8,7 @@
 ///
 /// These operate on vectors as vectors, not component-wise.
 ///
-/// Include <glm/geometric.hpp> to use these core features.
+/// Include <glm/geometric.hpp> to bind these core features.
 
 #pragma once
 

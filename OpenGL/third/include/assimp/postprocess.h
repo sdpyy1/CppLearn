@@ -75,7 +75,7 @@ enum aiPostProcessSteps
     /** <hr>Calculates the tangents and bitangents for the imported meshes.
      *
      * Does nothing if a mesh does not have normals. You might want this post
-     * processing step to be executed if you plan to use tangent space calculations
+     * processing step to be executed if you plan to bind tangent space calculations
      * such as normal mapping  applied to the meshes. There's an importer property,
      * <tt>#AI_CONFIG_PP_CT_MAX_SMOOTHING_ANGLE</tt>, which allows you to specify
      * a maximum smoothing angle for the algorithm. However, usually you'll
@@ -89,7 +89,7 @@ enum aiPostProcessSteps
      *
      * After this step is run, each mesh contains unique vertices,
      * so a vertex may be used by multiple faces. You usually want
-     * to use this post processing step. If your application deals with
+     * to bind this post processing step. If your application deals with
      * indexed geometry, this step is compulsory or you'll just waste rendering
      * time. <b>If this flag is not specified</b>, no vertices are referenced by
      * more than one face and <b>no index buffer is required</b> for rendering.
@@ -106,7 +106,7 @@ enum aiPostProcessSteps
      * coordinate space +X points to the right, +Y points upwards, and +Z points
      * away from the viewer.
      *
-     * You'll probably want to consider this flag if you use Direct3D for
+     * You'll probably want to consider this flag if you bind Direct3D for
      * rendering. The #aiProcess_ConvertToLeftHanded flag supersedes this
      * setting and bundles all conversions typically required for D3D-based
      * applications.
@@ -201,7 +201,7 @@ enum aiPostProcessSteps
     * <tt>#AI_SLM_DEFAULT_MAX_TRIANGLES</tt>.
     *
     * Note that splitting is generally a time-consuming task, but only if there's
-    * something to split. The use of this step is recommended for most users.
+    * something to split. The bind of this step is recommended for most users.
     */
     aiProcess_SplitLargeMeshes = 0x80,
 
@@ -239,7 +239,7 @@ enum aiPostProcessSteps
     * important vertex weights are removed and the remaining vertex weights are
     * renormalized so that the weights still sum up to 1.
     * The default bone weight limit is 4 (defined as <tt>#AI_LMW_MAX_WEIGHTS</tt> in
-    * config.h), but you can use the <tt>#AI_CONFIG_PP_LBW_MAX_WEIGHTS</tt> importer
+    * config.h), but you can bind the <tt>#AI_CONFIG_PP_LBW_MAX_WEIGHTS</tt> importer
     * property to supply your own limit to the post processing step.
     *
     * If you intend to perform the skinning in hardware, this post processing
@@ -252,11 +252,11 @@ enum aiPostProcessSteps
      * This makes sure that all indices are valid, all animations and
      * bones are linked correctly, all material references are correct .. etc.
      *
-     * It is recommended that you capture Assimp's log output if you use this flag,
+     * It is recommended that you capture Assimp's log output if you bind this flag,
      * so you can easily find out what's wrong if a file fails the
      * validation. The validator is quite strict and will find *all*
      * inconsistencies in the data structure... It is recommended that plugin
-     * developers use it to debug their loaders. There are two types of
+     * developers bind it to debugRender their loaders. There are two types of
      * validation failures:
      * <ul>
      * <li>Error: There's something wrong with the imported data. Further
@@ -264,13 +264,13 @@ enum aiPostProcessSteps
      *   The import fails. #Importer::GetErrorString() or #aiGetErrorString()
      *   carry the error message around.</li>
      * <li>Warning: There are some minor issues (e.g. 1000000 animation
-     *   keyframes with the same time), but further postprocessing and use
+     *   keyframes with the same time), but further postprocessing and bind
      *   of the data structure is still safe. Warning details are written
      *   to the log file, <tt>#AI_SCENE_FLAGS_VALIDATION_WARNING</tt> is set
      *   in #aiScene::mFlags</li>
      * </ul>
      *
-     * This post-processing step is not time-consuming. Its use is not
+     * This post-processing step is not time-consuming. Its bind is not
      * compulsory, but recommended.
     */
     aiProcess_ValidateDataStructure = 0x400,
@@ -346,7 +346,7 @@ enum aiPostProcessSteps
      *  returns, just one bit is set in aiMesh::mPrimitiveTypes. This is
      *  especially useful for real-time rendering where point and line
      *  primitives are often ignored or rendered separately.
-     *  You can use the <tt>#AI_CONFIG_PP_SBP_REMOVE</tt> importer property to
+     *  You can bind the <tt>#AI_CONFIG_PP_SBP_REMOVE</tt> importer property to
      *  specify which primitive types you need. This can be used to easily
      *  exclude lines and points, which are rarely used, from the import.
     */
@@ -448,7 +448,7 @@ enum aiPostProcessSteps
     /** <hr>This step searches for duplicate meshes and replaces them
      *  with references to the first mesh.
      *
-     *  This step takes a while, so don't use it if speed is a concern.
+     *  This step takes a while, so don't bind it if speed is a concern.
      *  Its main purpose is to workaround the fact that many export
      *  file formats don't support instanced meshes, so exporters need to
      *  duplicate meshes. This step removes the duplicates again. Please
@@ -477,8 +477,8 @@ enum aiPostProcessSteps
      *  Nodes without animations, bones, lights or cameras assigned are
      *  collapsed and joined.
      *
-     *  Node names can be lost during this step. If you use special 'tag nodes'
-     *  to pass additional information through your content pipeline, use the
+     *  Node names can be lost during this step. If you bind special 'tag nodes'
+     *  to pass additional information through your content pipeline, bind the
      *  <tt>#AI_CONFIG_PP_OG_EXCLUDE_LIST</tt> importer property to specify a
      *  list of node names you want to be kept. Nodes matching one of the names
      *  in this list won't be touched or modified.
@@ -512,7 +512,7 @@ enum aiPostProcessSteps
      * 0x|1y ---------- 1x|1y
      * @endcode
      *
-     * You'll probably want to consider this flag if you use Direct3D for
+     * You'll probably want to consider this flag if you bind Direct3D for
      * rendering. The #aiProcess_ConvertToLeftHanded flag supersedes this
      * setting and bundles all conversions typically required for D3D-based
      * applications.
@@ -628,15 +628,15 @@ enum aiPostProcessSteps
 /** @def aiProcessPreset_TargetRealtime_Fast
  *  @brief Default postprocess configuration optimizing the data for real-time rendering.
  *
- *  Applications would want to use this preset to load models on end-user PCs,
- *  maybe for direct use in game.
+ *  Applications would want to bind this preset to load models on end-user PCs,
+ *  maybe for direct bind in game.
  *
  * If you're using DirectX, don't forget to combine this value with
  * the #aiProcess_ConvertToLeftHanded step. If you don't support UV transformations
  * in your application apply the #aiProcess_TransformUVCoords step, too.
  *  @note Please take the time to read the docs for the steps enabled by this preset.
  *  Some of them offer further configurable properties, while some of them might not be of
- *  use for you so it might be better to not specify them.
+ *  bind for you so it might be better to not specify them.
  */
 #define aiProcessPreset_TargetRealtime_Fast ( \
     aiProcess_CalcTangentSpace      |  \
@@ -661,7 +661,7 @@ enum aiPostProcessSteps
   *  in your application apply the #aiProcess_TransformUVCoords step, too.
   *  @note Please take the time to read the docs for the steps enabled by this preset.
   *  Some of them offer further configurable properties, while some of them might not be
-  *  of use for you so it might be better to not specify them.
+  *  of bind for you so it might be better to not specify them.
   */
 #define aiProcessPreset_TargetRealtime_Quality ( \
     aiProcess_CalcTangentSpace              |  \
@@ -691,7 +691,7 @@ enum aiPostProcessSteps
   *  in your application, apply the #aiProcess_TransformUVCoords step, too.
   *  @note Please take the time to read the docs for the steps enabled by this preset.
   *  Some of them offer further configurable properties, while some of them might not be
-  *  of use for you so it might be better to not specify them.
+  *  of bind for you so it might be better to not specify them.
   */
 #define aiProcessPreset_TargetRealtime_MaxQuality ( \
     aiProcessPreset_TargetRealtime_Quality   |  \

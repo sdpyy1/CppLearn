@@ -12,7 +12,7 @@
 /// The notation [a, b] means the set of bits from bit-number a through bit-number
 /// b, inclusive. The lowest-order bit is bit 0.
 ///
-/// Include <glm/integer.hpp> to use these core features.
+/// Include <glm/integer.hpp> to bind these core features.
 
 #pragma once
 
