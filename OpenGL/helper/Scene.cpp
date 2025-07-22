@@ -2,12 +2,14 @@
 #include <stb_image.h>
 #include <iostream>
 #include "../utils/checkGlCommand.h"
-
+#include <glm/gtc/type_ptr.hpp>
 Scene::Scene(Camera* camera)
 {
     width = camera->width;
     height = camera->height;
     this->camera = camera;
+    // 必须，否则模型加载失败
+    createDefaultTexture();
 }
 
 void Scene::addModel(const Model& model)
@@ -158,7 +160,8 @@ GLuint Scene::loadCubemapFromHDR(const char *path)
     {
         glGenTextures(1, &hdrTexture);
         glBindTexture(GL_TEXTURE_2D, hdrTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, data); // note how we specify the texture's data value to be float
+        // 这里必须用GL_RGB32F 否则有些HDR图片太亮会变黑
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, data); // note how we specify the texture's data value to be float
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -353,10 +356,11 @@ GLuint Scene::loadCubemapFromSkybox(const string &path) {
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    envCubemap = textureID;
     return textureID;
 }
 
-void Scene::createDefaultModel(const string &name) {
+void Scene::addDefaultModel(const string &name) {
     if (name == "helmet"){
         Model model("assets/helmet_pbr/DamagedHelmet.gltf");
         addModel(model);
@@ -370,4 +374,35 @@ void Scene::createDefaultModel(const string &name) {
          mesh.loadNewTexture("assets/gun/Textures/Cerberus_R.tga","texture_roughness");
         addModel(model);
     }
+}
+
+void Scene::addModel(const string &path) {
+    Model model(path);
+    addModel(model);
+}
+
+void Scene::createDefaultTexture() {
+    Model::defaultAlbedo    = create1x1Texture(glm::vec4(1.0f), GL_RGBA, GL_RGBA);                   // 白色
+    Model::defaultNormal    = create1x1Texture(glm::vec4(0.5f, 0.5f, 1.0f, 1.0f), GL_RGBA, GL_RGBA);  // 法线默认值
+    Model::defaultMetallic  = create1x1Texture(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f), GL_RGBA, GL_RGBA);  // 非金属
+    Model::defaultRoughness = create1x1Texture(glm::vec4(0.5f, 0.5f, 0.5f, 1.0f), GL_RGBA, GL_RGBA);  // 中等粗糙
+    Model::defaultAO        = create1x1Texture(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), GL_RGBA, GL_RGBA);  // 全 AO
+    Model::defaultBlack     = create1x1Texture(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f), GL_RGBA, GL_RGBA);  // 用于 emissive 缺省
+}
+
+
+GLuint Scene::create1x1Texture(const glm::vec4& color, GLenum format, GLenum internalFormat) {
+    glm::vec4 scaledColor = color * 255.0f;
+    glm::u8vec4 ucolor = glm::u8vec4(scaledColor); // 将 float 转换成 uint8
+
+    GLuint tex;
+    GL_CALL(glGenTextures(1, &tex));
+    GL_CALL(glBindTexture(GL_TEXTURE_2D, tex));
+
+    GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, 1, 1, 0, format, GL_UNSIGNED_BYTE, glm::value_ptr(ucolor)));
+
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+
+    return tex;
 }

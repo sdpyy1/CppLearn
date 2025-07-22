@@ -117,8 +117,7 @@ void main()
     float metallic  = texture(texture_metallic, TexCoords).r;
     float roughness = texture(texture_roughness, TexCoords).r;
     float ao        = texture(texture_ao, TexCoords).r;
-//    vec3 emission     = pow(texture(texture_emission, TexCoords).rgb, vec3(2.2)); // gamma correct
-    vec3 emission = vec3(0,0,0);
+    vec3 emission     = pow(texture(texture_emission, TexCoords).rgb, vec3(2.2)); // gamma correct
 
     // 参数准备
     vec3 N = getNormalFromMap();   // 法线

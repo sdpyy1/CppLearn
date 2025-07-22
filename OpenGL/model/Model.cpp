@@ -1,12 +1,47 @@
 #include "Model.h"
+#include "../utils/checkGlCommand.h"
 #include <iostream>
 #include <stb_image.h>
 #include <cstring>
+GLuint Model::defaultAlbedo    = 0;
+GLuint Model::defaultNormal    = 0;
+GLuint Model::defaultMetallic  = 0;
+GLuint Model::defaultRoughness = 0;
+GLuint Model::defaultAO        = 0;
+GLuint Model::defaultBlack     = 0;
 
+GLuint createNewTextureWithSwizzledChannels(GLuint srcTexID) {
+    glBindTexture(GL_TEXTURE_2D, srcTexID);
+    int width, height;
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
+
+    std::vector<glm::vec3> pixels(width * height);
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, pixels.data());
+
+    for (auto& px : pixels) {
+        // 将 G 通道复制到 R 通道
+        px.r = px.g;
+    }
+
+    GLuint newTex;
+    glGenTextures(1, &newTex);
+    glBindTexture(GL_TEXTURE_2D, newTex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, pixels.data());
+
+    // 设定过滤方式
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    return newTex;
+}
 Model::Model(const string& path, bool gamma)
     : gammaCorrection(gamma)
 {
     loadModel(path);
+
+
     std::cout << path << ":{load success}"
         << "\tmeshes:{" << meshes.size() << "}"
         << "\ttexture:{" << textures_loaded.size() << "}" << std::endl;
@@ -20,7 +55,6 @@ void Model::draw(Shader& shader)
 {
     for (auto& mesh : meshes)
     {
-        shader.setMat4("model", glm::mat4(modelMatrix)); // glm::mat3转mat4，注意
         mesh.draw(shader);
     }
 }
@@ -68,8 +102,12 @@ void Model::loadModel(const string& path)
 {
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(path,
-                                             aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs |
-                                             aiProcess_CalcTangentSpace | aiProcess_PreTransformVertices | aiProcess_GlobalScale);
+                                             aiProcess_Triangulate  // 全部转化为三角形
+                                             | aiProcess_FlipUVs // y坐标反转
+                                             |aiProcess_CalcTangentSpace  // 计算切线副切线
+                                             | aiProcess_PreTransformVertices // 适用于静态模型
+                                             | aiProcess_GlobalScale // FBX文件大小单位不一致，缩小模型
+                                             );
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
@@ -100,17 +138,15 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
     vector<Vertex> vertices;
     vector<unsigned int> indices;
     vector<Texture> textures;
-
+    // 封装Mesh的顶点、UV坐标、index、切线、副切线
     for (unsigned int i = 0; i < mesh->mNumVertices; i++)
     {
         Vertex vertex;
         glm::vec3 vector;
-
         vector.x = mesh->mVertices[i].x;
         vector.y = mesh->mVertices[i].y;
         vector.z = mesh->mVertices[i].z;
         vertex.Position = vector;
-
         if (mesh->HasNormals())
         {
             vector.x = mesh->mNormals[i].x;
@@ -118,7 +154,6 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
             vector.z = mesh->mNormals[i].z;
             vertex.Normal = vector;
         }
-
         if (mesh->mTextureCoords[0])
         {
             glm::vec2 vec;
@@ -137,10 +172,8 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
         }
         else
             vertex.TexCoords = glm::vec2(0.0f, 0.0f);
-
         vertices.push_back(vertex);
     }
-
     for (unsigned int i = 0; i < mesh->mNumFaces; i++)
     {
         aiFace face = mesh->mFaces[i];
@@ -148,43 +181,61 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
             indices.push_back(face.mIndices[j]);
     }
 
+
+
+    // 开始处理材质
     aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
     // 打印所有导入的纹理
-    for (unsigned int i = 0; i < scene->mNumMaterials; ++i) {
-        aiMaterial* material = scene->mMaterials[i];
+//    for (unsigned int i = 0; i < scene->mNumMaterials; ++i) {
+//        aiMaterial* material = scene->mMaterials[i];
+//
+//        std::cout << "Material " << i << ":\n";
+//        for (int type = aiTextureType_NONE; type <= aiTextureType_UNKNOWN; ++type) {
+//            aiTextureType texType = static_cast<aiTextureType>(type);
+//            unsigned int texCount = material->GetTextureCount(texType);
+//            for (unsigned int j = 0; j < texCount; ++j) {
+//                aiString path;
+//                if (material->GetTexture(texType, j, &path) == AI_SUCCESS) {
+//                    std::cout << "  Texture Type " << type << " : " << path.C_Str() << "\n";
+//                }
+//            }
+//        }
+//    }
 
-        std::cout << "Material " << i << ":\n";
-        for (int type = aiTextureType_NONE; type <= aiTextureType_UNKNOWN; ++type) {
-            aiTextureType texType = static_cast<aiTextureType>(type);
-            unsigned int texCount = material->GetTextureCount(texType);
-            for (unsigned int j = 0; j < texCount; ++j) {
-                aiString path;
-                if (material->GetTexture(texType, j, &path) == AI_SUCCESS) {
-                    std::cout << "  Texture Type " << type << " : " << path.C_Str() << "\n";
-                }
-            }
+    PBRMaterial mat;
+    // 定义lambda
+    auto loadSingleTexture = [&](aiTextureType type, const std::string& uniformName, GLuint& outID, bool& hasFlag) {
+        vector<Texture> loaded = loadMaterialTextures(material, type, uniformName);
+        if (!loaded.empty()){
+            outID = loaded[0].id;
+            hasFlag = true;
         }
+    };
+    // 尝试从 Assimp 加载各种贴图
+    loadSingleTexture(aiTextureType_BASE_COLOR, "texture_albedo", mat.albedo, mat.hasAlbedo);
+    loadSingleTexture(aiTextureType_NORMALS, "texture_normal", mat.normal, mat.hasNormal);
+    loadSingleTexture(aiTextureType_METALNESS, "texture_metallic", mat.metallic, mat.hasMetallic);
+    loadSingleTexture(aiTextureType_DIFFUSE_ROUGHNESS, "texture_roughness", mat.roughness, mat.hasRoughness);
+    loadSingleTexture(aiTextureType_LIGHTMAP, "texture_ao", mat.ao, mat.hasAO);
+    loadSingleTexture(aiTextureType_EMISSIVE, "texture_emission", mat.emission, mat.hasEmission);
+
+
+
+    // 若缺失，使用 Scene 中默认贴图
+    if (!mat.hasAlbedo)    mat.albedo    = defaultAlbedo;
+    if (!mat.hasNormal)    mat.normal    = defaultNormal;
+    if (!mat.hasMetallic)  mat.metallic  = defaultMetallic;
+    if (!mat.hasRoughness) mat.roughness = defaultRoughness;
+    if (!mat.hasAO)        mat.ao        = defaultAO;
+    if (!mat.hasEmission)  mat.emission  = defaultBlack;
+
+    // 对金属度和粗糙度在同一张贴图的情况进行处理
+    if (mat.roughness == mat.metallic) {
+        GLuint newTexId = createNewTextureWithSwizzledChannels(mat.roughness);
+        // 替换 roughness 贴图为新生成的
+        mat.roughness = newTexId;
     }
-    vector<Texture> albedoMaps = loadMaterialTextures(material, aiTextureType_BASE_COLOR, "texture_albedo");
-    textures.insert(textures.end(), albedoMaps.begin(), albedoMaps.end());
-
-    vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_NORMALS, "texture_normal");
-    textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
-
-    vector<Texture> metallicMaps = loadMaterialTextures(material, aiTextureType_METALNESS, "texture_metallic");
-    textures.insert(textures.end(), metallicMaps.begin(), metallicMaps.end());
-
-    vector<Texture> roughnessMaps =
-        loadMaterialTextures(material, aiTextureType_DIFFUSE_ROUGHNESS, "texture_roughness");
-    textures.insert(textures.end(), roughnessMaps.begin(), roughnessMaps.end());
-
-    vector<Texture> aoMaps = loadMaterialTextures(material, aiTextureType_LIGHTMAP, "texture_ao");
-    textures.insert(textures.end(), aoMaps.begin(), aoMaps.end());
-
-    vector<Texture> emissionMaps = loadMaterialTextures(material, aiTextureType_EMISSIVE, "texture_emission");
-    textures.insert(textures.end(), emissionMaps.begin(), emissionMaps.end());
-
-    return Mesh(vertices, indices, textures);
+    return Mesh(vertices, indices, mat);
 }
 
 vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type, const string& typeName)

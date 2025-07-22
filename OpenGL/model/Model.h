@@ -23,18 +23,25 @@ public:
     vector<Mesh> meshes;
     string directory;
     bool gammaCorrection = false;
-    glm::mat3 modelMatrix{1.0f};
+    glm::mat4 modelMatrix{1.0f};
 
     explicit Model(const string& path, bool gamma = false);
 
     void draw(Shader& shader);
-
+    static GLuint defaultAlbedo;
+    static GLuint defaultNormal;
+    static GLuint defaultMetallic;
+    static GLuint defaultRoughness;
+    static GLuint defaultAO;
+    static GLuint defaultBlack;
 private:
     void loadModel(const string& path);
     void processNode(aiNode* node, const aiScene* scene);
     Mesh processMesh(aiMesh* mesh, const aiScene* scene);
     vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, const string& typeName);
     unsigned int TextureFromFile(const char* path, const string& directory);
+
+
 };
 
 #endif // OPENGL_MODEL_H

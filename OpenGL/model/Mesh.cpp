@@ -6,8 +6,8 @@
 #include "Model.h"
 #include "stb_image.h"
 
-Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures)
-    : vertices(std::move(vertices)), indices(std::move(indices)), textures(std::move(textures))
+Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices, PBRMaterial mat)
+    : vertices(std::move(vertices)), indices(std::move(indices)), mat(mat)
 {
     setupMesh();
 }
@@ -49,30 +49,70 @@ unsigned int TextureFromFile(const char* path)
 
     return textureID;
 }
-void Mesh::loadNewTexture(const string& path, const string& typeName)
+void Mesh::loadNewTexture(const std::string& path, const std::string& typeName)
 {
-    Texture texture;
-    texture.id = TextureFromFile(path.c_str());
-    texture.type = typeName;
-    texture.path = path.c_str();
-    textures.push_back(texture);
+    GLuint texID = TextureFromFile(path.c_str());
+
+    if (typeName == "texture_albedo") {
+        mat.albedo = texID;
+        mat.hasAlbedo = true;
+    }
+    else if (typeName == "texture_normal") {
+        mat.normal = texID;
+        mat.hasNormal = true;
+    }
+    else if (typeName == "texture_metallic") {
+        mat.metallic = texID;
+        mat.hasMetallic = true;
+    }
+    else if (typeName == "texture_roughness") {
+        mat.roughness = texID;
+        mat.hasRoughness = true;
+    }
+    else if (typeName == "texture_ao") {
+        mat.ao = texID;
+        mat.hasAO = true;
+    }
+    else if (typeName == "texture_emission") {
+        mat.emission = texID;
+        mat.hasEmission = true;
+    }
+    else {
+        // 你可以选择打印警告或者忽略
+        std::cerr << "Warning: Unknown texture type: " << typeName << std::endl;
+    }
 }
+
 
 void Mesh::draw(Shader& shader)
 {
-    // 预留前5个纹理通道
-    for (unsigned int i = 0; i < textures.size(); i++)
-    {
-        glActiveTexture(GL_TEXTURE0 + i+5);
-        string name = textures[i].type;
-        glUniform1i(glGetUniformLocation(shader.ID, name.c_str()), i+5);
-        glBindTexture(GL_TEXTURE_2D, textures[i].id);
-    }
+    // 假设 Mesh 有一个成员 Material material;
+    glActiveTexture(GL_TEXTURE5);
+    glBindTexture(GL_TEXTURE_2D, mat.albedo);
+    glUniform1i(glGetUniformLocation(shader.ID, "texture_albedo"), 5);
+    glActiveTexture(GL_TEXTURE6);
+    glBindTexture(GL_TEXTURE_2D, mat.normal);
+    glUniform1i(glGetUniformLocation(shader.ID, "texture_normal"), 6);
+    glActiveTexture(GL_TEXTURE7);
+    glBindTexture(GL_TEXTURE_2D, mat.metallic);
+    glUniform1i(glGetUniformLocation(shader.ID, "texture_metallic"), 7);
+    glActiveTexture(GL_TEXTURE8);
+    glBindTexture(GL_TEXTURE_2D, mat.roughness);
+    glUniform1i(glGetUniformLocation(shader.ID, "texture_roughness"), 8);
+    glActiveTexture(GL_TEXTURE9);
+    glBindTexture(GL_TEXTURE_2D, mat.ao);
+    glUniform1i(glGetUniformLocation(shader.ID, "texture_ao"), 9);
+    glActiveTexture(GL_TEXTURE10);
+    glBindTexture(GL_TEXTURE_2D, mat.emission);
+    glUniform1i(glGetUniformLocation(shader.ID, "texture_emission"), 10);
+
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
+
     glActiveTexture(GL_TEXTURE0);
 }
+
 
 void Mesh::setupMesh()
 {

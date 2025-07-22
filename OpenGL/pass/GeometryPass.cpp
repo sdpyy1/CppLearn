@@ -83,7 +83,7 @@ void GeometryPass::render()
     GL_CALL(glEnable(GL_DEPTH_TEST));
     GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, gBuffer));
     GL_CALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-    scene.drawAll(shader);
+    GL_CALL(scene.drawAll(shader));
     GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 }
 

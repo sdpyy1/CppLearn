@@ -28,7 +28,7 @@ glm::mat4 Camera::getViewMatrix() const
 
 glm::mat4 Camera::getProjectionMatrix() const
 {
-    return glm::perspective(glm::radians(Zoom), static_cast<float>(width) / height, Near, Far);
+    return glm::perspective(glm::radians(Zoom), static_cast<float>(width) / static_cast<float>(height), Near, Far);
 }
 
 void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime)

@@ -22,7 +22,21 @@ struct Vertex
     glm::vec3 Tangent;
     glm::vec3 Bitangent;
 };
+struct PBRMaterial {
+    GLuint albedo     = 0;
+    GLuint normal     = 0;
+    GLuint metallic   = 0;
+    GLuint roughness  = 0;
+    GLuint ao         = 0;
+    GLuint emission   = 0;
 
+    bool hasAlbedo    = false;
+    bool hasNormal    = false;
+    bool hasMetallic  = false;
+    bool hasRoughness = false;
+    bool hasAO        = false;
+    bool hasEmission  = false;
+};
 struct Texture
 {
     unsigned int id;
@@ -35,10 +49,10 @@ class Mesh
 public:
     vector<Vertex> vertices;
     vector<unsigned int> indices;
-    vector<Texture> textures;
+    PBRMaterial mat;
     unsigned int VAO;
 
-    Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures);
+    Mesh(vector<Vertex> vertices, vector<unsigned int> indices, PBRMaterial mat);
     void loadNewTexture(const string& path,const string& typeName);
 
     void draw(Shader& shader);

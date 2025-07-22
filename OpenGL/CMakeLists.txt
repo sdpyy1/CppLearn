@@ -52,16 +52,11 @@ add_custom_command(TARGET OpenGLRender POST_BUILD
         $<TARGET_FILE_DIR:OpenGLRender>/shader
         COMMENT "Clean and copy shader directory to output folder"
 )
-add_custom_command(TARGET OpenGLRender POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_CURRENT_SOURCE_DIR}/shader
-        $<TARGET_FILE_DIR:OpenGLRender>/shader
-        COMMENT "Copy entire shader directory to output folder"
-)
 
 add_custom_command(TARGET OpenGLRender POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E remove_directory $<TARGET_FILE_DIR:OpenGLRender>/assets
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_CURRENT_SOURCE_DIR}/assets
         $<TARGET_FILE_DIR:OpenGLRender>/assets
-        COMMENT "Copy entire shader directory to output folder"
+        COMMENT "Clean and copy shader directory to output folder"
 )
