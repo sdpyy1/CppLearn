@@ -8,19 +8,32 @@
 #include "Light.h"
 #include "../core/Shader.h"
 
+struct IBLMaps {
+    GLuint irradianceMap = 0;
+    GLuint prefilterMap = 0;
+};
 class Scene
 {
 public:
     int width;
     int height;
+    std::string currentHDRPath;
+
     Camera* camera = nullptr;
     std::vector<std::shared_ptr<Light>> lights;
     GLuint envCubemap = 0;
+    GLuint prefilterMap = 0;
+    GLuint lutMap = 0;
+    GLuint  irradianceMap = 0;
+    std::map<std::string, IBLMaps> iblCache;
+    std::map<std::string, GLuint> envCubemapCache;
     std::vector<Model> models;
-
+    Model* selModel = nullptr;
+    std::shared_ptr<Light> selLight = nullptr;
+    bool enableOutline = false;
+    bool drawLightCube = false;
     explicit Scene(Camera* camera);
-
-    void addModel(const Model& model);
+    void addModel(Model& model);
     void addModel(const string& path);
     void addLight(const std::shared_ptr<Light>& light);
     void addDefaultModel(const string& name);
@@ -31,7 +44,7 @@ public:
     void renderSphere();
     GLuint loadCubemapFromHDR(const char *path);
     GLuint loadCubemapFromSkybox(const string &path);
-
+    void loadHDRAndIBL(const std::string& hdrPath);
 private:
     GLuint cubeVAO = 0;
     GLuint cubeVBO = 0;
@@ -44,6 +57,11 @@ private:
     void createDefaultTexture();
 
     static GLuint create1x1Texture(const glm::vec4 &color, GLenum format, GLenum internalFormat);
+
+
+    GLuint computeLutMap();
+    GLuint computePrefilterMap(GLuint envCubemap);
+    GLuint computeIrradianceMap(GLuint envCubemap);
 };
 
 #endif //OPENGLRENDER_SCENE_H

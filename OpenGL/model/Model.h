@@ -24,11 +24,14 @@ public:
     vector<Mesh> meshes;
     string directory;
     bool gammaCorrection = false;
-    glm::mat4 modelMatrix;
+    glm::vec3 translation = glm::vec3(0.0f);
+    glm::vec3 rotation = glm::vec3(0.0f);
+    glm::vec3 scale = glm::vec3(1.0f);
     std::map<std::string, int> boneMapping; // boneName -> index
     std::vector<BoneInfo> boneInfo;
     int numBones = 0;
     explicit Model(const string& path, bool gamma = false);
+    glm::mat4 getModelMatrix() const;
 
     void draw(Shader& shader);
     static GLuint defaultAlbedo;
@@ -37,7 +40,12 @@ public:
     static GLuint defaultRoughness;
     static GLuint defaultAO;
     static GLuint defaultBlack;
+
+    static Model createPlane(float size = 100.0f);
+
+
 private:
+    Model()= default;
     void loadModel(const string& path);
     void processNode(aiNode* node, const aiScene* scene);
     Mesh processMesh(aiMesh* mesh, const aiScene* scene);

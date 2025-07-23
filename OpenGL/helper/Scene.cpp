@@ -12,14 +12,16 @@ Scene::Scene(Camera* camera)
     createDefaultTexture();
 }
 
-void Scene::addModel(const Model& model)
+void Scene::addModel(Model& model)
 {
-    models.push_back(model);
+    models.emplace_back(model);
+    selModel = &models.back();
 }
 
 void Scene::addLight(const std::shared_ptr<Light>& light)
 {
-    lights.push_back(light);
+    lights.emplace_back(light);
+    selLight = light;
 }
 
 void Scene::drawAll(Shader& shader)
@@ -27,7 +29,7 @@ void Scene::drawAll(Shader& shader)
     setVP(shader);
     for (auto& model : models)
     {
-        shader.setMat4("model", model.modelMatrix);
+        shader.setMat4("model", model.getModelMatrix());
         model.draw(shader);
     }
 }
@@ -376,6 +378,8 @@ void Scene::addDefaultModel(const string &name) {
          mesh.loadNewTexture("assets/gun/Textures/Cerberus_N.tga","texture_normal");
          mesh.loadNewTexture("assets/gun/Textures/Cerberus_R.tga","texture_roughness");
         addModel(model);
+    }else if(name == "gaoda"){
+        addModel("assets/asw/scene.gltf");
     }
 }
 
@@ -408,4 +412,194 @@ GLuint Scene::create1x1Texture(const glm::vec4& color, GLenum format, GLenum int
     GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 
     return tex;
+}
+GLuint Scene::computeIrradianceMap(GLuint envCubemap)
+{
+    const glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+    const glm::mat4 captureViews[] =
+            {
+                    glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+                    glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+                    glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
+                    glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
+                    glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+                    glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
+            };
+    Shader irradianceMapShader = Shader("shader/irradianceMap.vert","shader/irradianceMap.frag");
+
+    GLuint FrameBuffer;
+    GLuint RenderBuffer;
+    glGenFramebuffers(1, &FrameBuffer);
+    glGenRenderbuffers(1, &RenderBuffer);
+    unsigned int irradianceMap;
+    glGenTextures(1, &irradianceMap);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
+    for (unsigned int i = 0; i < 6; ++i)
+    {
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, 32, 32, 0,
+                     GL_RGB, GL_FLOAT, nullptr);
+    }
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, FrameBuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, RenderBuffer);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 32, 32);
+    irradianceMapShader.bind();
+    irradianceMapShader.setInt("environmentMap", 0);
+    irradianceMapShader.setMat4("projection", captureProjection);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+
+    glViewport(0, 0, 32, 32); // don't forget to configure the viewport to the capture dimensions.
+    glBindFramebuffer(GL_FRAMEBUFFER, FrameBuffer);
+    for (unsigned int i = 0; i < 6; ++i)
+    {
+        irradianceMapShader.setMat4("view", captureViews[i]);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                               GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, irradianceMap, 0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        renderCube();
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    irradianceMapShader.unBind();
+    return irradianceMap;
+}
+
+GLuint Scene::computePrefilterMap(GLuint envCubemap)
+{
+    const glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+    const glm::mat4 captureViews[] =
+            {
+                    glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+                    glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+                    glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
+                    glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
+                    glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+                    glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
+            };
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+    Shader prefilterShader = Shader("shader/prefiltermap.vert","shader/prefiltermap.frag");
+
+    GLuint FrameBuffer;
+    GLuint RenderBuffer;
+    glGenFramebuffers(1, &FrameBuffer);
+    glGenRenderbuffers(1, &RenderBuffer);
+    unsigned int prefilterMap;
+    glGenTextures(1, &prefilterMap);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
+    for (unsigned int i = 0; i < 6; ++i)
+    {
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, 128, 128, 0, GL_RGB, GL_FLOAT, nullptr);
+    }
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+
+    prefilterShader.bind();
+    prefilterShader.setInt("environmentMap", 0);
+    prefilterShader.setMat4("projection", captureProjection);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, FrameBuffer);
+
+    unsigned int maxMipLevels = 5;
+    // 单独生成5张map，对应不同的粗糙度，来组成mipmap
+    for (unsigned int mip = 0; mip < maxMipLevels; ++mip)
+    {
+        // reisze framebuffer according to mip-level size.
+        unsigned int mipWidth  = 128 * std::pow(0.5, mip);
+        unsigned int mipHeight = 128 * std::pow(0.5, mip);
+        glBindRenderbuffer(GL_RENDERBUFFER, RenderBuffer);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight);
+        glViewport(0, 0, mipWidth, mipHeight);
+
+        float roughness = (float)mip / (float)(maxMipLevels - 1);
+        prefilterShader.setFloat("roughness", roughness);
+        for (unsigned int i = 0; i < 6; ++i)
+        {
+            prefilterShader.setMat4("view", captureViews[i]);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                                   GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, prefilterMap, mip);
+
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            renderCube();
+        }
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    prefilterShader.unBind();
+    return prefilterMap;
+}
+
+GLuint Scene::computeLutMap()
+{
+    Shader lutShader = Shader("shader/lut.vert","shader/lut.frag");
+
+    GLuint brdfLUTTexture;
+    glGenTextures(1, &brdfLUTTexture);
+    GLuint FrameBuffer;
+    GLuint RenderBuffer;
+    glGenFramebuffers(1, &FrameBuffer);
+    glGenRenderbuffers(1, &RenderBuffer);
+    // pre-allocate enough memory for the LUT texture.
+    glBindTexture(GL_TEXTURE_2D, brdfLUTTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, 512, 512, 0, GL_RG, GL_FLOAT, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glBindFramebuffer(GL_FRAMEBUFFER, FrameBuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, RenderBuffer);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 512, 512);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, brdfLUTTexture, 0);
+
+    glViewport(0, 0, 512, 512);
+    lutShader.bind();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    renderQuad();
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    lutShader.unBind();
+    return brdfLUTTexture;
+}
+
+void Scene::loadHDRAndIBL(const std::string& hdrPath) {
+    // 先判断是否已经有缓存
+    auto itCubemap = envCubemapCache.find(hdrPath);
+    if (itCubemap != envCubemapCache.end()) {
+        envCubemap = itCubemap->second;
+    } else {
+        GLuint newCubemap = loadCubemapFromHDR(hdrPath.c_str());
+        envCubemapCache[hdrPath] = newCubemap;
+        envCubemap = newCubemap;
+    }
+
+    auto itIBL = iblCache.find(hdrPath);
+    if (itIBL != iblCache.end()) {
+        irradianceMap = itIBL->second.irradianceMap;
+        prefilterMap = itIBL->second.prefilterMap;
+    } else {
+        GLuint newIrradiance = computeIrradianceMap(envCubemap);
+        GLuint newPrefilter = computePrefilterMap(envCubemap);
+
+        iblCache[hdrPath] = {newIrradiance, newPrefilter};
+        irradianceMap = newIrradiance;
+        prefilterMap = newPrefilter;
+    }
+
+    // lutMap通常只生成一次
+    if(lutMap == 0) {
+        lutMap = computeLutMap();
+    }
+
+    currentHDRPath = hdrPath;
 }

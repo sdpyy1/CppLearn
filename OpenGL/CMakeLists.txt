@@ -11,7 +11,6 @@ file(GLOB PASS_SOURCES "pass/*.cpp")
 file(GLOB MODEL_SOURCES "model/*.cpp")
 file(GLOB HELPER_SOURCES "helper/*.cpp")
 file(GLOB UTILS_SOURCES "utils/*.cpp")
-file(GLOB PRCOMPUTE_SOURCES "precompute/*.cpp")
 
 # imGUI需要
 set(IMGUI_DIR ${CMAKE_SOURCE_DIR}/third/include/imGUI)
@@ -25,7 +24,6 @@ set(SOURCES
         ${MODEL_SOURCES}
         ${HELPER_SOURCES}
         ${UTILS_SOURCES}
-        ${PRCOMPUTE_SOURCES}
 )
 add_library(imgui
         ${IMGUI_DIR}/imgui.cpp

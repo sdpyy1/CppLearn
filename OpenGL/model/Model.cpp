@@ -255,8 +255,6 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
     loadSingleTexture(aiTextureType_LIGHTMAP, "texture_ao", mat.ao, mat.hasAO);
     loadSingleTexture(aiTextureType_EMISSIVE, "texture_emission", mat.emission, mat.hasEmission);
 
-
-
     // 若缺失，使用 Scene 中默认贴图
     if (!mat.hasAlbedo)    mat.albedo    = defaultAlbedo;
     if (!mat.hasNormal)    mat.normal    = defaultNormal;
@@ -324,13 +322,87 @@ void Model::calculateOrientationFix() {
 
     glm::vec3 size = maxPos - minPos;
 
-    // 判断模型高度在哪个轴方向上最大
+    // 如果 Y 方向最高，说明模型立着，需要旋转到卧倒状态（z轴为高）
     if (size.y > size.x && size.y > size.z)
     {
-        modelMatrix = glm::rotate(glm::mat4(1.0f),
-                                            glm::radians(90.0f),
-                                            glm::vec3(1.0f, 0.0f, 0.0f));
-    }else{
-        modelMatrix = glm::mat4(1.0f);
+        rotation.x = 90.0f;  // 沿 X 轴旋转 90 度
     }
+    else
+    {
+        rotation = glm::vec3(0.0f); // 不旋转
+    }
+}
+
+
+glm::mat4 Model::getModelMatrix() const {
+    glm::mat4 mat = glm::translate(glm::mat4(1.0f), translation);
+    mat = mat * glm::rotate(glm::mat4(1.0f), glm::radians(rotation.x), glm::vec3(1, 0, 0));
+    mat = mat * glm::rotate(glm::mat4(1.0f), glm::radians(rotation.y), glm::vec3(0, 1, 0));
+    mat = mat * glm::rotate(glm::mat4(1.0f), glm::radians(rotation.z), glm::vec3(0, 0, 1));
+    mat = mat * glm::scale(glm::mat4(1.0f), scale);
+    return mat;
+}
+
+Model Model::createPlane(float size) {
+    Model planeModel;
+
+    float halfSize = size / 2.0f;
+
+    // 4 顶点数据
+    Vertex v0 = { {-halfSize, 0.0f, -halfSize}, {0,1,0}, {0,0} };
+    Vertex v1 = { { halfSize, 0.0f, -halfSize}, {0,1,0}, {1,0} };
+    Vertex v2 = { { halfSize, 0.0f,  halfSize}, {0,1,0}, {1,1} };
+    Vertex v3 = { {-halfSize, 0.0f,  halfSize}, {0,1,0}, {0,1} };
+
+    std::vector<Vertex> vertices = {v0, v1, v2, v3};
+    std::vector<unsigned int> indices = {0, 1, 2, 0, 2, 3};
+    float uvTiling = 10.0f;
+    for (auto& v : vertices) {
+        v.TexCoords *= uvTiling;
+    }
+    // 计算两个三角形的切线副切线
+    auto computeTBN = [](Vertex& v0, Vertex& v1, Vertex& v2) {
+        glm::vec3 edge1 = v1.Position - v0.Position;
+        glm::vec3 edge2 = v2.Position - v0.Position;
+        glm::vec2 deltaUV1 = v1.TexCoords - v0.TexCoords;
+        glm::vec2 deltaUV2 = v2.TexCoords - v0.TexCoords;
+
+        float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+
+        glm::vec3 tangent, bitangent;
+
+        tangent.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+        tangent.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+        tangent.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+        tangent = glm::normalize(tangent);
+
+        bitangent.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
+        bitangent.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
+        bitangent.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
+        bitangent = glm::normalize(bitangent);
+
+        v0.Tangent = v1.Tangent = v2.Tangent = tangent;
+        v0.Bitangent = v1.Bitangent = v2.Bitangent = bitangent;
+    };
+
+    // 对两个三角形调用计算
+    computeTBN(vertices[0], vertices[1], vertices[2]);
+    computeTBN(vertices[0], vertices[2], vertices[3]);
+
+    // 创建材质
+    PBRMaterial mat;
+    mat.metallic  = defaultMetallic;
+    mat.emission  = defaultBlack;
+    Mesh planeMesh(vertices, indices, mat);
+    planeModel.meshes.push_back(planeMesh);
+
+    Mesh &mesh = planeModel.meshes[0];
+    mesh.loadNewTexture("assets/floor/albedo.jpg","texture_albedo");
+    mesh.loadNewTexture("assets/floor/AO.jpg","texture_ao");
+    mesh.loadNewTexture("assets/floor/normal.jpg","texture_normal");
+    mesh.loadNewTexture("assets/floor/roughness.jpg","texture_roughness");
+
+    planeModel.translation = glm::vec3(0.0f, -2.f, 0.0f);
+    planeModel.directory = "floor";
+    return planeModel;
 }

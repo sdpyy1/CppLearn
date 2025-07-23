@@ -9,33 +9,25 @@
 #include "helper/Scene.h"
 #include "pass/GeometryPass.h"
 #include "pass/LightingPass.h"
-#include "precompute/preComputer.h"
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_glfw.h"
+#include "helper/ImGUIManger.h"
 
 int main()
 {
     WindowManager app(2560, 1920);
-
     Scene scene(&app.camera);
+    ImGUIManger imGUIManger(scene);
     // 加载Shader
     Shader skyboxShader("shader/skybox.vert", "shader/skybox.frag");
-
+    Shader lightCubeShader("shader/lightCube.vert", "shader/lightCube.frag");
+    Shader outlineShader("shader/outline.vert", "shader/outline.frag");
     // 搭建场景
     PointLight pointLight(glm::vec3(.0f, .0f, -5.0f), glm::vec3(1.0f, 1.0f, 1.0f), 1.0f);
-    scene.addDefaultModel("gun");
-//    scene.addDefaultModel("gun");
-//    scene.addModel( "assets/asw/scene.gltf");
-//    scene.addLight(std::make_shared<PointLight>(pointLight));
+    Model plane = Model::createPlane();
+    scene.addModel(plane);
+    scene.addLight(std::make_shared<PointLight>(pointLight));
 
-    // IBL
-    scene.loadCubemapFromHDR("assets/HDR/4.hdr");
-//        scene.loadCubemapFromSkybox("assets/cubemap/Skybox");
-
-    preComputer preComputer(scene);
-    GLuint irradianceMap = preComputer.computeIrradianceMap();
-    GLuint prefilterMap = preComputer.computePrefilterMap();
-    GLuint lutMap = preComputer.computeLutMap();
 
     // 初始化Pass
     GeometryPass geometryPass(scene);
@@ -48,32 +40,19 @@ int main()
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-        ImGui::Begin("My Debug Window");
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-        if (ImGui::Button("left Click btn"))
-        {
-            scene.addDefaultModel("helmet");
-        }
-        ImVec2 nSize = { 300, 200 };
-        ImGui::SetWindowSize(nSize);
-        static float lightIntensity = 1.0f;
-        ImGui::SliderFloat("Light Intensity", &lightIntensity, 0.0f, 10.0f);
-        ImGui::End();
         app.processInput();
 
         // G-Buffer Pass
         geometryPass.render();
-        geometryPass.debugRender();
+//        geometryPass.debugRender();
+
         // light Pass
         lighting.lightingShader.bind();
         glEnable(GL_DEPTH_TEST);
         // IBL开启
-        glActiveTexture(GL_TEXTURE15);glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);lighting.lightingShader.setInt("irradianceMap", 15);
-        glActiveTexture(GL_TEXTURE14);glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);lighting.lightingShader.setInt("prefilterMap", 14);
-        glActiveTexture(GL_TEXTURE13);glBindTexture(GL_TEXTURE_2D, lutMap);lighting.lightingShader.setInt("lutMap", 13);
+        glActiveTexture(GL_TEXTURE15);glBindTexture(GL_TEXTURE_CUBE_MAP, scene.irradianceMap);lighting.lightingShader.setInt("irradianceMap", 15);
+        glActiveTexture(GL_TEXTURE14);glBindTexture(GL_TEXTURE_CUBE_MAP, scene.prefilterMap);lighting.lightingShader.setInt("prefilterMap", 14);
+        glActiveTexture(GL_TEXTURE13);glBindTexture(GL_TEXTURE_2D, scene.lutMap);lighting.lightingShader.setInt("lutMap", 13);
         GL_CALL(lighting.render());
 
         lighting.lightingShader.unBind();
@@ -91,9 +70,50 @@ int main()
         glDepthFunc(GL_LESS);
         skyboxShader.unBind();
 
+
+        // 描边渲染
+        if (scene.selModel && scene.enableOutline) {
+            glEnable(GL_DEPTH_TEST);
+            glDepthMask(GL_FALSE);  // 关闭深度写入
+            glEnable(GL_CULL_FACE);
+            glCullFace(GL_FRONT);  // 剔除正面，只渲染膨胀模型背面
+
+            outlineShader.bind();
+            outlineShader.setMat4("projection", scene.camera->getProjectionMatrix());
+            outlineShader.setMat4("view", scene.camera->getViewMatrix());
+            outlineShader.setMat4("model", scene.selModel->getModelMatrix());
+            outlineShader.setFloat("outlineThickness", 0.01f);
+            outlineShader.setVec3("outlineColor", glm::vec3(1.0, 1.0, 0.0));
+            scene.selModel->draw(outlineShader);
+            outlineShader.unBind();
+
+            glDepthMask(GL_TRUE);
+            glCullFace(GL_BACK);
+            glDisable(GL_CULL_FACE);
+        }
+
+
+        // 光源方块
+        if (scene.drawLightCube){
+            lightCubeShader.bind();
+            lightCubeShader.setMat4("projection", scene.camera->getProjectionMatrix());
+            lightCubeShader.setMat4("view", scene.camera->getViewMatrix());
+            for (auto& light : scene.lights) {
+                auto model = glm::mat4(1.0f);
+                model = glm::translate(model, light->position);
+                model = glm::scale(model, glm::vec3(0.1f)); // 小立方体尺寸
+                lightCubeShader.setMat4("model", model);
+                lightCubeShader.setVec3("lightColor", light->getFinalColor());
+                GL_CALL(scene.renderCube());
+            }
+            lightCubeShader.unBind();
+            glDepthFunc(GL_LESS);
+        }
+
         // --- 渲染 ImGui ---
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        imGUIManger.render();
+
+
         glfwSwapBuffers(app.window);
         glfwPollEvents();
     }
