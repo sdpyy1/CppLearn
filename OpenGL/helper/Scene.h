@@ -31,7 +31,7 @@ public:
     Model* selModel = nullptr;
     std::shared_ptr<Light> selLight = nullptr;
     bool enableOutline = false;
-    bool drawLightCube = false;
+    bool drawLightCube = true;
     explicit Scene(Camera* camera);
     void addModel(Model& model);
     void addModel(const string& path);
