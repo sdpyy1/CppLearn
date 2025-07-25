@@ -8,10 +8,6 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
 #include <iostream>
-
-void printMatrix(const glm::mat4& mat, const std::string& name) {
-    std::cout << name << " = \n" << glm::to_string(mat) << std::endl;
-}
 ShadowPass::ShadowPass(Scene &scene): scene(scene), shadowShader("shader/shadow.vert", "shader/shadow.frag"), debugShader("shader/debugDepthMap.vert", "shader/debugDepthMap.frag")
 {
 }
@@ -25,7 +21,7 @@ void ShadowPass::init(RenderResource& resource) {
     resource.textures["shadowMap"] = shadowMap;
     glBindTexture(GL_TEXTURE_2D, shadowMap);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
-                 scene.width, scene.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+                 scene.width*2, scene.height*2, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
@@ -50,7 +46,7 @@ void ShadowPass::render(RenderResource& resource) {
         return;
     }
 
-    glViewport(0, 0, scene.width, scene.height);
+    glViewport(0, 0, scene.width*2, scene.height*2);
     glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
     glClear(GL_DEPTH_BUFFER_BIT);
 
@@ -60,21 +56,18 @@ void ShadowPass::render(RenderResource& resource) {
     shadowShader.bind();
 
     // 1. 准备光源的正交投影和视图矩阵
-    float orthoSize = 100.0f;  // 根据场景大小调整
+    float orthoSize = 10.0f;  // 根据场景大小调整
     float near_plane = 1.f;
-    float far_plane = 30.0f;
+    float far_plane = 50.0f;
 
     // 正交投影，范围是正交体体积，覆盖阴影区域
     glm::mat4 lightProjection = glm::ortho(-orthoSize, orthoSize, -orthoSize, orthoSize, near_plane, far_plane);
 
-    // 计算光的视图矩阵
-    // 这里光源方向是scene.light.position（其实是方向），假设是单位向量
+
     glm::vec3 lightDir = glm::normalize(scene.lights[0]->position);
 
-    // 为了构造视图矩阵，需要光源的位置和目标点
-    // 假设光源“位置”在lightDir反方向的某个远点
-    glm::vec3 lightPos = -lightDir * 20.0f;  // 20可调整，确保覆盖场景
-    glm::vec3 target = glm::vec3(0.0f);      // 观察点：通常场景中心
+    glm::vec3 lightPos = -lightDir * 10.0f;
+    glm::vec3 target = glm::vec3(0.0f);
     glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
 
     glm::mat4 lightView = glm::lookAt(lightPos, target, up);

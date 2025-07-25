@@ -23,30 +23,35 @@ public:
     GLuint prefilterMap = 0;
     GLuint lutMap = 0;
     GLuint  irradianceMap = 0;
-    std::map<std::string, IBLMaps> iblCache;
-    std::map<std::string, GLuint> envCubemapCache;
     std::vector<Model> models;
     Model* selModel = nullptr;
     std::shared_ptr<Light> selLight = nullptr;
+
     bool enableOutline = false;
     bool drawLightCube = true;
+    // 0: 无阴影 1:硬阴影 2:PCF 3:PCSS
+    int shadowType = 1;
+
+
     explicit Scene(Camera* camera);
     void addModel(Model& model);
     void addModel(const string& path);
     void addLight(const std::shared_ptr<Light>& light);
     void addDefaultModel(const string& name);
-
     void drawAll(Shader& shader);
+    void loadHDRAndIBL(const std::string& hdrPath);
     void renderCube();
     void renderQuad();
     void renderSphere();
-    GLuint loadCubemapFromHDR(const char *path);
-    GLuint loadCubemapFromSkybox(const string &path);
-    void loadHDRAndIBL(const std::string& hdrPath);
 
-    void renderArrow();
+    void disableIBL();
 
 private:
+
+    GLuint loadCubemapFromHDR(const char *path);
+    GLuint loadCubemapFromSkybox(const string &path);
+    std::map<std::string, IBLMaps> iblCache;
+    std::map<std::string, GLuint> envCubemapCache;
     std::string currentHDRPath;
     GLuint cubeVAO = 0;
     GLuint cubeVBO = 0;
@@ -55,12 +60,8 @@ private:
     unsigned int sphereVAO = 0;
     unsigned int indexCount = 0;
     void setVP(Shader& shader) const;
-
     void createDefaultTexture();
-
     static GLuint create1x1Texture(const glm::vec4 &color, GLenum format, GLenum internalFormat);
-
-
     GLuint computeLutMap();
     GLuint computePrefilterMap(GLuint envCubemap);
     GLuint computeIrradianceMap(GLuint envCubemap);

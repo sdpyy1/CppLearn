@@ -25,8 +25,10 @@ void ImGUIManger::render() {
     ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
     ImGui::Begin("Debug UI", nullptr, ImGuiWindowFlags_NoMove);
-
-    renderIBLSelectionUI();
+    if (ImGui::CollapsingHeader("Scene Settings")) {
+        renderIBLSelectionUI();
+        renderShadowSetting();
+    }
 
     if (ImGui::CollapsingHeader("Model")) {
         renderAddModelUI();
@@ -42,6 +44,11 @@ void ImGUIManger::render() {
     ImGui::End();
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+void ImGUIManger::renderShadowSetting(){
+        static const char* shadowTypes[] = { "No Shadow","Hard Shadow", "PCF", "PCSS" };
+        ImGui::Text("Shadow Type:");
+        ImGui::Combo("##ShadowTypeCombo", &scene.shadowType, shadowTypes, IM_ARRAYSIZE(shadowTypes));
 }
 void ImGUIManger::renderModelTransformUI() {
     if (scene.selModel) {
@@ -72,7 +79,7 @@ void ImGUIManger::renderModelTransformUI() {
 }
 
 void ImGUIManger::renderModelListUI() {
-    ImGui::Checkbox("Enable Outline", &scene.enableOutline); // 注意：你原先说是 bool enableOutline = false;，这里我假设你已经将它放到 scene 里了
+    ImGui::Checkbox("Enable Outline", &scene.enableOutline);
 
     if (ImGui::BeginListBox("##ModelList", ImVec2(-FLT_MIN, 0))) {
         for (int i = 0; i < scene.models.size(); ++i) {
@@ -171,14 +178,9 @@ void ImGUIManger::renderAddModelUI() {
 }
 
 void ImGUIManger::renderIBLSelectionUI() {
-    static int currentHDRIndex = 3;
-    static bool initialized = false;
-    const char* hdrFiles[] = { "1.hdr", "2.hdr", "3.hdr", "4.hdr" };
+    static int currentHDRIndex = 0;
+    const char* hdrFiles[] = { "No IBL","1.hdr", "2.hdr", "3.hdr", "4.hdr" };
 
-    if (!initialized) {
-        scene.loadHDRAndIBL(std::string("assets/HDR/") + hdrFiles[currentHDRIndex]);
-        initialized = true;
-    }
 
     ImGui::Text("Select Environment HDR:");
 
@@ -187,7 +189,11 @@ void ImGUIManger::renderIBLSelectionUI() {
             bool is_selected = (currentHDRIndex == n);
             if (ImGui::Selectable(hdrFiles[n], is_selected)) {
                 currentHDRIndex = n;
-                scene.loadHDRAndIBL(std::string("assets/HDR/") + hdrFiles[n]);
+                if (currentHDRIndex == 0) {
+                    scene.disableIBL();
+                } else {
+                    scene.loadHDRAndIBL(std::string("assets/HDR/") + hdrFiles[n]);
+                }
             }
             if (is_selected)
                 ImGui::SetItemDefaultFocus();

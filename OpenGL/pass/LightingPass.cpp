@@ -59,7 +59,7 @@ void LightingPass::render(RenderResource& resource) {
     GL_CALL(lightingShader.setInt("gDepth", 5));
     GL_CALL(lightingShader.setInt("shadowMap", 6));
     GL_CALL(lightingShader.setVec3("camPos", scene.camera->Position));
-
+    lightingShader.setInt("shadowType", scene.shadowType);
     if (!scene.lights.empty()) {
         GL_CALL(lightingShader.setVec3("lightPos", scene.lights[0]->position));
         GL_CALL(lightingShader.setVec3("lightColor", scene.lights[0]->color));

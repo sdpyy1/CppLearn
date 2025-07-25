@@ -60,7 +60,7 @@ void DebugPass::render(RenderResource& resource){
             auto model = glm::mat4(1.0f);
             if (auto dirLight = std::dynamic_pointer_cast<DirectionalLight>(scene.selLight)) {
                 // 平行光position存储的是方向，而不是位置
-                model = glm::translate(model, -light->position);
+                model = glm::translate(model, -light->position*10.0f);
             }else{
                 model = glm::translate(model, light->position);
             }
