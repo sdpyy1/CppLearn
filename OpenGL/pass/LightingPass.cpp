@@ -64,6 +64,15 @@ void LightingPass::render(RenderResource& resource) {
         GL_CALL(lightingShader.setVec3("lightPos", scene.lights[0]->position));
         GL_CALL(lightingShader.setVec3("lightColor", scene.lights[0]->color));
     }
+    // PCF
+    if (scene.shadowType == 2){
+        lightingShader.setInt("pcfScope", scene.pcfScope);
+    }
+    if (scene.shadowType == 3){
+        lightingShader.setFloat("PCSSBlockerSearchRadius", scene.PCSSBlockerSearchRadius);
+        lightingShader.setFloat("PCSSKernelMax", scene.PCSSKernelMax);
+        lightingShader.setFloat("PCSSScale", scene.PCSSScale);
+    }
     lightingShader.setMat4("lightSpaceMatrix", resource.matrices["lightSpaceMatrix"]);
 
     // 绑定 G-Buffer

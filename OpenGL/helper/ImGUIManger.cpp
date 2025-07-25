@@ -25,6 +25,9 @@ void ImGUIManger::render() {
     ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
     ImGui::Begin("Debug UI", nullptr, ImGuiWindowFlags_NoMove);
+    // 得先执行一次，不然没背景
+    scene.loadHDRAndIBL(std::string("assets/HDR/1.hdr"));
+
     if (ImGui::CollapsingHeader("Scene Settings")) {
         renderIBLSelectionUI();
         renderShadowSetting();
@@ -46,9 +49,18 @@ void ImGUIManger::render() {
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 void ImGUIManger::renderShadowSetting(){
-        static const char* shadowTypes[] = { "No Shadow","Hard Shadow", "PCF", "PCSS" };
-        ImGui::Text("Shadow Type:");
-        ImGui::Combo("##ShadowTypeCombo", &scene.shadowType, shadowTypes, IM_ARRAYSIZE(shadowTypes));
+    static const char* shadowTypes[] = { "No Shadow", "Hard Shadow", "PCF", "PCSS" };
+    ImGui::Text("Shadow Type:");
+    ImGui::Combo("##ShadowTypeCombo", &scene.shadowType, shadowTypes, IM_ARRAYSIZE(shadowTypes));
+
+    if (scene.shadowType == 2) {
+        ImGui::SliderInt("PCF Scope", &scene.pcfScope, 1, 10);
+    }
+    else if (scene.shadowType == 3) {
+        ImGui::SliderFloat("Blocker Search Radius", &scene.PCSSBlockerSearchRadius, 1.0f, 5.0f, "%.1f");
+        ImGui::SliderFloat("Penumbra Scale", &scene.PCSSScale, 0.001f, 0.05f, "%.4f");
+        ImGui::SliderFloat("Max Blur Kernel", &scene.PCSSKernelMax, 1.0f, 20.0f, "%.1f");
+    }
 }
 void ImGUIManger::renderModelTransformUI() {
     if (scene.selModel) {
@@ -178,7 +190,7 @@ void ImGUIManger::renderAddModelUI() {
 }
 
 void ImGUIManger::renderIBLSelectionUI() {
-    static int currentHDRIndex = 0;
+    static int currentHDRIndex = 1;
     const char* hdrFiles[] = { "No IBL","1.hdr", "2.hdr", "3.hdr", "4.hdr" };
 
 

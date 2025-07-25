@@ -27,11 +27,15 @@ public:
     Model* selModel = nullptr;
     std::shared_ptr<Light> selLight = nullptr;
 
+    // GUI参数
     bool enableOutline = false;
     bool drawLightCube = true;
     // 0: 无阴影 1:硬阴影 2:PCF 3:PCSS
-    int shadowType = 1;
-
+    int shadowType = 3;
+    int pcfScope = 5;
+    float PCSSBlockerSearchRadius = 1.0;
+    float PCSSScale = 0.01;
+    float PCSSKernelMax = 10.0;
 
     explicit Scene(Camera* camera);
     void addModel(Model& model);

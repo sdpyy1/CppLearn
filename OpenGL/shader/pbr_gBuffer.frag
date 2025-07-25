@@ -16,11 +16,14 @@ uniform sampler2D gDepth;
 uniform sampler2D shadowMap;
 uniform mat4 lightSpaceMatrix;
 uniform int shadowType;
+uniform int pcfScope;
 // IBL
 uniform samplerCube irradianceMap;
 uniform samplerCube prefilterMap;
 uniform sampler2D lutMap;
-
+uniform float PCSSBlockerSearchRadius;
+uniform float PCSSScale;
+uniform float PCSSKernelMax;
 
 const float PI = 3.14159265359;
 #define MAX_LIGHTS 16
@@ -55,25 +58,29 @@ float ShadowCalculation(vec3 fragPosWorld, vec3 normal) {
         float shadow = 0.0;
         ivec2 texSize = textureSize(shadowMap, 0);
         vec2 texelSize = 1.0 /vec2(texSize);
-        for (int x = -5; x <= 5; ++x) {
-            for (int y = -5; y <= 5; ++y) {
+        int range = pcfScope;
+        int samples = 0;
+
+        for (int x = -range; x <= range; ++x) {
+            for (int y = -range; y <= range; ++y) {
                 float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
                 shadow += (currentDepth - bias > pcfDepth) ? 1.0 : 0.0;
+                samples++;
             }
         }
-        shadow /= 100.0;
+        shadow /= float(samples);
         return shadow;
     }
     else if (shadowType == 3) {
-        // --- PCSS (略简化版) ---
-        // Blocker search
         float avgBlockerDepth = 0.0;
         int blockers = 0;
-        ivec2 texSize = textureSize(shadowMap, 0);
 
+        ivec2 texSize = textureSize(shadowMap, 0);
         vec2 texelSize = 1.0 / vec2(texSize);
-        for (int x = -1; x <= 1; ++x) {
-            for (int y = -1; y <= 1; ++y) {
+
+        int searchRadius = int(PCSSBlockerSearchRadius);
+        for (int x = -searchRadius; x <= searchRadius; ++x) {
+            for (int y = -searchRadius; y <= searchRadius; ++y) {
                 float sampleDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
                 if (sampleDepth < currentDepth - bias) {
                     avgBlockerDepth += sampleDepth;
@@ -81,21 +88,18 @@ float ShadowCalculation(vec3 fragPosWorld, vec3 normal) {
                 }
             }
         }
-
+        if (blockers == 0) return 0.0;
+        avgBlockerDepth /= blockers;
+        float penumbra = (currentDepth - avgBlockerDepth) * PCSSScale;
+        int kernel = int(clamp(penumbra * float(texSize.x), 1.0, PCSSKernelMax));
         float shadow = 0.0;
-        if (blockers > 0) {
-            avgBlockerDepth /= blockers;
-            float penumbra = (currentDepth - avgBlockerDepth) * 50.0; // scale factor
-            int kernel = clamp(int(penumbra), 1, 5);
-
-            for (int x = -kernel; x <= kernel; ++x) {
-                for (int y = -kernel; y <= kernel; ++y) {
-                    float sampleDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
-                    shadow += (currentDepth - bias > sampleDepth) ? 1.0 : 0.0;
-                }
+        for (int x = -kernel; x <= kernel; ++x) {
+            for (int y = -kernel; y <= kernel; ++y) {
+                float sampleDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
+                shadow += (currentDepth - bias > sampleDepth) ? 1.0 : 0.0;
             }
-            shadow /= float((2 * kernel + 1) * (2 * kernel + 1));
         }
+        shadow /= float((2 * kernel + 1) * (2 * kernel + 1));
         return shadow;
     }
 
