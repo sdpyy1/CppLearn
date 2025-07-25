@@ -8,15 +8,8 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
-#include <imgui.h>
 #include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
-#include <imgui.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
 void ImGUIManger::render() {
     ImGui_ImplOpenGL3_NewFrame();
@@ -169,7 +162,7 @@ void ImGUIManger::renderLightProperties() {
 
 void ImGUIManger::renderAddModelUI() {
     static int currentModelIndex = 0;
-    const char* modelNames[] = { "helmet", "gun", "gaoda" };
+    const char* modelNames[] = { "helmet", "gun", "gaoda","cube","plane" };
 
     ImGui::Text("Add Default Model:");
     if (ImGui::BeginCombo("DefaultModel", modelNames[currentModelIndex])) {

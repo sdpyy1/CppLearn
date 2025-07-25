@@ -380,6 +380,12 @@ void Scene::addDefaultModel(const string &name) {
         addModel(model);
     }else if(name == "gaoda"){
         addModel("assets/asw/scene.gltf");
+    }else if(name == "cube"){
+        Model cube = Model::createCube();
+        addModel(cube);
+    }else if(name == "plane"){
+        Model plane = Model::createPlane();
+        addModel(plane);
     }
 }
 

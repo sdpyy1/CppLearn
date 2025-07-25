@@ -342,7 +342,97 @@ glm::mat4 Model::getModelMatrix() const {
     mat = mat * glm::scale(glm::mat4(1.0f), scale);
     return mat;
 }
+Model Model::createCube(float size) {
+    Model cubeModel;
+    float halfSize = size / 2.0f;
 
+    std::vector<Vertex> vertices;
+    std::vector<unsigned int> indices;
+    float uvTiling = 1.0f;
+
+    // 立方体6个面，每个面2个三角形，每个三角形3个顶点（不复用，方便计算TBN）
+    struct Face {
+        glm::vec3 pos[4];
+        glm::vec3 normal;
+        glm::vec2 uv[4];
+    };
+
+    std::vector<Face> faces = {
+            // Front (+Z)
+            {{{-1, -1,  1}, { 1, -1,  1}, { 1,  1,  1}, {-1,  1,  1}}, {0, 0, 1}, {{0,0},{1,0},{1,1},{0,1}}},
+            // Back (-Z)
+            {{{ 1, -1, -1}, {-1, -1, -1}, {-1,  1, -1}, { 1,  1, -1}}, {0, 0, -1}, {{0,0},{1,0},{1,1},{0,1}}},
+            // Left (-X)
+            {{{-1, -1, -1}, {-1, -1,  1}, {-1,  1,  1}, {-1,  1, -1}}, {-1, 0, 0}, {{0,0},{1,0},{1,1},{0,1}}},
+            // Right (+X)
+            {{{ 1, -1,  1}, { 1, -1, -1}, { 1,  1, -1}, { 1,  1,  1}}, {1, 0, 0}, {{0,0},{1,0},{1,1},{0,1}}},
+            // Top (+Y)
+            {{{-1,  1,  1}, { 1,  1,  1}, { 1,  1, -1}, {-1,  1, -1}}, {0, 1, 0}, {{0,0},{1,0},{1,1},{0,1}}},
+            // Bottom (-Y)
+            {{{-1, -1, -1}, { 1, -1, -1}, { 1, -1,  1}, {-1, -1,  1}}, {0, -1, 0}, {{0,0},{1,0},{1,1},{0,1}}},
+    };
+
+    auto computeTBN = [](Vertex& v0, Vertex& v1, Vertex& v2) {
+        glm::vec3 edge1 = v1.Position - v0.Position;
+        glm::vec3 edge2 = v2.Position - v0.Position;
+        glm::vec2 deltaUV1 = v1.TexCoords - v0.TexCoords;
+        glm::vec2 deltaUV2 = v2.TexCoords - v0.TexCoords;
+
+        float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+
+        glm::vec3 tangent;
+        tangent.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+        tangent.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+        tangent.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+        tangent = glm::normalize(tangent);
+
+        glm::vec3 bitangent;
+        bitangent.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
+        bitangent.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
+        bitangent.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
+        bitangent = glm::normalize(bitangent);
+
+        v0.Tangent = v1.Tangent = v2.Tangent = tangent;
+        v0.Bitangent = v1.Bitangent = v2.Bitangent = bitangent;
+    };
+
+    for (const auto& face : faces) {
+        int startIdx = vertices.size();
+        Vertex v0 = { face.pos[0] * halfSize, face.normal, face.uv[0] * uvTiling };
+        Vertex v1 = { face.pos[1] * halfSize, face.normal, face.uv[1] * uvTiling };
+        Vertex v2 = { face.pos[2] * halfSize, face.normal, face.uv[2] * uvTiling };
+        Vertex v3 = { face.pos[3] * halfSize, face.normal, face.uv[3] * uvTiling };
+
+        computeTBN(v0, v1, v2);
+        computeTBN(v0, v2, v3);
+
+        vertices.push_back(v0);
+        vertices.push_back(v1);
+        vertices.push_back(v2);
+        vertices.push_back(v3);
+
+        indices.push_back(startIdx + 0);
+        indices.push_back(startIdx + 1);
+        indices.push_back(startIdx + 2);
+        indices.push_back(startIdx + 0);
+        indices.push_back(startIdx + 2);
+        indices.push_back(startIdx + 3);
+    }
+
+    PBRMaterial mat;
+    mat.metallic = defaultMetallic;
+    mat.emission = defaultBlack;
+    mat.albedo = defaultAlbedo;
+    mat.roughness = defaultRoughness;
+    mat.normal = defaultNormal;
+    mat.ao = defaultAO;
+    Mesh cubeMesh(vertices, indices, mat);
+    cubeModel.meshes.push_back(cubeMesh);
+
+    Mesh &mesh = cubeModel.meshes[0];
+    cubeModel.directory = "cube";
+    return cubeModel;
+}
 Model Model::createPlane(float size) {
     Model planeModel;
 
