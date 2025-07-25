@@ -406,3 +406,123 @@ Model Model::createPlane(float size) {
     planeModel.directory = "floor";
     return planeModel;
 }
+Model Model::createArrow(float shaftLength, float shaftRadius, float headLength, float headRadius) {
+    Model arrowModel;
+
+    std::vector<Vertex> vertices;
+    std::vector<unsigned int> indices;
+
+    // 箭杆 (长方体近似，中心在原点，沿 +Z 轴方向延伸)
+    // 四边形的 8 个顶点：
+    // 先在 X,Y 平面画圆柱底面近似为矩形，Z轴上两端
+    // 这里简化成方柱（可以用圆柱细分）
+
+    // 箭杆顶点(8个顶点，组成两个面)：
+    float halfRadius = shaftRadius;
+    float shaftEndZ = shaftLength;
+
+    // 底面4个顶点 (z=0)
+    vertices.push_back({{-halfRadius, -halfRadius, 0.0f}, {0,0,-1}, {0,0}});
+    vertices.push_back({{ halfRadius, -halfRadius, 0.0f}, {0,0,-1}, {1,0}});
+    vertices.push_back({{ halfRadius,  halfRadius, 0.0f}, {0,0,-1}, {1,1}});
+    vertices.push_back({{-halfRadius,  halfRadius, 0.0f}, {0,0,-1}, {0,1}});
+
+    // 顶面4个顶点 (z=shaftEndZ)
+    vertices.push_back({{-halfRadius, -halfRadius, shaftEndZ}, {0,0,1}, {0,0}});
+    vertices.push_back({{ halfRadius, -halfRadius, shaftEndZ}, {0,0,1}, {1,0}});
+    vertices.push_back({{ halfRadius,  halfRadius, shaftEndZ}, {0,0,1}, {1,1}});
+    vertices.push_back({{-halfRadius,  halfRadius, shaftEndZ}, {0,0,1}, {0,1}});
+
+    // 箭杆索引 (组成长方体6个面，每面两个三角形)
+    unsigned int baseIndex = 0;
+    // 底面
+    indices.insert(indices.end(), {baseIndex, baseIndex+1, baseIndex+2, baseIndex, baseIndex+2, baseIndex+3});
+    // 顶面
+    indices.insert(indices.end(), {baseIndex+4, baseIndex+5, baseIndex+6, baseIndex+4, baseIndex+6, baseIndex+7});
+    // 侧面（4个面，每面两个三角形）
+    // 0->1->5->4 面
+    indices.insert(indices.end(), {0,1,5, 0,5,4});
+    // 1->2->6->5 面
+    indices.insert(indices.end(), {1,2,6, 1,6,5});
+    // 2->3->7->6 面
+    indices.insert(indices.end(), {2,3,7, 2,7,6});
+    // 3->0->4->7 面
+    indices.insert(indices.end(), {3,0,4, 3,4,7});
+
+    // 现在箭头锥体 (4个三角形顶点 + 底面圆)
+    // 箭头底面中心点在 shaftEndZ 位置，箭头顶点在 shaftEndZ + headLength 位置
+
+    glm::vec3 headTip(0, 0, shaftEndZ + headLength);
+
+    // 底面4顶点（围绕Z轴，围绕箭杆顶面中心旋转）用正方形近似底面（也可以细分圆形）
+    baseIndex = (unsigned int)vertices.size();
+    vertices.push_back({{-headRadius, -headRadius, shaftEndZ}, {0,0,-1}, {0,0}});
+    vertices.push_back({{ headRadius, -headRadius, shaftEndZ}, {0,0,-1}, {1,0}});
+    vertices.push_back({{ headRadius,  headRadius, shaftEndZ}, {0,0,-1}, {1,1}});
+    vertices.push_back({{-headRadius,  headRadius, shaftEndZ}, {0,0,-1}, {0,1}});
+
+    // 箭头顶点
+    vertices.push_back({headTip, glm::normalize(headTip - glm::vec3(0,0,shaftEndZ)), {0.5f,0.5f}});
+
+    unsigned int tipIndex = (unsigned int)vertices.size() - 1;
+
+    // 箭头底面
+    indices.insert(indices.end(), {
+            baseIndex, baseIndex+1, baseIndex+2,
+            baseIndex, baseIndex+2, baseIndex+3
+    });
+
+    // 箭头侧面4个三角形，连接底面四个顶点和箭头顶点
+    for (int i = 0; i < 4; ++i) {
+        unsigned int next = baseIndex + (i+1) % 4;
+        indices.insert(indices.end(), {
+                baseIndex + i, next, tipIndex
+        });
+    }
+
+    // 计算切线和副切线（简单版，法线暂时给固定值）
+
+    for (size_t i = 0; i + 2 < indices.size(); i += 3) {
+        Vertex& v0 = vertices[indices[i]];
+        Vertex& v1 = vertices[indices[i+1]];
+        Vertex& v2 = vertices[indices[i+2]];
+
+        glm::vec3 edge1 = v1.Position - v0.Position;
+        glm::vec3 edge2 = v2.Position - v0.Position;
+        glm::vec2 deltaUV1 = v1.TexCoords - v0.TexCoords;
+        glm::vec2 deltaUV2 = v2.TexCoords - v0.TexCoords;
+
+        float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+
+        glm::vec3 tangent, bitangent;
+
+        tangent.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+        tangent.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+        tangent.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+        tangent = glm::normalize(tangent);
+
+        bitangent.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
+        bitangent.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
+        bitangent.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
+        bitangent = glm::normalize(bitangent);
+
+        v0.Tangent = tangent; v1.Tangent = tangent; v2.Tangent = tangent;
+        v0.Bitangent = bitangent; v1.Bitangent = bitangent; v2.Bitangent = bitangent;
+    }
+
+    // 创建材质
+    PBRMaterial mat;
+    mat.metallic  = defaultMetallic;
+    mat.emission  = defaultBlack;
+    mat.roughness  = defaultRoughness;
+    mat.albedo    = defaultAlbedo;
+    mat.ao = defaultAO;
+    mat.normal = defaultNormal;
+
+    Mesh arrowMesh(vertices, indices, mat);
+    arrowModel.meshes.push_back(arrowMesh);
+
+    arrowModel.directory = "arrow";
+
+    return arrowModel;
+}

@@ -39,7 +39,6 @@ void ImGUIManger::render() {
         renderLightProperties();
     }
 
-
     ImGui::End();
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -129,7 +128,7 @@ void ImGUIManger::renderLightProperties() {
 
         // Specific properties by light type
         if (auto dirLight = std::dynamic_pointer_cast<DirectionalLight>(scene.selLight)) {
-            ImGui::DragFloat3("Direction", glm::value_ptr(dirLight->direction), 0.1f);
+            ImGui::DragFloat3("Direction", glm::value_ptr(dirLight->position), 0.1f);
         }
         else if (auto pointLight = std::dynamic_pointer_cast<PointLight>(scene.selLight)) {
             ImGui::DragFloat3("Position", glm::value_ptr(pointLight->position), 0.1f);
@@ -172,7 +171,7 @@ void ImGUIManger::renderAddModelUI() {
 }
 
 void ImGUIManger::renderIBLSelectionUI() {
-    static int currentHDRIndex = 0;
+    static int currentHDRIndex = 3;
     static bool initialized = false;
     const char* hdrFiles[] = { "1.hdr", "2.hdr", "3.hdr", "4.hdr" };
 

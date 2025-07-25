@@ -42,6 +42,7 @@ public:
     static GLuint defaultBlack;
 
     static Model createPlane(float size = 100.0f);
+    static Model createArrow(float shaftLength = 1.0f, float shaftRadius = 0.05f, float headLength = 0.2f, float headRadius = 0.1f);
 
 
 private:
@@ -56,6 +57,7 @@ private:
     void calculateOrientationFix();
 
     void ReadNodeHierarchy(float animationTime, const aiNode *node, const glm::mat4 &parentTransform);
+
 };
 
 #endif // OPENGL_MODEL_H

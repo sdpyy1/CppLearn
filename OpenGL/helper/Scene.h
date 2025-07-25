@@ -17,8 +17,6 @@ class Scene
 public:
     int width;
     int height;
-    std::string currentHDRPath;
-
     Camera* camera = nullptr;
     std::vector<std::shared_ptr<Light>> lights;
     GLuint envCubemap = 0;
@@ -45,7 +43,11 @@ public:
     GLuint loadCubemapFromHDR(const char *path);
     GLuint loadCubemapFromSkybox(const string &path);
     void loadHDRAndIBL(const std::string& hdrPath);
+
+    void renderArrow();
+
 private:
+    std::string currentHDRPath;
     GLuint cubeVAO = 0;
     GLuint cubeVBO = 0;
     GLuint quadVAO = 0;

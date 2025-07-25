@@ -12,23 +12,24 @@ class GeometryPass final : public RenderPass
 private:
     Shader shader;
     Shader debugShader;
-    GLuint debugVAO;
+    GLuint debugVAO = 0;
     Scene& scene;
     int width, height;
-    GLuint gBuffer;
+    GLuint gBuffer = 0;
 
 public:
-    GLuint gPosition, gNormal, gAlbedo, gMaterial, gDepth,gEmission;
+    GLuint gPosition = 0, gNormal = 0, gAlbedo = 0, gMaterial = 0, gDepth = 0,gEmission = 0;
 
     explicit GeometryPass(Scene& scene);
 
 
-    void init() override;
-    void render() override;
+    void init(RenderResource& resource) override;
+    void render(RenderResource& resource) override;
 
     void debugRender();
 
 private:
-    void InitGBuffer();
     void initDebug();
+
+    void InitGBuffer(RenderResource &resource);
 };

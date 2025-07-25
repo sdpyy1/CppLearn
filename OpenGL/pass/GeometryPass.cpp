@@ -4,20 +4,19 @@ GeometryPass::GeometryPass(Scene& scene)
     : scene(scene),
       shader("shader/geometry.vert", "shader/geometry.frag"),
       debugShader("shader/gBufferDebug.vert", "shader/gBufferDebug.frag"),
-      width(scene.width), height(scene.height),
-      debugVAO(0), gBuffer(0),
-      gPosition(0), gNormal(0), gAlbedo(0), gMaterial(0),gEmission(0)
+      width(scene.width), height(scene.height)
 {
 }
 
-void GeometryPass::init()
+void GeometryPass::init(RenderResource& resource)
 {
-    InitGBuffer();
+    passName = "GeometryPass";
+    InitGBuffer(resource);
     initDebug();
-    isInit = true;
+    RenderPass::init(resource);
 }
 
-void GeometryPass::InitGBuffer()
+void GeometryPass::InitGBuffer(RenderResource& resource)
 {
     GL_CALL(glGenFramebuffers(1, &gBuffer));
     GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, gBuffer));
@@ -84,11 +83,17 @@ void GeometryPass::InitGBuffer()
     {
         std::cerr << "Framebuffer not complete!" << std::endl;
     }
-
+    resource.textures["gPosition"] = gPosition;
+    resource.textures["gNormal"] = gNormal;
+    resource.textures["gAlbedo"] = gAlbedo;
+    resource.textures["gMaterial"] = gMaterial;
+    resource.textures["gEmission"] = gEmission;
+    resource.textures["gDepth"] = gDepth;
+    resource.framebuffers["gBuffer"] = gBuffer;
     GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 }
 
-void GeometryPass::render()
+void GeometryPass::render(RenderResource& resource)
 {
     if(!isInit){
         std::cerr << "GeometryPass not init!" << std::endl;
@@ -153,7 +158,7 @@ void GeometryPass::debugRender()
     // 左上 - Position
     GL_CALL(glViewport(0, h, w, h));
     GL_CALL(glActiveTexture(GL_TEXTURE0));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D, gAlbedo));
+    GL_CALL(glBindTexture(GL_TEXTURE_2D, gPosition));
     debugShader.setInt("gBufferTexture", 0);
     debugShader.setInt("visualizeMode", 0);
     GL_CALL(glDrawArrays(GL_TRIANGLES, 0, 6));

@@ -13,6 +13,8 @@ uniform sampler2D gAlbedo;
 uniform sampler2D gMaterial;
 uniform sampler2D gEmission;
 uniform sampler2D gDepth;
+uniform sampler2D shadowMap;
+uniform mat4 lightSpaceMatrix;
 
 // IBL
 uniform samplerCube irradianceMap;
@@ -26,8 +28,30 @@ struct Light {
     vec3 position;
     vec3 color;
 };
-uniform int lightCount;
-uniform Light lights[MAX_LIGHTS];
+//uniform int lightCount;
+//uniform Light lights[MAX_LIGHTS];
+
+float ShadowCalculation(vec3 fragPosWorld, vec3 normal) {
+    vec4 fragPosLightSpace = lightSpaceMatrix * vec4(fragPosWorld, 1.0);
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    projCoords = projCoords * 0.5 + 0.5; // [-1,1] → [0,1]
+
+    // 从深度贴图采样
+    float closestDepth = texture(shadowMap, projCoords.xy).r;
+    float currentDepth = projCoords.z;
+
+    // 简单 bias 防止 shadow acne
+    float bias = max(0.005 * (1.0 - dot(normal, normalize(lightPos))), 0.001);
+
+    // 超出边界不产生阴影
+    if (projCoords.z > 1.0)
+    return 0.0;
+
+    // 进行一次比较
+    return (currentDepth - bias) > closestDepth ? 1.0 : 0.0;
+}
+
+
 // GGX NDF
 float DistributionGGX(vec3 N, vec3 H, float roughness)
 {
@@ -109,7 +133,8 @@ void main()
     vec3 V = normalize(camPos - WorldPos); // 视线方向
     vec3 R = reflect(-V, N); // 反射方向
     vec3 F0 = mix(vec3(0.04), albedo, metallic); // 菲涅尔反射 F0
-    vec3 L = normalize(lightPos - WorldPos); // 光源方向
+//    vec3 L = normalize(lightPos - WorldPos); // 光源方向   点光源
+    vec3 L = normalize(-lightPos); // 光源方向  平行光
     vec3 H = normalize(V + L); // 半程向量
 
     // 光照部分
@@ -123,7 +148,8 @@ void main()
     vec3 kD = (1.0 - kS) * (1.0 - metallic);
     float NdotL = max(dot(N, L), 0.0);
     vec3 radiance = lightColor;
-    vec3 Lo = (kD * albedo / PI + specular) * radiance * NdotL;
+    vec3 Lo = (kD * albedo / PI + specular) * radiance * NdotL * (1-ShadowCalculation(WorldPos, N));
+//    vec3 Lo = (kD * albedo / PI + specular) * radiance* NdotL;
 
 
     // IBL ambient
@@ -150,5 +176,5 @@ void main()
 
     gl_FragDepth = texture(gDepth, TexCoords).r;
 
-    FragColor = vec4(color, 1.0);
+    FragColor =  vec4(color, 1.0);
 }

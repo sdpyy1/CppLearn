@@ -41,16 +41,14 @@ public:
 };
 
 
-// 方向光，方向固定且无衰减
+// 方向光，方向固定且无衰减 position表示光的方向而不是位置
 class DirectionalLight : public Light
 {
 public:
-    glm::vec3 direction; // 光方向，单位向量
-
     DirectionalLight(const glm::vec3& dir = glm::vec3(-0.2f, -1.0f, -0.3f),
                      const glm::vec3& c = glm::vec3(1.0f),
                      float i = 1.0f)
-        : Light(c, dir,i), direction(glm::normalize(dir))
+        : Light(c, glm::normalize(dir),i)
     {
     }
 

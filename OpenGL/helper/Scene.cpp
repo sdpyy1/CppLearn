@@ -603,3 +603,40 @@ void Scene::loadHDRAndIBL(const std::string& hdrPath) {
 
     currentHDRPath = hdrPath;
 }
+
+unsigned int arrowVAO = 0, arrowVBO = 0;
+void Scene::renderArrow()
+{
+    if (arrowVAO == 0)
+    {
+        float arrowVertices[] = {
+                // 线段部分（箭杆）
+                0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 1.0f,
+
+                // 箭头部分（三角锥或线）
+                0.0f, 0.0f, 1.0f,
+                -0.05f, 0.02f, 0.9f,
+
+                0.0f, 0.0f, 1.0f,
+                0.05f, 0.02f, 0.9f,
+
+                0.0f, 0.0f, 1.0f,
+                0.0f, -0.05f, 0.9f,
+        };
+
+        glGenVertexArrays(1, &arrowVAO);
+        glGenBuffers(1, &arrowVBO);
+
+        glBindVertexArray(arrowVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, arrowVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(arrowVertices), arrowVertices, GL_STATIC_DRAW);
+
+        glEnableVertexAttribArray(0); // 位置
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    }
+
+    glBindVertexArray(arrowVAO);
+    glDrawArrays(GL_LINES, 0, 8); // 4线段，共8点
+    glBindVertexArray(0);
+}

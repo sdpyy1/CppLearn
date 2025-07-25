@@ -1,13 +1,17 @@
 #include "LightingPass.h"
 #include "../utils/checkGlCommand.h"
 
-LightingPass::LightingPass(Scene &s, GLuint gPosition, GLuint gNormal, GLuint gAlbedo, GLuint gMaterial,GLuint gEmission,GLuint gDepth)
-        : lightingShader("shader/pbr_gBuffer.vert", "shader/pbr_gBuffer.frag"),
-          gPosition(gPosition), gNormal(gNormal), gAlbedo(gAlbedo), gMaterial(gMaterial), gEmission(gEmission),gDepth(gDepth),scene(s), quadVAO(0) {}
+LightingPass::LightingPass(Scene &scene)
+        : lightingShader("shader/pbr_gBuffer.vert", "shader/pbr_gBuffer.frag"), scene(scene)
+//        : lightingShader("shader/phong.vert", "shader/phong.frag"), scene(scene)
+{}
 
-void LightingPass::init() {
+
+
+void LightingPass::init(RenderResource& resource) {
+    passName = "lightingPass";
     initQuad();  // 创建全屏 quad VAO
-    isInit = true;
+    RenderPass::init(resource);
 }
 
 void LightingPass::initQuad() {
@@ -39,7 +43,7 @@ void LightingPass::initQuad() {
     glBindVertexArray(0);
 }
 
-void LightingPass::render() {
+void LightingPass::render(RenderResource& resource) {
     if (!isInit){
         std::cerr << "LightingPass not init!" << std::endl;
         return;
@@ -53,34 +57,36 @@ void LightingPass::render() {
     GL_CALL(lightingShader.setInt("gMaterial", 3));
     GL_CALL(lightingShader.setInt("gEmission", 4));
     GL_CALL(lightingShader.setInt("gDepth", 5));
+    GL_CALL(lightingShader.setInt("shadowMap", 6));
     GL_CALL(lightingShader.setVec3("camPos", scene.camera->Position));
 
     if (!scene.lights.empty()) {
         GL_CALL(lightingShader.setVec3("lightPos", scene.lights[0]->position));
         GL_CALL(lightingShader.setVec3("lightColor", scene.lights[0]->color));
     }
-
+    lightingShader.setMat4("lightSpaceMatrix", resource.matrices["lightSpaceMatrix"]);
 
     // 绑定 G-Buffer
     GL_CALL(glActiveTexture(GL_TEXTURE0));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D, gPosition));
-
+    GL_CALL(glBindTexture(GL_TEXTURE_2D, resource.textures["gPosition"]));
     GL_CALL(glActiveTexture(GL_TEXTURE1));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D, gNormal));
-
+    GL_CALL(glBindTexture(GL_TEXTURE_2D, resource.textures["gNormal"]));
     GL_CALL(glActiveTexture(GL_TEXTURE2));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D, gAlbedo));
-
+    GL_CALL(glBindTexture(GL_TEXTURE_2D, resource.textures["gAlbedo"]));
     GL_CALL(glActiveTexture(GL_TEXTURE3));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D, gMaterial));
-
+    GL_CALL(glBindTexture(GL_TEXTURE_2D, resource.textures["gMaterial"]));
     GL_CALL(glActiveTexture(GL_TEXTURE4));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D, gEmission));
+    GL_CALL(glBindTexture(GL_TEXTURE_2D, resource.textures["gEmission"]));
     GL_CALL(glActiveTexture(GL_TEXTURE5));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D, gDepth));
-
+    GL_CALL(glBindTexture(GL_TEXTURE_2D, resource.textures["gDepth"]));
+    GL_CALL(glActiveTexture(GL_TEXTURE6));
+    GL_CALL(glBindTexture(GL_TEXTURE_2D, resource.textures["shadowMap"]));
+    glActiveTexture(GL_TEXTURE15);glBindTexture(GL_TEXTURE_CUBE_MAP, scene.irradianceMap);lightingShader.setInt("irradianceMap", 15);
+    glActiveTexture(GL_TEXTURE14);glBindTexture(GL_TEXTURE_CUBE_MAP, scene.prefilterMap);lightingShader.setInt("prefilterMap", 14);
+    glActiveTexture(GL_TEXTURE13);glBindTexture(GL_TEXTURE_2D, scene.lutMap);lightingShader.setInt("lutMap", 13);
     GL_CALL(glBindVertexArray(quadVAO));
     GL_CALL(glDrawArrays(GL_TRIANGLES, 0, 6));
     GL_CALL(glBindVertexArray(0));
+    GL_CALL(lightingShader.unBind());
 }
 
