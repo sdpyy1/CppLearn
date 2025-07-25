@@ -18,8 +18,6 @@ void ImGUIManger::render() {
     ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
     ImGui::Begin("Debug UI", nullptr, ImGuiWindowFlags_NoMove);
-    // 得先执行一次，不然没背景
-    scene.loadHDRAndIBL(std::string("assets/HDR/1.hdr"));
 
     if (ImGui::CollapsingHeader("Scene Settings")) {
         renderIBLSelectionUI();
@@ -183,7 +181,7 @@ void ImGUIManger::renderAddModelUI() {
 }
 
 void ImGUIManger::renderIBLSelectionUI() {
-    static int currentHDRIndex = 1;
+    static int currentHDRIndex = 0;
     const char* hdrFiles[] = { "No IBL","1.hdr", "2.hdr", "3.hdr", "4.hdr" };
 
 
