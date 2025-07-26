@@ -27,6 +27,8 @@ public:
     void renderLightProperties();
 
     void renderShadowSetting();
+
+    void renderSSRSettingsUI();
 };
 
 

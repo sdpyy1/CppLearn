@@ -6,6 +6,10 @@ in vec2 TexCoords;
 uniform vec3 camPos;
 uniform vec3 lightPos;
 uniform vec3 lightColor;
+
+uniform mat4 projection;
+uniform mat4 view;
+
 // G-buffer 纹理输入
 uniform sampler2D gPosition;
 uniform sampler2D gNormal;
@@ -14,26 +18,29 @@ uniform sampler2D gMaterial;
 uniform sampler2D gEmission;
 uniform sampler2D gDepth;
 uniform sampler2D shadowMap;
-uniform mat4 lightSpaceMatrix;
-uniform int shadowType;
-uniform int pcfScope;
+
 // IBL
 uniform samplerCube irradianceMap;
 uniform samplerCube prefilterMap;
 uniform sampler2D lutMap;
+
+// 阴影
+uniform mat4 lightSpaceMatrix;
+uniform int shadowType;
+uniform int pcfScope;
 uniform float PCSSBlockerSearchRadius;
 uniform float PCSSScale;
 uniform float PCSSKernelMax;
 
-const float PI = 3.14159265359;
-#define MAX_LIGHTS 16
-struct Light {
-    vec3 position;
-    vec3 color;
-};
-//uniform int lightCount;
-//uniform Light lights[MAX_LIGHTS];
+// SSR
+uniform int EnableSSR;
+uniform int totalStepTimes;
+uniform float stepSize;
+uniform float EPS;
+uniform float threshold;
+uniform float SSRStrength;
 
+const float PI = 3.14159265359;
 
 float ShadowCalculation(vec3 fragPosWorld, vec3 normal) {
     vec4 fragPosLightSpace = lightSpaceMatrix * vec4(fragPosWorld, 1.0);
@@ -164,13 +171,76 @@ vec3 ACESFilmToneMapping(vec3 color)
 {
     // 适当的曝光缩放，可以视为手动曝光调整（可调参数）
     color *= 0.6;
-
     // ACES tone mapping 曲线
     color = RRTAndODTFit(color);
-
     // Clamp 到 [0, 1]
     return clamp(color, 0.0, 1.0);
 }
+vec4 Project(vec4 a) {
+    return a / a.w;
+}
+vec2 GetScreenCoordinate(vec3 posWorld) {
+    vec2 uv = Project(projection*view * vec4(posWorld, 1.0)).xy * 0.5 + 0.5;
+    return uv;
+}
+float GetDepth(vec3 posWorld) {
+    vec4 clipSpacePos = projection * view * vec4(posWorld, 1.0);
+    float ndcZ = clipSpacePos.z / clipSpacePos.w;   // z in [-1, 1]
+    float depth = ndcZ * 0.5 + 0.5;                  // map to [0, 1]
+    return depth;
+}
+float GetGBufferDepth(vec2 uv) {
+    float depth = texture2D(gDepth, uv).x;
+    if (depth < 1e-2) {
+        depth = 1000.0;
+    }
+    return depth;
+}
+float LinearizeDepth(float d) {
+    float nearPlane = 0.1;
+    float farPlane = 100;
+    float z = d * 2.0 - 1.0; // back to NDC z in [-1,1]
+    return (2.0 * nearPlane * farPlane) / (farPlane + nearPlane - z * (farPlane - nearPlane));
+}
+// RayMarch函数，根据你给的代码写
+bool RayMarch(vec3 ori, vec3 dir, out vec3 hitPos) {
+    if(EnableSSR == 0){
+        return false;
+    }
+    bool result = false;
+    bool firstIn = false;
+    vec3 curPos = ori;
+    float stepSzieInnder = stepSize;  // uniform变量不能在shader中修改
+    vec3 nextPos;
+    for(int i = 0; i < totalStepTimes; i++) {
+        // 步进
+        nextPos = curPos + dir * stepSzieInnder;
+        // 获取步进后的空间坐标对应的uv坐标
+        vec2 uvScreen = GetScreenCoordinate(nextPos);
+        // 超出屏幕，直接返回
+        if(any(lessThan(uvScreen, vec2(0.0))) || any(greaterThan(uvScreen, vec2(1.0)))) break;
+        // 没有碰到物体
+        if(LinearizeDepth(GetDepth(nextPos)) < LinearizeDepth(GetGBufferDepth(GetScreenCoordinate(nextPos)))){
+            curPos += dir * stepSzieInnder;
+            if(firstIn) stepSzieInnder *= 0.5;
+            continue;
+        }
+        firstIn = true;
+        if(stepSzieInnder < EPS){
+            float s1 = LinearizeDepth(GetGBufferDepth(GetScreenCoordinate(curPos))) - LinearizeDepth(GetDepth(curPos)) + EPS;
+            float s2 = LinearizeDepth(GetDepth(nextPos)) - LinearizeDepth(GetGBufferDepth(GetScreenCoordinate(nextPos))) + EPS;
+            if(s1 < threshold && s2 < threshold){
+                hitPos = curPos + 2.0 * dir * stepSzieInnder * s1 / (s1 + s2);
+                result = true;
+            }
+            break;
+        }
+        if(firstIn) stepSzieInnder *= 0.5;
+    }
+    return result;
+}
+
+
 void main()
 {
     // 纹理采样
@@ -178,36 +248,37 @@ void main()
     float metallic  = texture(gMaterial, TexCoords).r;
     float roughness = texture(gMaterial, TexCoords).g;
     float ao        = texture(gMaterial, TexCoords).b;
-    vec3 emission     = pow(texture(gEmission, TexCoords).rgb, vec3(2.2)); // gamma correct
+    vec3 emission     = pow(texture(gEmission, TexCoords).rgb, vec3(2.2));
     vec3 WorldPos = texture(gPosition, TexCoords).rgb;
-
-
 
     // 参数准备
     vec3 N = texture(gNormal, TexCoords).rgb;   // 法线
     vec3 V = normalize(camPos - WorldPos); // 视线方向
-    vec3 R = reflect(-V, N); // 反射方向
-    vec3 F0 = mix(vec3(0.04), albedo, metallic); // 菲涅尔反射 F0
-//    vec3 L = normalize(lightPos - WorldPos); // 光源方向   点光源
+    vec3 R = normalize(reflect(-V, N)); // 反射方向
+    vec3 F0 = mix(vec3(0.04), albedo, metallic); // 菲涅尔反射 F0 = 0.04 * (1-metalic) + albedo * metalic   // 越金属，F0越像它的albedo
+    // vec3 L = normalize(lightPos - WorldPos); // 光源方向   点光源
     vec3 L = normalize(-lightPos); // 光源方向  平行光
     vec3 H = normalize(V + L); // 半程向量
 
-    // 光照部分
-    float NDF = DistributionGGX(N, H, roughness);
+    // BRDF项
+    float NDF = DistributionGGX(N, H, roughness);  // 粗糙度来决定NDF，粗糙度越小，法线越集中在H
     float G   = GeometrySmith(N, V, L, roughness);
     vec3  F   = fresnelSchlick(max(dot(H, V), 0.0), F0);
-    vec3 nominator = NDF * G * F;
-    float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.001;
-    vec3 specular = nominator / denominator;
+    vec3 specular = (NDF * G * F) / (4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.001);
+
+    // 镜面反射占比
     vec3 kS = F;
+    // 漫反射占比
     vec3 kD = (1.0 - kS) * (1.0 - metallic);
+    // cos项
     float NdotL = max(dot(N, L), 0.0);
-    vec3 radiance = lightColor;
-    vec3 Lo = (kD * albedo / PI + specular) * radiance * NdotL * (1-ShadowCalculation(WorldPos, N));
-//    vec3 Lo = (kD * albedo / PI + specular) * radiance* NdotL;
 
 
-    // IBL ambient
+    // 直接光照计算
+    vec3 Lo = (kD * albedo / PI + specular) * lightColor * NdotL * (1-ShadowCalculation(WorldPos, N));
+
+
+    // IBL 环境光
     const float MAX_REFLECTION_LOD = 4.0;
     vec3 prefilteredColor = textureLod(prefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;
     F        = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
@@ -215,20 +286,38 @@ void main()
     vec3 specularIBL = prefilteredColor * (F * lut.x + lut.y);
     vec3 irradiance = texture(irradianceMap, N).rgb;
     vec3 diffuse    = irradiance * albedo / PI;  // learnOpenGL中并没有 /PI
-    vec3 ambient = (kD * diffuse + specularIBL) * ao;
 
+    //TODO： 这部分应该移动到后处理Pass
+    // SSR计算光滑表面镜面反射
+    bool hit = false;
+    vec3 ssrColor = vec3(0.0);
+    vec3 hitPos;
+    vec3 specularFinal = specularIBL;
+    hit = RayMarch(WorldPos, R, hitPos);
+    if(hit) {
+        vec2 uvHit = GetScreenCoordinate(hitPos);
+        // 从之前的渲染结果中采样反射颜色 TODO： 移动到后处理阶段后使用最终颜色来反射
+        ssrColor = pow(texture(gAlbedo, uvHit).rgb, vec3(2.2));
+        // 混合SSR颜色和IBL
+        float fade = smoothstep(0.0, 0.05, uvHit.x) * smoothstep(0.0, 0.05, uvHit.y) *
+        smoothstep(0.0, 0.95, 1.0 - uvHit.x) * smoothstep(0.0, 0.95, 1.0 - uvHit.y);
+        float mixWeight = SSRStrength * fade;
+        specularFinal = mix(specularIBL, ssrColor, mixWeight);
+    }
+
+    vec3 ambient = (kD * diffuse + specularFinal) * ao;
 
     // 光照相加
     vec3 color = ambient + Lo + emission;
+
     // toneMapping
-    color = color / (color + vec3(1.0));
-//    color = ACESFilmToneMapping(color)  ;
+//    color = color / (color + vec3(1.0));
+    color = ACESFilmToneMapping(color)  ;
 
     // 伽马矫正
     color = pow(color, vec3(1.0 / 2.2));
-//    FragColor = vec4(color, 1.0);
 
-
+    // 不写入深度，会让天空盒盖住屏幕
     gl_FragDepth = texture(gDepth, TexCoords).r;
 
     FragColor =  vec4(color, 1.0);

@@ -36,6 +36,15 @@ public:
     float PCSSBlockerSearchRadius = 1.0;
     float PCSSScale = 0.01;
     float PCSSKernelMax = 10.0;
+    //SSR
+    bool EnableSSR = true;
+    int totalStepTimes = 64;
+    float stepSize = 0.8f;
+    float EPS = 1e-2f;
+    float threshold = 1.f;
+    float SSRStrength = 1.f;
+
+
 
     explicit Scene(Camera* camera);
     void addModel(Model& model);
@@ -69,6 +78,8 @@ private:
     GLuint computeLutMap();
     GLuint computePrefilterMap(GLuint envCubemap);
     GLuint computeIrradianceMap(GLuint envCubemap);
+
+
 };
 
 #endif //OPENGLRENDER_SCENE_H

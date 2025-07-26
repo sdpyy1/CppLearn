@@ -48,7 +48,19 @@ void LightingPass::render(RenderResource& resource) {
         std::cerr << "LightingPass not init!" << std::endl;
         return;
     }
+
     GL_CALL(lightingShader.bind());
+    // VP
+    lightingShader.setMat4("projection", scene.camera->getProjectionMatrix());
+    lightingShader.setMat4("view", scene.camera->getViewMatrix());
+
+    //SSR
+    lightingShader.setInt("EnableSSR", scene.EnableSSR?1:0);
+    lightingShader.setInt("totalStepTimes",scene.totalStepTimes);
+    lightingShader.setFloat("stepSize",scene.stepSize);
+    lightingShader.setFloat("EPS",scene.EPS);
+    lightingShader.setFloat("threshold",scene.threshold);
+    lightingShader.setFloat("SSRStrength",scene.SSRStrength);
 
     // 设置 uniforms
     GL_CALL(lightingShader.setInt("gPosition", 0));

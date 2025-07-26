@@ -31,6 +31,7 @@ public:
         for (auto& pass : passes) {
             pass->render(resource);
         }
+
     }
 
     RenderResource& getResources() { return resource; }

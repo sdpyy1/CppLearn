@@ -26,8 +26,12 @@ int main()
     glm::vec3 lightDir = glm::normalize(glm::vec3(-1.0f, -1.0f, -1.0f));
     DirectionalLight directionalLight(lightDir, glm::vec3(1.0f), 1.0f);
     Model plane = Model::createPlane();
+    scene.loadHDRAndIBL("assets/HDR/4.hdr");
     scene.addModel(plane);
     scene.addDefaultModel("helmet");
+    Model cube = Model::createCube();
+    cube.translation = glm::vec3(2,2,2);
+    scene.addModel(cube);
     scene.addLight(std::make_shared<DirectionalLight>(directionalLight));
 
 
@@ -39,8 +43,9 @@ int main()
 
         // --- 渲染 Pipeline---
         renderPipeline->render();
+
         // --- 渲染 ImGui ---
-        imGUIManger.render();
+        GL_CALL(imGUIManger.render());
 
         glfwSwapBuffers(app.window);
         glfwPollEvents();

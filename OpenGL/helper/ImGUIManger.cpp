@@ -22,6 +22,7 @@ void ImGUIManger::render() {
     if (ImGui::CollapsingHeader("Scene Settings")) {
         renderIBLSelectionUI();
         renderShadowSetting();
+        renderSSRSettingsUI();
     }
 
     if (ImGui::CollapsingHeader("Model")) {
@@ -39,6 +40,18 @@ void ImGUIManger::render() {
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
+
+void ImGUIManger::renderSSRSettingsUI() {
+    ImGui::Separator();
+    ImGui::Text("SSR Settings");
+    ImGui::Checkbox("Enable SSR", &scene.EnableSSR);
+    ImGui::SliderInt("Total Step Times", &scene.totalStepTimes, 1, 100);
+    ImGui::SliderFloat("Step Size", &scene.stepSize, 0.01f, 1.f, "%.3f");
+    ImGui::SliderFloat("Threshold", &scene.threshold, 0.01f, 2.f, "%.3f");
+    ImGui::SliderFloat("strength", &scene.SSRStrength, 0.1f, 2.f, "%.3f");
+}
+
+
 void ImGUIManger::renderShadowSetting(){
     static const char* shadowTypes[] = { "No Shadow", "Hard Shadow", "PCF", "PCSS" };
     ImGui::Text("Shadow Type:");
@@ -181,7 +194,7 @@ void ImGUIManger::renderAddModelUI() {
 }
 
 void ImGUIManger::renderIBLSelectionUI() {
-    static int currentHDRIndex = 0;
+    static int currentHDRIndex = 4;
     const char* hdrFiles[] = { "No IBL","1.hdr", "2.hdr", "3.hdr", "4.hdr" };
 
 
