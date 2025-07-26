@@ -8,13 +8,10 @@
 class LightingPass : public RenderPass {
 public:
     explicit LightingPass(Scene &scene);
-
     void init(RenderResource& resource) override;
     void render(RenderResource& resource) override;
     Shader lightingShader;
 private:
-    void initQuad();
-    GLuint quadVAO = 0;
     GLuint lightFBO = 0;
     GLuint lightTexture = 0;
     Scene &scene;

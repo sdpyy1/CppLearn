@@ -18,9 +18,6 @@ public:
 private:
     Scene &scene;
     Shader postShader;
-    GLuint quadVAO = 0;
-
-    void initQuad();
 };
 
 

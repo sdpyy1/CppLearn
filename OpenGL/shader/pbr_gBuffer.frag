@@ -317,8 +317,5 @@ void main()
     // 伽马矫正
     color = pow(color, vec3(1.0 / 2.2));
 
-    // 不写入深度，会让天空盒盖住屏幕
-    gl_FragDepth = texture(gDepth, TexCoords).r;
-
     FragColor =  vec4(color, 1.0);
 }

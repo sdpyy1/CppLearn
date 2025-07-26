@@ -17,7 +17,7 @@
 int main()
 {
     // 初始化系统
-    WindowManager app(1600, 1200);
+    WindowManager app(2000, 1600);
     Scene scene(&app.camera);
     std::unique_ptr<RenderPipeline> renderPipeline = RenderPipeline::setupDeferredRenderPipeline(scene);
     ImGUIManger imGUIManger(scene,renderPipeline.get());
@@ -45,7 +45,7 @@ int main()
         renderPipeline->render();
 
         // --- 渲染 ImGui ---
-        GL_CALL(imGUIManger.render());
+        imGUIManger.render();
 
         glfwSwapBuffers(app.window);
         glfwPollEvents();

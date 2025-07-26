@@ -32,7 +32,7 @@ public:
         // 正方形VAO，用于铺满屏幕渲染
         resource.VAOs["quad"] = createQuadVAO();
         // debug纹理专用shader
-        resource.shaders["debugTexture"] = std::make_unique<Shader>("shader/debugTexture.vert", "../shader/debugTexture.frag");
+        resource.shaders["quadShader"] = std::make_unique<Shader>("shader/quad.vert", "../shader/quad.frag");
     }
 
     void render() {

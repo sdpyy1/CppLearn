@@ -72,7 +72,7 @@ void DebugPass::render(RenderResource& resource){
     }
     if (scene.showDebugTexture) {
         glBindVertexArray(resource.VAOs["quad"]);
-        resource.shaders["debugTexture"].get()->bind();
+        resource.shaders["quadShader"].get()->bind();
         glDepthMask(GL_FALSE);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -93,7 +93,7 @@ void DebugPass::render(RenderResource& resource){
         addIfSelected(scene.showNormal,    resource.textures["gNormal"],    5, "Normal");
         addIfSelected(scene.showPosition,  resource.textures["gPosition"],  0, "Position");
         addIfSelected(scene.showDepth,     resource.textures["gDepth"],     6, "Depth");
-        addIfSelected(scene.showShadowMap, resource.textures["shadowMap"],  0, "ShadowMap");
+        addIfSelected(scene.showShadowMap, resource.textures["shadowMap"],  1, "ShadowMap");
         addIfSelected(scene.showMetallic,  resource.textures["gMaterial"],  1, "Metallic");
         addIfSelected(scene.showRoughness, resource.textures["gMaterial"],  2, "Roughness");
         addIfSelected(scene.showAO,        resource.textures["gMaterial"],  3, "AO");
@@ -122,11 +122,11 @@ void DebugPass::render(RenderResource& resource){
                 glBindTexture(GL_TEXTURE_2D, texId);
 
                 // 设置shader参数
-                resource.shaders["debugTexture"].get()->setInt("debugTexture", 0);
-                resource.shaders["debugTexture"].get()->setInt("channel", channel);
+                resource.shaders["quadShader"].get()->setInt("quadShader", 0);
+                resource.shaders["quadShader"].get()->setInt("channel", channel);
                 if (name == "Depth") {
-                    resource.shaders["debugTexture"].get()->setFloat("near", scene.camera->Near);
-                    resource.shaders["debugTexture"].get()->setFloat("far", scene.camera->Far);
+                    resource.shaders["quadShader"].get()->setFloat("near", scene.camera->Near);
+                    resource.shaders["quadShader"].get()->setFloat("far", scene.camera->Far);
                 }
 
                 GL_CALL(glDrawArrays(GL_TRIANGLES, 0, 6));
@@ -138,7 +138,7 @@ void DebugPass::render(RenderResource& resource){
         GL_CALL(glViewport(0, 0, scene.width, scene.height));
         GL_CALL(glEnable(GL_DEPTH_TEST));
         glDepthMask(GL_TRUE);
-        resource.shaders["debugTexture"].get()->unBind();
+        resource.shaders["quadShader"].get()->unBind();
     }
 }
 
