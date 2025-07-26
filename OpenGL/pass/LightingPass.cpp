@@ -2,14 +2,13 @@
 #include "../utils/checkGlCommand.h"
 
 LightingPass::LightingPass(Scene &scene)
-        : lightingShader("shader/pbr_gBuffer.vert", "shader/pbr_gBuffer.frag"), scene(scene)
+        : RenderPass("lightingPass"),lightingShader("shader/pbr_gBuffer.vert", "shader/pbr_gBuffer.frag"), scene(scene)
 //        : lightingShader("shader/phong.vert", "shader/phong.frag"), scene(scene)
 {}
 
 
 
 void LightingPass::init(RenderResource& resource) {
-    passName = "lightingPass";
     // FBO和输出纹理
     glGenFramebuffers(1, &lightFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, lightFBO);

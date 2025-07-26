@@ -35,12 +35,80 @@ void ImGUIManger::render() {
         renderLightListUI();
         renderLightProperties();
     }
-
+    if (ImGui::CollapsingHeader("Debug")) {
+        renderDebugTextureSelector();
+    }
     ImGui::End();
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
+void ImGUIManger::renderDebugTextureSelector() {
+    ImGui::Checkbox("Enable Outline", &scene.enableOutline);
+    ImGui::Checkbox("Draw Light Cubes", &scene.drawLightCube);
+    ImGui::Checkbox("Debug Texture", &scene.showDebugTexture);
+    if (scene.showDebugTexture) {
+        ImGui::Text("Select textures to display (max 4)");
 
+        ImGui::Separator();
+
+        // 存储当前勾选的数量
+        int checkedCount = 0;
+        // 临时存储勾选状态（用于限制最大数量）
+        std::vector<bool*> boolPtrs = {
+                &scene.showAlbedo,
+                &scene.showNormal,
+                &scene.showPosition,
+                &scene.showDepth,
+                &scene.showMetallic,   // gMaterial.R
+                &scene.showRoughness,  // gMaterial.G
+                &scene.showAO,         // gMaterial.B
+                &scene.showEmission,
+                &scene.showShadowMap    // 包含新增的ShadowMap
+        };
+
+        // 先统计已勾选的数量
+        for (bool* b : boolPtrs) {
+            if (*b) checkedCount++;
+        }
+
+        // 绘制勾选框（带最大数量限制）
+        auto renderToggle = [&](const char* label, bool& target) {
+            bool temp = target;
+            if (ImGui::Checkbox(label, &temp)) {
+                if (temp) {
+                    // 勾选时检查是否超过4个
+                    if (checkedCount < 4) {
+                        target = true;
+                        checkedCount++;
+                    }
+                    // 超过则不勾选（保持原状态）
+                } else {
+                    // 取消勾选
+                    target = false;
+                    checkedCount--;
+                }
+            }
+        };
+
+        // 按分类绘制勾选框
+        renderToggle("Albedo", scene.showAlbedo);
+        renderToggle("Normal", scene.showNormal);
+        renderToggle("Position", scene.showPosition);
+        renderToggle("Depth", scene.showDepth);
+        renderToggle("ShadowMap", scene.showShadowMap);
+        ImGui::Separator();
+        renderToggle("Metallic (R)", scene.showMetallic);
+        renderToggle("Roughness (G)", scene.showRoughness);
+        renderToggle("AO (B)", scene.showAO);
+        renderToggle("Emission", scene.showEmission);
+
+        // 显示当前选中数量提示
+        ImGui::Text("Selected: %d/4", checkedCount);
+        if (checkedCount >= 4) {
+            ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "Max 4 textures allowed");
+        }
+    }
+}
 void ImGUIManger::renderSSRSettingsUI() {
     ImGui::Separator();
     ImGui::Text("SSR Settings");
@@ -95,7 +163,6 @@ void ImGUIManger::renderModelTransformUI() {
 }
 
 void ImGUIManger::renderModelListUI() {
-    ImGui::Checkbox("Enable Outline", &scene.enableOutline);
 
     if (ImGui::BeginListBox("##ModelList", ImVec2(-FLT_MIN, 0))) {
         for (int i = 0; i < scene.models.size(); ++i) {
@@ -120,7 +187,6 @@ std::string getLightTypeName(const Light& light) {
     return "Unknown";
 }
 void ImGUIManger::renderLightListUI() {
-    ImGui::Checkbox("Draw Light Cubes", &scene.drawLightCube);
 
     if (ImGui::BeginListBox("##LightList", ImVec2(-FLT_MIN, 0))) {
         for (int i = 0; i < scene.lights.size(); ++i) {

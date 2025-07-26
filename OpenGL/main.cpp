@@ -17,10 +17,10 @@
 int main()
 {
     // 初始化系统
-    WindowManager app(2560, 1920);
+    WindowManager app(1600, 1200);
     Scene scene(&app.camera);
-    ImGUIManger imGUIManger(scene);
-    std::unique_ptr<RenderPipeline> renderPipeline = RenderPipeline::setupDefaultPipeline(scene);
+    std::unique_ptr<RenderPipeline> renderPipeline = RenderPipeline::setupDeferredRenderPipeline(scene);
+    ImGUIManger imGUIManger(scene,renderPipeline.get());
 
     // 搭建场景
     glm::vec3 lightDir = glm::normalize(glm::vec3(-1.0f, -1.0f, -1.0f));

@@ -44,7 +44,18 @@ public:
     float threshold = 1.f;
     float SSRStrength = 1.f;
 
+    // debug
+    bool showShadowMap = false;
+    bool showDebugTexture = false;
 
+    bool showAlbedo = false;
+    bool showNormal = false;
+    bool showPosition = false;
+    bool showDepth = false;
+    bool showMetallic = false;  // 对应gMaterial的R通道
+    bool showRoughness = false; // 对应gMaterial的G通道
+    bool showAO = false;        // 对应gMaterial的B通道
+    bool showEmission = false;
 
     explicit Scene(Camera* camera);
     void addModel(Model& model);
@@ -78,6 +89,7 @@ private:
     GLuint computeLutMap();
     GLuint computePrefilterMap(GLuint envCubemap);
     GLuint computeIrradianceMap(GLuint envCubemap);
+
 
 
 };

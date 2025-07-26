@@ -7,11 +7,13 @@
 
 
 #include "Scene.h"
+#include "../pass/RenderPipeline.h"
 
 class ImGUIManger {
 public:
     Scene &scene;
-    explicit ImGUIManger(Scene &scene):scene(scene){}
+    RenderPipeline * renderPipeline;
+    explicit ImGUIManger(Scene &scene,RenderPipeline * renderPipeline):scene(scene),renderPipeline(renderPipeline){}
     void render();
 
     void renderModelTransformUI();
@@ -29,6 +31,8 @@ public:
     void renderShadowSetting();
 
     void renderSSRSettingsUI();
+
+    void renderDebugTextureSelector();
 };
 
 

@@ -6,14 +6,13 @@
 #include "../core/Shader.h"
 #include "../utils/checkGlCommand.h"
 
-DebugPass::DebugPass(Scene &scene) :scene(scene), skyboxShader("shader/skybox.vert", "shader/skybox.frag"),
+DebugPass::DebugPass(Scene &scene) :RenderPass("DebugPass") ,scene(scene), skyboxShader("shader/skybox.vert", "shader/skybox.frag"),
                                     lightCubeShader("shader/lightCube.vert", "shader/lightCube.frag"),
                                     outlineShader("shader/outline.vert", "shader/outline.frag"){
 
 }
 
 void DebugPass::init(RenderResource& resource){
-    passName = "DebugPass";
     RenderPass::init(resource);
 }
 
@@ -50,7 +49,6 @@ void DebugPass::render(RenderResource& resource){
         glCullFace(GL_BACK);
         glDisable(GL_CULL_FACE);
     }
-
     // 光源方块
     if (scene.drawLightCube){
         lightCubeShader.bind();
@@ -71,6 +69,76 @@ void DebugPass::render(RenderResource& resource){
         }
         lightCubeShader.unBind();
         glDepthFunc(GL_LESS);
+    }
+    if (scene.showDebugTexture) {
+        glBindVertexArray(resource.VAOs["quad"]);
+        resource.shaders["debugTexture"].get()->bind();
+        glDepthMask(GL_FALSE);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        const int maxPerRow = 2;
+        int totalSelected = 0;
+        std::vector<std::tuple<GLuint, int, std::string>> selectedTextures;
+
+        // 收集选中的纹理（逻辑不变）
+        auto addIfSelected = [&](bool isSelected, GLuint texId, int channel, const std::string& name) {
+            if (isSelected && totalSelected < 4) {
+                selectedTextures.emplace_back(texId, channel, name);
+                totalSelected++;
+            }
+        };
+
+        // 添加选中的纹理（按顺序）
+        addIfSelected(scene.showAlbedo,    resource.textures["gAlbedo"],    0, "Albedo");
+        addIfSelected(scene.showNormal,    resource.textures["gNormal"],    5, "Normal");
+        addIfSelected(scene.showPosition,  resource.textures["gPosition"],  0, "Position");
+        addIfSelected(scene.showDepth,     resource.textures["gDepth"],     6, "Depth");
+        addIfSelected(scene.showShadowMap, resource.textures["shadowMap"],  0, "ShadowMap");
+        addIfSelected(scene.showMetallic,  resource.textures["gMaterial"],  1, "Metallic");
+        addIfSelected(scene.showRoughness, resource.textures["gMaterial"],  2, "Roughness");
+        addIfSelected(scene.showAO,        resource.textures["gMaterial"],  3, "AO");
+        addIfSelected(scene.showEmission,  resource.textures["gEmission"],  0, "Emission");
+
+        // 关键修复：处理 totalSelected = 0 的情况
+        if (totalSelected > 0) { // 只有选中纹理时才计算网格并绘制
+            // 计算行数（向上取整，避免除以零）
+            int rows = (totalSelected + maxPerRow - 1) / maxPerRow;
+            // 计算网格尺寸（此时 rows 至少为1，不会除以零）
+            int gridW = scene.width / maxPerRow;
+            int gridH = scene.height / rows;
+
+            // 绘制选中的纹理
+            for (int i = 0; i < totalSelected; i++) {
+                auto [texId, channel, name] = selectedTextures[i];
+                int col = i % maxPerRow;   // 列索引（0或1）
+                int row = i / maxPerRow;   // 行索引（0或1，因为最多4个）
+
+                // 计算视口位置
+                int x = col * gridW;
+                int y = row * gridH; // 注意：OpenGL视口Y轴向下，如需翻转可调整为 (rows - 1 - row) * gridH
+
+                glViewport(x, y, gridW, gridH);
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_2D, texId);
+
+                // 设置shader参数
+                resource.shaders["debugTexture"].get()->setInt("debugTexture", 0);
+                resource.shaders["debugTexture"].get()->setInt("channel", channel);
+                if (name == "Depth") {
+                    resource.shaders["debugTexture"].get()->setFloat("near", scene.camera->Near);
+                    resource.shaders["debugTexture"].get()->setFloat("far", scene.camera->Far);
+                }
+
+                GL_CALL(glDrawArrays(GL_TRIANGLES, 0, 6));
+            }
+        }
+
+        // 恢复状态
+        GL_CALL(glBindVertexArray(0));
+        GL_CALL(glViewport(0, 0, scene.width, scene.height));
+        GL_CALL(glEnable(GL_DEPTH_TEST));
+        glDepthMask(GL_TRUE);
+        resource.shaders["debugTexture"].get()->unBind();
     }
 }
 

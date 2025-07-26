@@ -5,12 +5,11 @@
 #include "PostprocessPass.h"
 #include "../utils/checkGlCommand.h"
 
-PostprocessPass::PostprocessPass(Scene &scene):scene(scene) ,postShader("shader/postprocess.vert", "shader/postprocess.frag"){
+PostprocessPass::PostprocessPass(Scene &scene):RenderPass("Postprocess"),scene(scene) ,postShader("shader/postprocess.vert", "shader/postprocess.frag"){
 
 }
 
 void PostprocessPass::init(RenderResource &resource) {
-    passName = "Postprocess";
     initQuad();
     RenderPass::init(resource);
 }
