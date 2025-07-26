@@ -10,6 +10,25 @@ LightingPass::LightingPass(Scene &scene)
 
 void LightingPass::init(RenderResource& resource) {
     passName = "lightingPass";
+    // FBO和输出纹理
+    glGenFramebuffers(1, &lightFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, lightFBO);
+
+    glGenTextures(1, &lightTexture);
+    resource.textures["lightTexture"] = lightTexture;
+    glBindTexture(GL_TEXTURE_2D, lightTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, scene.width, scene.height, 0, GL_RGBA, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, lightTexture, 0);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cerr << "[LightingPass] FBO not complete!" << std::endl;
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
     initQuad();  // 创建全屏 quad VAO
     RenderPass::init(resource);
 }
@@ -48,6 +67,9 @@ void LightingPass::render(RenderResource& resource) {
         std::cerr << "LightingPass not init!" << std::endl;
         return;
     }
+    glBindFramebuffer(GL_FRAMEBUFFER, lightFBO);
+    glViewport(0, 0, scene.width, scene.height);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     GL_CALL(lightingShader.bind());
     // VP
@@ -109,5 +131,7 @@ void LightingPass::render(RenderResource& resource) {
     GL_CALL(glDrawArrays(GL_TRIANGLES, 0, 6));
     GL_CALL(glBindVertexArray(0));
     GL_CALL(lightingShader.unBind());
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 }
 

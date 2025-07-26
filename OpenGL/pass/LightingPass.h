@@ -15,5 +15,7 @@ public:
 private:
     void initQuad();
     GLuint quadVAO = 0;
+    GLuint lightFBO = 0;
+    GLuint lightTexture = 0;
     Scene &scene;
 };

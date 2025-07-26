@@ -11,6 +11,7 @@
 #include "RenderPass.h"
 #include "ShadowPass.h"
 #include "DebugPass.h"
+#include "PostprocessPass.h"
 
 class RenderPipeline {
     std::vector<std::unique_ptr<RenderPass>> passes;
@@ -41,7 +42,8 @@ public:
         pipeline->addPass(std::make_unique<ShadowPass>(scene));
         pipeline->addPass(std::make_unique<GeometryPass>(scene));
         pipeline->addPass(std::make_unique<LightingPass>(scene));
-        pipeline->addPass(std::make_unique<DebugPass>(scene));
+        pipeline->addPass(std::make_unique<PostprocessPass>(scene));
+//        pipeline->addPass(std::make_unique<DebugPass>(scene));
         pipeline->init();
         return pipeline;
     }
