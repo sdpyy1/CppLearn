@@ -3,6 +3,8 @@
 //
 
 #include "PostprocessPass.h"
+#include "../utils/checkGlCommand.h"
+
 PostprocessPass::PostprocessPass(Scene &scene):scene(scene) ,postShader("shader/postprocess.vert", "shader/postprocess.frag"){
 
 }
@@ -44,10 +46,12 @@ void PostprocessPass::render(RenderResource &resource) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     postShader.bind();
-
     // 绑定 lightingResultTex
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, resource.textures["lightTexture"]);
+    GL_CALL(postShader.setInt("gDepth", 1));
+    GL_CALL(glActiveTexture(GL_TEXTURE1));
+    GL_CALL(glBindTexture(GL_TEXTURE_2D, resource.textures["gDepth"]));
     postShader.setInt("lightTexture", 0);
 
     glBindVertexArray(quadVAO);

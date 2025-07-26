@@ -43,7 +43,7 @@ public:
         pipeline->addPass(std::make_unique<GeometryPass>(scene));
         pipeline->addPass(std::make_unique<LightingPass>(scene));
         pipeline->addPass(std::make_unique<PostprocessPass>(scene));
-//        pipeline->addPass(std::make_unique<DebugPass>(scene));
+        pipeline->addPass(std::make_unique<DebugPass>(scene));
         pipeline->init();
         return pipeline;
     }
