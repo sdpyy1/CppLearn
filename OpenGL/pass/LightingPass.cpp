@@ -41,14 +41,14 @@ void LightingPass::render(RenderResource& resource) {
     // VP
     lightingShader.setMat4("projection", scene.camera->getProjectionMatrix());
     lightingShader.setMat4("view", scene.camera->getViewMatrix());
+    // 摄像机
+    GL_CALL(lightingShader.setVec3("camPos", scene.camera->Position));
+    // 灯光
+    if (!scene.lights.empty()) {
+        GL_CALL(lightingShader.setVec3("lightPos", scene.lights[0]->position));
+        GL_CALL(lightingShader.setVec3("lightColor", scene.lights[0]->color));
+    }
 
-    //SSR
-    lightingShader.setInt("EnableSSR", scene.EnableSSR?1:0);
-    lightingShader.setInt("totalStepTimes",scene.totalStepTimes);
-    lightingShader.setFloat("stepSize",scene.stepSize);
-    lightingShader.setFloat("EPS",scene.EPS);
-    lightingShader.setFloat("threshold",scene.threshold);
-    lightingShader.setFloat("SSRStrength",scene.SSRStrength);
 
     // gBuffer 和 shadowMap
     GL_CALL(lightingShader.setInt("gPosition", 0));
@@ -60,14 +60,9 @@ void LightingPass::render(RenderResource& resource) {
     GL_CALL(lightingShader.setInt("shadowMap", 6));
     lightingShader.setMat4("lightSpaceMatrix", resource.matrices["lightSpaceMatrix"]);
 
-    // 摄像机
-    GL_CALL(lightingShader.setVec3("camPos", scene.camera->Position));
 
-    // 灯光
-    if (!scene.lights.empty()) {
-        GL_CALL(lightingShader.setVec3("lightPos", scene.lights[0]->position));
-        GL_CALL(lightingShader.setVec3("lightColor", scene.lights[0]->color));
-    }
+
+
 
     // 阴影
     lightingShader.setInt("shadowType", scene.shadowType);

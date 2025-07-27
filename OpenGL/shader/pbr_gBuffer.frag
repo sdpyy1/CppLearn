@@ -32,13 +32,6 @@ uniform float PCSSBlockerSearchRadius;
 uniform float PCSSScale;
 uniform float PCSSKernelMax;
 
-// SSR
-uniform int EnableSSR;
-uniform int totalStepTimes;
-uniform float stepSize;
-uniform float EPS;
-uniform float threshold;
-uniform float SSRStrength;
 
 const float PI = 3.14159265359;
 
@@ -160,85 +153,7 @@ vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
 {
     return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
-vec3 RRTAndODTFit(vec3 v)
-{
-    vec3 a = v * (v + 0.0245786) - 0.000090537;
-    vec3 b = v * (0.983729 * v + 0.4329510) + 0.238081;
-    return a / b;
-}
 
-vec3 ACESFilmToneMapping(vec3 color)
-{
-    // 适当的曝光缩放，可以视为手动曝光调整（可调参数）
-    color *= 0.6;
-    // ACES tone mapping 曲线
-    color = RRTAndODTFit(color);
-    // Clamp 到 [0, 1]
-    return clamp(color, 0.0, 1.0);
-}
-vec4 Project(vec4 a) {
-    return a / a.w;
-}
-vec2 GetScreenCoordinate(vec3 posWorld) {
-    vec2 uv = Project(projection*view * vec4(posWorld, 1.0)).xy * 0.5 + 0.5;
-    return uv;
-}
-float GetDepth(vec3 posWorld) {
-    vec4 clipSpacePos = projection * view * vec4(posWorld, 1.0);
-    float ndcZ = clipSpacePos.z / clipSpacePos.w;   // z in [-1, 1]
-    float depth = ndcZ * 0.5 + 0.5;                  // map to [0, 1]
-    return depth;
-}
-float GetGBufferDepth(vec2 uv) {
-    float depth = texture2D(gDepth, uv).x;
-    if (depth < 1e-2) {
-        depth = 1000.0;
-    }
-    return depth;
-}
-float LinearizeDepth(float d) {
-    float nearPlane = 0.1;
-    float farPlane = 100;
-    float z = d * 2.0 - 1.0; // back to NDC z in [-1,1]
-    return (2.0 * nearPlane * farPlane) / (farPlane + nearPlane - z * (farPlane - nearPlane));
-}
-// RayMarch函数，根据你给的代码写
-bool RayMarch(vec3 ori, vec3 dir, out vec3 hitPos) {
-    if(EnableSSR == 0){
-        return false;
-    }
-    bool result = false;
-    bool firstIn = false;
-    vec3 curPos = ori;
-    float stepSzieInnder = stepSize;  // uniform变量不能在shader中修改
-    vec3 nextPos;
-    for(int i = 0; i < totalStepTimes; i++) {
-        // 步进
-        nextPos = curPos + dir * stepSzieInnder;
-        // 获取步进后的空间坐标对应的uv坐标
-        vec2 uvScreen = GetScreenCoordinate(nextPos);
-        // 超出屏幕，直接返回
-        if(any(lessThan(uvScreen, vec2(0.0))) || any(greaterThan(uvScreen, vec2(1.0)))) break;
-        // 没有碰到物体
-        if(LinearizeDepth(GetDepth(nextPos)) < LinearizeDepth(GetGBufferDepth(GetScreenCoordinate(nextPos)))){
-            curPos += dir * stepSzieInnder;
-            if(firstIn) stepSzieInnder *= 0.5;
-            continue;
-        }
-        firstIn = true;
-        if(stepSzieInnder < EPS){
-            float s1 = LinearizeDepth(GetGBufferDepth(GetScreenCoordinate(curPos))) - LinearizeDepth(GetDepth(curPos)) + EPS;
-            float s2 = LinearizeDepth(GetDepth(nextPos)) - LinearizeDepth(GetGBufferDepth(GetScreenCoordinate(nextPos))) + EPS;
-            if(s1 < threshold && s2 < threshold){
-                hitPos = curPos + 2.0 * dir * stepSzieInnder * s1 / (s1 + s2);
-                result = true;
-            }
-            break;
-        }
-        if(firstIn) stepSzieInnder *= 0.5;
-    }
-    return result;
-}
 
 
 void main()
@@ -287,35 +202,11 @@ void main()
     vec3 irradiance = texture(irradianceMap, N).rgb;
     vec3 diffuse    = irradiance * albedo / PI;  // learnOpenGL中并没有 /PI
 
-    //TODO： 这部分应该移动到后处理Pass
-    // SSR计算光滑表面镜面反射
-    bool hit = false;
-    vec3 ssrColor = vec3(0.0);
-    vec3 hitPos;
-    vec3 specularFinal = specularIBL;
-    hit = RayMarch(WorldPos, R, hitPos);
-    if(hit) {
-        vec2 uvHit = GetScreenCoordinate(hitPos);
-        // 从之前的渲染结果中采样反射颜色 TODO： 移动到后处理阶段后使用最终颜色来反射
-        ssrColor = pow(texture(gAlbedo, uvHit).rgb, vec3(2.2));
-        // 混合SSR颜色和IBL
-        float fade = smoothstep(0.0, 0.05, uvHit.x) * smoothstep(0.0, 0.05, uvHit.y) *
-        smoothstep(0.0, 0.95, 1.0 - uvHit.x) * smoothstep(0.0, 0.95, 1.0 - uvHit.y);
-        float mixWeight = SSRStrength * fade;
-        specularFinal = mix(specularIBL, ssrColor, mixWeight);
-    }
-
-    vec3 ambient = (kD * diffuse + specularFinal) * ao;
+    vec3 ambient = (kD * diffuse + specularIBL) * ao;
 
     // 光照相加
     vec3 color = ambient + Lo + emission;
 
-    // toneMapping
-//    color = color / (color + vec3(1.0));
-    color = ACESFilmToneMapping(color)  ;
-
-    // 伽马矫正
-    color = pow(color, vec3(1.0 / 2.2));
 
     FragColor =  vec4(color, 1.0);
 }
