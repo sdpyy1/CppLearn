@@ -6,9 +6,9 @@
 #include "../core/Shader.h"
 #include "../utils/checkGlCommand.h"
 
-DebugPass::DebugPass(Scene &scene) :RenderPass("DebugPass") ,scene(scene), skyboxShader("shader/skybox.vert", "shader/skybox.frag"),
-                                    lightCubeShader("shader/lightCube.vert", "shader/lightCube.frag"),
-                                    outlineShader("shader/outline.vert", "shader/outline.frag"){
+DebugPass::DebugPass(Scene &scene) :RenderPass("DebugPass") ,scene(scene), skyboxShader("shader/debug/skybox.vert", "shader/debug/skybox.frag"),
+                                    lightCubeShader("shader/debug/lightCube.vert", "shader/debug/lightCube.frag"),
+                                    outlineShader("shader/debug/outline.vert", "shader/debug/outline.frag"){
 
 }
 

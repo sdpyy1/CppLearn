@@ -13,8 +13,12 @@
 #include "GeometryPass.h"
 #include "LightingPass.h"
 #include "DebugPass.h"
-#include "PostprocessPass.h"
+#include "postprocess/PostprocessPass.h"
 #include "../core/Shader.h"
+#include "postprocess/SSRPass.h"
+#include "postprocess/FinalColorPass.h"
+#include "postprocess/BloomPass.h"
+
 class RenderPipeline {
 
 public:
@@ -49,7 +53,9 @@ public:
         pipeline->addPass(std::make_unique<ShadowPass>(scene));
         pipeline->addPass(std::make_unique<GeometryPass>(scene));
         pipeline->addPass(std::make_unique<LightingPass>(scene));
-        pipeline->addPass(std::make_unique<PostprocessPass>(scene));
+        pipeline->addPass(std::make_unique<SSRPass>(scene));
+//        pipeline->addPass(std::make_unique<BloomPass>(scene));
+        pipeline->addPass(std::make_unique<FinalColorPass>(scene));
         pipeline->addPass(std::make_unique<DebugPass>(scene));
         pipeline->init();
         return pipeline;

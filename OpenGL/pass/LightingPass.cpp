@@ -2,7 +2,7 @@
 #include "../utils/checkGlCommand.h"
 
 LightingPass::LightingPass(Scene &scene)
-        : RenderPass("lightingPass"),lightingShader("shader/pbr_gBuffer.vert", "shader/pbr_gBuffer.frag"), scene(scene)
+        : RenderPass("lightingPass"),lightingShader("shader/quad.vert", "shader/lighting.frag"), scene(scene)
 {}
 
 

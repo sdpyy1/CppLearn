@@ -6,18 +6,22 @@
 #define OPENGLRENDER_POSTPROCESSPASS_H
 
 
-#include "RenderPass.h"
-#include "../helper/Scene.h"
+#include "../RenderPass.h"
+#include "../../helper/Scene.h"
 
 class PostprocessPass : public RenderPass{
 public:
-    explicit PostprocessPass(Scene &scene);
+    PostprocessPass(Scene &scene,const Shader &postShader);
 
     void init(RenderResource& resource) override;
     void render(RenderResource& resource) override;
-private:
-    Scene &scene;
+    int bindParams(RenderResource &resource);
+    void toScreen();
     Shader postShader;
+    Scene &scene;
+private:
+    GLuint renderedTexture = 0;
+    GLuint postFBO = 0;
 };
 
 

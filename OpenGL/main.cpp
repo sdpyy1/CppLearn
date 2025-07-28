@@ -25,7 +25,7 @@ int main()
     // 搭建场景
     glm::vec3 lightDir = glm::normalize(glm::vec3(-1.0f, -1.0f, -1.0f));
     DirectionalLight directionalLight(lightDir, glm::vec3(1.0f), 1.0f);
-    Model plane = Model::createPlane();
+    Model plane = Model::createPlane(100,2);
     scene.loadHDRAndIBL("assets/HDR/4.hdr");
     scene.addModel(plane);
     scene.addDefaultModel("helmet");

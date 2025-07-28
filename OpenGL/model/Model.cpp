@@ -470,7 +470,7 @@ Model Model::createCube(float size) {
     cubeModel.directory = "cube";
     return cubeModel;
 }
-Model Model::createPlane(float size) {
+Model Model::createPlane(float size,int type) {
     Model planeModel;
 
     float halfSize = size / 2.0f;
@@ -518,16 +518,26 @@ Model Model::createPlane(float size) {
 
     // 创建材质
     PBRMaterial mat;
-    mat.metallic  = defaultMetallic;
-    mat.emission  = defaultBlack;
     Mesh planeMesh(vertices, indices, mat);
     planeModel.meshes.push_back(planeMesh);
 
     Mesh &mesh = planeModel.meshes[0];
-    mesh.loadNewTexture("assets/floor/albedo.jpg","texture_albedo");
-    mesh.loadNewTexture("assets/floor/AO.jpg","texture_ao");
-    mesh.loadNewTexture("assets/floor/normal.jpg","texture_normal");
-    mesh.loadNewTexture("assets/floor/roughness.jpg","texture_roughness");
+    if(type == 1){
+        mesh.loadNewTexture("assets/floor/albedo.jpg","texture_albedo");
+        mesh.loadNewTexture("assets/floor/AO.jpg","texture_ao");
+        mesh.loadNewTexture("assets/floor/normal.jpg","texture_normal");
+        mesh.loadNewTexture("assets/floor/roughness.jpg","texture_roughness");
+    }else{
+        mesh.loadNewTexture("assets/metal/albedo.jpg","texture_albedo");
+        mesh.loadNewTexture("assets/floor/Metalness.jpg","texture_metallic");
+        mesh.loadNewTexture("assets/floor/normal.jpg","texture_normal");
+    }
+    if(!mat.hasMetallic) mat.metallic = defaultMetallic;
+    if(!mat.hasRoughness) mat.roughness = defaultRoughness;
+    if(!mat.hasAO) mat.ao = defaultAO;
+    if(!mat.hasAlbedo) mat.albedo = defaultAlbedo;
+    if(!mat.hasEmission) mat.emission = defaultBlack;
+    if(!mat.hasNormal) mat.normal = defaultNormal;
 
     planeModel.translation = glm::vec3(0.0f, -2.f, 0.0f);
     planeModel.directory = "floor";

@@ -159,7 +159,7 @@ void Scene::renderQuad()
 
 GLuint Scene::loadCubemapFromHDR(const char *path)
 {
-    Shader HDR2CubemapShader("shader/HDR2Cubemap.vert", "shader/HDR2Cubemap.frag");
+    Shader HDR2CubemapShader("shader/IBL/HDR2Cubemap.vert", "shader/IBL/HDR2Cubemap.frag");
     // 加载环境贴图
     stbi_set_flip_vertically_on_load(true);
     int width, height, nrComponents;
@@ -433,7 +433,7 @@ GLuint Scene::computeIrradianceMap(GLuint envCubemap)
                     glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
                     glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
             };
-    Shader irradianceMapShader = Shader("shader/irradianceMap.vert","shader/irradianceMap.frag");
+    Shader irradianceMapShader = Shader("shader/IBL/irradianceMap.vert","shader/IBL/irradianceMap.frag");
 
     GLuint FrameBuffer;
     GLuint RenderBuffer;
@@ -491,7 +491,7 @@ GLuint Scene::computePrefilterMap(GLuint envCubemap)
                     glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
             };
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-    Shader prefilterShader = Shader("shader/prefiltermap.vert","shader/prefiltermap.frag");
+    Shader prefilterShader = Shader("shader/IBL/prefiltermap.vert","shader/IBL/prefiltermap.frag");
 
     GLuint FrameBuffer;
     GLuint RenderBuffer;
@@ -550,7 +550,7 @@ GLuint Scene::computePrefilterMap(GLuint envCubemap)
 
 GLuint Scene::computeLutMap()
 {
-    Shader lutShader = Shader("shader/lut.vert","shader/lut.frag");
+    Shader lutShader = Shader("shader/IBL/lut.vert","shader/IBL/lut.frag");
 
     GLuint brdfLUTTexture;
     glGenTextures(1, &brdfLUTTexture);
