@@ -22,7 +22,7 @@ glm::mat4 AssimpToGlm(const aiMatrix4x4& from)
 
     return to;
 }
-GLuint createNewTextureWithSwizzledChannels(GLuint srcTexID) {
+GLuint createNewTextureG2R(GLuint srcTexID) {
     glBindTexture(GL_TEXTURE_2D, srcTexID);
     int width, height;
     glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
@@ -34,6 +34,33 @@ GLuint createNewTextureWithSwizzledChannels(GLuint srcTexID) {
     for (auto& px : pixels) {
         // 将 G 通道复制到 R 通道
         px.r = px.g;
+    }
+
+    GLuint newTex;
+    glGenTextures(1, &newTex);
+    glBindTexture(GL_TEXTURE_2D, newTex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, pixels.data());
+
+    // 设定过滤方式
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    return newTex;
+}
+
+GLuint createNewTextureB2R(GLuint srcTexID) {
+    glBindTexture(GL_TEXTURE_2D, srcTexID);
+    int width, height;
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
+
+    std::vector<glm::vec3> pixels(width * height);
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, pixels.data());
+
+    for (auto& px : pixels) {
+        // 将 G 通道复制到 R 通道
+        px.r = px.b;
     }
 
     GLuint newTex;
@@ -222,21 +249,21 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
     // 开始处理材质
     aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
     // 打印所有导入的纹理
-//    for (unsigned int i = 0; i < scene->mNumMaterials; ++i) {
-//        aiMaterial* material = scene->mMaterials[i];
-//
-//        std::cout << "Material " << i << ":\n";
-//        for (int type = aiTextureType_NONE; type <= aiTextureType_UNKNOWN; ++type) {
-//            aiTextureType texType = static_cast<aiTextureType>(type);
-//            unsigned int texCount = material->GetTextureCount(texType);
-//            for (unsigned int j = 0; j < texCount; ++j) {
-//                aiString path;
-//                if (material->GetTexture(texType, j, &path) == AI_SUCCESS) {
-//                    std::cout << "  Texture Type " << type << " : " << path.C_Str() << "\n";
-//                }
-//            }
-//        }
-//    }
+    for (unsigned int i = 0; i < scene->mNumMaterials; ++i) {
+        aiMaterial* material = scene->mMaterials[i];
+
+        std::cout << "Material " << i << ":\n";
+        for (int type = aiTextureType_NONE; type <= aiTextureType_UNKNOWN; ++type) {
+            aiTextureType texType = static_cast<aiTextureType>(type);
+            unsigned int texCount = material->GetTextureCount(texType);
+            for (unsigned int j = 0; j < texCount; ++j) {
+                aiString path;
+                if (material->GetTexture(texType, j, &path) == AI_SUCCESS) {
+                    std::cout << "  Texture Type " << type << " : " << path.C_Str() << "\n";
+                }
+            }
+        }
+    }
 
     PBRMaterial mat;
     // 定义lambda
@@ -263,11 +290,21 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
     if (!mat.hasAO)        mat.ao        = defaultAO;
     if (!mat.hasEmission)  mat.emission  = defaultBlack;
 
-    // 对金属度和粗糙度在同一张贴图的情况进行处理
-    if (mat.roughness == mat.metallic) {
-        GLuint newTexId = createNewTextureWithSwizzledChannels(mat.roughness);
-        // 替换 roughness 贴图为新生成的
-        mat.roughness = newTexId;
+    // 对金属度和粗糙度在同一张贴图的情况进行处理  G存储金属度、B存储粗糙度
+    if (mat.roughness == mat.metallic && mat.hasRoughness && mat.hasMetallic) {
+        GLuint oldTex = mat.roughness;
+        GLuint G2R = createNewTextureG2R(oldTex);
+        mat.roughness = G2R;
+        GLuint B2R = createNewTextureB2R(oldTex);
+        mat.metallic = B2R;
+        for (auto it = textures_loaded.begin(); it != textures_loaded.end(); ) {
+            if (it->id == oldTex) {
+                glDeleteTextures(1, &(it->id));
+                it = textures_loaded.erase(it);
+            } else {
+                ++it;
+            }
+        }
     }
     return Mesh(vertices, indices, mat);
 }

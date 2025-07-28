@@ -24,12 +24,6 @@ set(SOURCES
         ${MODEL_SOURCES}
         ${HELPER_SOURCES}
         ${UTILS_SOURCES}
-        pass/ShadowPass.h
-        pass/RenderPipeline.h
-        pass/DebuggPass.cpp
-        pass/DebugPass.h
-        pass/PostprocessPass.cpp
-        pass/PostprocessPass.h
 )
 add_library(imgui
         ${IMGUI_DIR}/imgui.cpp

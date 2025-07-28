@@ -56,6 +56,13 @@ public:
     bool showRoughness = false; // 对应gMaterial的G通道
     bool showAO = false;        // 对应gMaterial的B通道
     bool showEmission = false;
+    bool showLightTexture = false;
+
+    int toneMappingType = 2; // 0=None 1=Uncharted2 2=ACESFilm
+
+
+
+
 
     explicit Scene(Camera* camera);
     void addModel(Model& model);
@@ -69,7 +76,6 @@ public:
     void renderSphere();
 
     void disableIBL();
-
 private:
 
     GLuint loadCubemapFromHDR(const char *path);

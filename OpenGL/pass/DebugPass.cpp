@@ -98,6 +98,7 @@ void DebugPass::render(RenderResource& resource){
         addIfSelected(scene.showRoughness, resource.textures["gMaterial"],  2, "Roughness");
         addIfSelected(scene.showAO,        resource.textures["gMaterial"],  3, "AO");
         addIfSelected(scene.showEmission,  resource.textures["gEmission"],  0, "Emission");
+        addIfSelected(scene.showLightTexture,  resource.textures["lightTexture"],  0, "lightTexture");
 
         // 关键修复：处理 totalSelected = 0 的情况
         if (totalSelected > 0) { // 只有选中纹理时才计算网格并绘制

@@ -35,12 +35,23 @@ void ImGUIManger::render() {
         renderLightListUI();
         renderLightProperties();
     }
+    if (ImGui::CollapsingHeader("PostProcess")) {
+        renderPostprocessSetting();
+    }
     if (ImGui::CollapsingHeader("Debug")) {
         renderDebugTextureSelector();
     }
     ImGui::End();
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+void ImGUIManger::renderPostprocessSetting(){
+    ImGui::Text("Tone Mapping:");
+    ImGui::RadioButton("None", &scene.toneMappingType, 0);
+    ImGui::SameLine(); // 可选：让按钮横向排列
+    ImGui::RadioButton("Uncharted 2", &scene.toneMappingType, 1);
+    ImGui::SameLine();
+    ImGui::RadioButton("ACES Film", &scene.toneMappingType, 2);
 }
 void ImGUIManger::renderDebugTextureSelector() {
     ImGui::Checkbox("Enable Outline", &scene.enableOutline);
@@ -63,7 +74,8 @@ void ImGUIManger::renderDebugTextureSelector() {
                 &scene.showRoughness,  // gMaterial.G
                 &scene.showAO,         // gMaterial.B
                 &scene.showEmission,
-                &scene.showShadowMap    // 包含新增的ShadowMap
+                &scene.showShadowMap,    // 包含新增的ShadowMap
+                &scene.showLightTexture,
         };
 
         // 先统计已勾选的数量
@@ -101,6 +113,8 @@ void ImGUIManger::renderDebugTextureSelector() {
         renderToggle("Roughness (G)", scene.showRoughness);
         renderToggle("AO (B)", scene.showAO);
         renderToggle("Emission", scene.showEmission);
+        ImGui::Separator();
+        renderToggle("LightTexture", scene.showLightTexture);
 
         // 显示当前选中数量提示
         ImGui::Text("Selected: %d/4", checkedCount);

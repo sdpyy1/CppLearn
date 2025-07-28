@@ -33,6 +33,8 @@ public:
     void renderSSRSettingsUI();
 
     void renderDebugTextureSelector();
+
+    void renderPostprocessSetting();
 };
 
 

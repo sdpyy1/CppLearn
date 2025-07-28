@@ -36,6 +36,11 @@ void PostprocessPass::render(RenderResource &resource) {
     postShader.setFloat("EPS",scene.EPS);
     postShader.setFloat("threshold",scene.threshold);
     postShader.setFloat("SSRStrength",scene.SSRStrength);
+    // toneMapping
+    postShader.setInt("toneMappingType",scene.toneMappingType);
+
+
+
     // gBuffer
     GL_CALL(postShader.setInt("gPosition", 0));
     GL_CALL(postShader.setInt("gNormal", 1));

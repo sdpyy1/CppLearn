@@ -22,8 +22,8 @@ uniform float stepSize;
 uniform float EPS;
 uniform float threshold;
 uniform float SSRStrength;
-
-
+// Tone Mapping
+uniform int toneMappingType;
 vec4 Project(vec4 a) {
     return a / a.w;
 }
@@ -50,7 +50,8 @@ float LinearizeDepth(float d) {
     float z = d * 2.0 - 1.0; // back to NDC z in [-1,1]
     return (2.0 * nearPlane * farPlane) / (farPlane + nearPlane - z * (farPlane - nearPlane));
 }
-// RayMarch函数，根据你给的代码写
+
+
 bool RayMarch(vec3 ori, vec3 dir, out vec3 hitPos) {
     if(EnableSSR == 0){
         return false;
@@ -102,7 +103,7 @@ vec3 ACESFilmToneMapping(vec3 color)
     // Clamp 到 [0, 1]
     return clamp(color, 0.0, 1.0);
 }
-
+    
 void main() {
     vec3 baseColor = texture(lightTexture, TexCoords).rgb;
     vec3 WorldPos = texture(gPosition, TexCoords).rgb;
@@ -112,16 +113,16 @@ void main() {
     vec3 R = normalize(reflect(-V, N)); // 反射方向
 
     vec3 lightRes = texture(lightTexture, TexCoords).rgb;
+    vec3 finalColor =lightRes;
 
     // SSR计算光滑表面镜面反射
     bool hit = false;
     vec3 ssrColor = vec3(0.0);
     vec3 hitPos;
-    vec3 finalColor =lightRes;
     hit = RayMarch(WorldPos, R, hitPos);
     if(hit) {
         vec2 uvHit = GetScreenCoordinate(hitPos);
-        // 从之前的渲染结果中采样反射颜色 TODO： 移动到后处理阶段后使用最终颜色来反射
+        // 从之前的渲染结果中采样反射颜色
         ssrColor = pow(texture(lightTexture, uvHit).rgb, vec3(2.2));
         // 混合SSR颜色和IBL
         float fade = smoothstep(0.0, 0.05, uvHit.x) * smoothstep(0.0, 0.05, uvHit.y) *
@@ -131,11 +132,16 @@ void main() {
     }
 
     // toneMapping
-    //    color = color / (color + vec3(1.0));
-    finalColor = ACESFilmToneMapping(finalColor)  ;
+    if (toneMappingType == 1) {
+        finalColor = finalColor / (finalColor + vec3(1.0));
+    } else if (toneMappingType == 2) {
+        finalColor = ACESFilmToneMapping(finalColor);
+    }
 
     // 伽马矫正
     finalColor = pow(finalColor, vec3(1.0 / 2.2));
+
+    // 防止场景被天空盒覆盖
     gl_FragDepth = texture(gDepth, TexCoords).r;
 
     FragColor = vec4(finalColor, 1.0);
