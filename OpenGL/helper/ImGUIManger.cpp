@@ -22,7 +22,6 @@ void ImGUIManger::render() {
     if (ImGui::CollapsingHeader("Scene Settings")) {
         renderIBLSelectionUI();
         renderShadowSetting();
-        renderSSRSettingsUI();
     }
 
     if (ImGui::CollapsingHeader("Model")) {
@@ -45,14 +44,31 @@ void ImGUIManger::render() {
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
-void ImGUIManger::renderPostprocessSetting(){
-    ImGui::Text("Tone Mapping:");
-    ImGui::RadioButton("None", &scene.toneMappingType, 0);
-    ImGui::SameLine(); // 可选：让按钮横向排列
-    ImGui::RadioButton("Uncharted 2", &scene.toneMappingType, 1);
-    ImGui::SameLine();
-    ImGui::RadioButton("ACES Film", &scene.toneMappingType, 2);
+void ImGUIManger::renderPostprocessSetting() const{
+    if(renderPipeline->postProcessManager!= nullptr){
+        auto& passes = renderPipeline->postProcessManager->passes;
+        if(!passes.empty()){
+            // 使用索引循环以便判断是否为最后一项
+            for(size_t i = 0; i < passes.size(); ++i){
+                auto postPass = passes[i];
+                bool isLastItem = (i == passes.size() - 1);
+                if(isLastItem){
+                    ImGui::BeginDisabled();
+                }
+                ImGui::Checkbox(postPass->passName.c_str(), &postPass->isRender);
+
+                if(isLastItem){
+                    ImGui::EndDisabled();
+                }
+                if(postPass->isRender){
+                    postPass->GUIRender();
+                }
+                ImGui::Separator();
+            }
+        }
+    }
 }
+
 void ImGUIManger::renderDebugTextureSelector() {
     ImGui::Checkbox("Enable Outline", &scene.enableOutline);
     ImGui::Checkbox("Draw Light Cubes", &scene.drawLightCube);
@@ -123,15 +139,7 @@ void ImGUIManger::renderDebugTextureSelector() {
         }
     }
 }
-void ImGUIManger::renderSSRSettingsUI() {
-    ImGui::Separator();
-    ImGui::Text("SSR Settings");
-    ImGui::Checkbox("Enable SSR", &scene.EnableSSR);
-    ImGui::SliderInt("Total Step Times", &scene.totalStepTimes, 1, 100);
-    ImGui::SliderFloat("Step Size", &scene.stepSize, 0.01f, 1.f, "%.3f");
-    ImGui::SliderFloat("Threshold", &scene.threshold, 0.01f, 2.f, "%.3f");
-    ImGui::SliderFloat("strength", &scene.SSRStrength, 0.1f, 2.f, "%.3f");
-}
+
 
 
 void ImGUIManger::renderShadowSetting(){

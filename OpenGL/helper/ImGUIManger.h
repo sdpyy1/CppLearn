@@ -30,11 +30,9 @@ public:
 
     void renderShadowSetting();
 
-    void renderSSRSettingsUI();
-
     void renderDebugTextureSelector();
 
-    void renderPostprocessSetting();
+    void renderPostprocessSetting() const;
 };
 
 

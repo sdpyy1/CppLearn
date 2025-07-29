@@ -49,7 +49,6 @@ void LightingPass::render(RenderResource& resource) {
         GL_CALL(lightingShader.setVec3("lightColor", scene.lights[0]->color));
     }
 
-
     // gBuffer 和 shadowMap
     GL_CALL(lightingShader.setInt("gPosition", 0));
     GL_CALL(lightingShader.setInt("gNormal", 1));
@@ -59,9 +58,6 @@ void LightingPass::render(RenderResource& resource) {
     GL_CALL(lightingShader.setInt("gDepth", 5));
     GL_CALL(lightingShader.setInt("shadowMap", 6));
     lightingShader.setMat4("lightSpaceMatrix", resource.matrices["lightSpaceMatrix"]);
-
-
-
 
 
     // 阴影
@@ -94,6 +90,6 @@ void LightingPass::render(RenderResource& resource) {
     GL_CALL(glBindVertexArray(0));
     GL_CALL(lightingShader.unBind());
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
+    resource.textures["preTexture"] = lightTexture;
 }
 

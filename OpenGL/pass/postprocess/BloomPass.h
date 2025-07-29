@@ -10,10 +10,12 @@ public:
     }
 
     void init(RenderResource& resource) override {
-        passName = "Bloom_pass";
+        passName = "Bloom";
         PostprocessPass::init(resource);
     }
+    void GUIRender() override {
 
+    }
     void render(RenderResource& resource) override {
         int nextFreeTextureId = bindParams(resource);
         PostprocessPass::render(resource);

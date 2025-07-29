@@ -13,12 +13,15 @@ class PostprocessPass : public RenderPass{
 public:
     PostprocessPass(Scene &scene,const Shader &postShader);
 
-    void init(RenderResource& resource) override;
-    void render(RenderResource& resource) override;
+    virtual void init(RenderResource& resource) override ;
+    virtual void render(RenderResource& resource) override ;
     int bindParams(RenderResource &resource);
     void toScreen();
+    virtual void GUIRender() = 0;
     Shader postShader;
     Scene &scene;
+    bool isRender = false;
+
 private:
     GLuint renderedTexture = 0;
     GLuint postFBO = 0;

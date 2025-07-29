@@ -13,16 +13,14 @@
 #include "imgui_impl_glfw.h"
 #include "helper/ImGUIManger.h"
 #include "pass/RenderPipeline.h"
+#include "pass/postprocess/PostProcessManager.h"
 
 int main()
 {
     // 初始化系统
     WindowManager app(2000, 1600);
-    Scene scene(&app.camera);
-    std::unique_ptr<RenderPipeline> renderPipeline = RenderPipeline::setupDeferredRenderPipeline(scene);
-    ImGUIManger imGUIManger(scene,renderPipeline.get());
-
     // 搭建场景
+    Scene scene(&app.camera);
     glm::vec3 lightDir = glm::normalize(glm::vec3(-1.0f, -1.0f, -1.0f));
     DirectionalLight directionalLight(lightDir, glm::vec3(1.0f), 1.0f);
     Model plane = Model::createPlane(100,2);
@@ -34,7 +32,14 @@ int main()
     scene.addModel(cube);
     scene.addLight(std::make_shared<DirectionalLight>(directionalLight));
 
+    // 管线建立
+    RenderPipeline renderPipeline;
+    renderPipeline.setupDeferredRenderPipeline(scene);
 
+    // GUI
+    ImGUIManger imGUIManger(scene,&renderPipeline);
+
+    // 渲染
     while (!glfwWindowShouldClose(app.window))
     {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -42,7 +47,7 @@ int main()
         app.processInput();
 
         // --- 渲染 Pipeline---
-        renderPipeline->render();
+        renderPipeline.render();
 
         // --- 渲染 ImGui ---
         imGUIManger.render();

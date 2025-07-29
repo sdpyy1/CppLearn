@@ -13,6 +13,7 @@ void PostprocessPass::toScreen() {
     postFBO = 0;
 }
 void PostprocessPass::init(RenderResource &resource) {
+    isRender = true;
     // 初始化FBO
     glGenFramebuffers(1, &postFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, postFBO);
@@ -27,17 +28,18 @@ void PostprocessPass::init(RenderResource &resource) {
     RenderPass::init(resource);
 }
 void PostprocessPass::render(RenderResource &resource) {
-    glBindFramebuffer(GL_FRAMEBUFFER, postFBO);
-    glViewport(0, 0, scene.width, scene.height);
-    glBindVertexArray(resource.VAOs["quad"]);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-    glBindVertexArray(0);
-    postShader.unBind();
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    if(isRender){
+        glBindFramebuffer(GL_FRAMEBUFFER, postFBO);
+        glViewport(0, 0, scene.width, scene.height);
+        glBindVertexArray(resource.VAOs["quad"]);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glBindVertexArray(0);
+        postShader.unBind();
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    // 给下一个pass传递上一个pass的结果
-    resource.textures["preTexture"] = renderedTexture;
-
+        // 给下一个pass传递上一个pass的结果
+        resource.textures["preTexture"] = renderedTexture;
+    }
 }
 
 int PostprocessPass::bindParams(RenderResource &resource) {

@@ -18,15 +18,18 @@
 #include "postprocess/SSRPass.h"
 #include "postprocess/FinalColorPass.h"
 #include "postprocess/BloomPass.h"
+#include "postprocess/PostProcessManager.h"
 
 class RenderPipeline {
 
 public:
+    std::unique_ptr<PostProcessManager> postProcessManager = nullptr;
+
     void addPass(std::unique_ptr<RenderPass> pass) {
-        passes.emplace_back(std::move(pass));
+        passes.push_back(std::move(pass));
     }
 
-    void init() {
+    void init(Scene & scene) {
         createDefaultResources();
         for (auto& pass : passes) {
             pass->init(resource);
@@ -43,22 +46,25 @@ public:
         for (auto& pass : passes) {
             pass->render(resource);
         }
-
+        postProcessManager->render();
     }
 
     RenderResource& getResources() { return resource; }
 
-    static std::unique_ptr<RenderPipeline> setupDeferredRenderPipeline(Scene& scene) {
-        auto pipeline = std::make_unique<RenderPipeline>();
-        pipeline->addPass(std::make_unique<ShadowPass>(scene));
-        pipeline->addPass(std::make_unique<GeometryPass>(scene));
-        pipeline->addPass(std::make_unique<LightingPass>(scene));
-        pipeline->addPass(std::make_unique<SSRPass>(scene));
-//        pipeline->addPass(std::make_unique<BloomPass>(scene));
-        pipeline->addPass(std::make_unique<FinalColorPass>(scene));
-        pipeline->addPass(std::make_unique<DebugPass>(scene));
-        pipeline->init();
-        return pipeline;
+    void setupDeferredRenderPipeline(Scene& scene) {
+        addPass(std::make_unique<ShadowPass>(scene));
+        addPass(std::make_unique<GeometryPass>(scene));
+        addPass(std::make_unique<LightingPass>(scene));
+
+        // 装载后处理Pass
+        postProcessManager = PostProcessManager::defaultPostProcess(scene,resource);
+        for(auto postPass: postProcessManager->passes){
+            addPass(std::unique_ptr<PostprocessPass>(postPass));
+        }
+
+        // DebugPass 画在最前边
+        addPass(std::make_unique<DebugPass>(scene));
+        init(scene);
     }
 
 

@@ -3,7 +3,6 @@ out vec4 FragColor;
 in vec2 TexCoords;
 
 uniform sampler2D preTexture;
-uniform vec2 textureSize; // 仅需纹理尺寸，用于计算采样间隔
 
 void main() {
     // 固定5x5高斯核权重（已归一化）
@@ -14,9 +13,10 @@ void main() {
     0.015019, 0.059912, 0.094907, 0.059912, 0.015019,
     0.003765, 0.015019, 0.023792, 0.015019, 0.003765
     );
+    ivec2 texSize = textureSize(preTexture, 0);
 
     // 计算单个纹理像素的尺寸（uv坐标偏移量）
-    vec2 texelSize = 1.0 / textureSize;
+    vec2 texelSize = 1.0 / vec2(texSize);
     vec3 result = vec3(0.0);
     int index = 0;
 
