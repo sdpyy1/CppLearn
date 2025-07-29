@@ -36,8 +36,11 @@ public:
     void draw(Shader& shader);
     static GLuint defaultAlbedo;
     static GLuint defaultNormal;
-    static GLuint defaultMetallic;
-    static GLuint defaultRoughness;
+    static GLuint defaultMetallicZero;
+    static GLuint defaultMetallicOne;
+
+    static GLuint defaultRoughnessMid;
+    static GLuint defaultRoughnessZero;
     static GLuint defaultAO;
     static GLuint defaultBlack;
 

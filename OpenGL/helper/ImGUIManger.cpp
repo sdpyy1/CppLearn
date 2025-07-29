@@ -75,9 +75,7 @@ void ImGUIManger::renderDebugTextureSelector() {
     ImGui::Checkbox("Debug Texture", &scene.showDebugTexture);
     if (scene.showDebugTexture) {
         ImGui::Text("Select textures to display (max 4)");
-
         ImGui::Separator();
-
         // 存储当前勾选的数量
         int checkedCount = 0;
         // 临时存储勾选状态（用于限制最大数量）
@@ -131,8 +129,6 @@ void ImGUIManger::renderDebugTextureSelector() {
         renderToggle("Emission", scene.showEmission);
         ImGui::Separator();
         renderToggle("LightTexture", scene.showLightTexture);
-
-        // 显示当前选中数量提示
         ImGui::Text("Selected: %d/4", checkedCount);
         if (checkedCount >= 4) {
             ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "Max 4 textures allowed");
@@ -156,7 +152,7 @@ void ImGUIManger::renderShadowSetting(){
         ImGui::SliderFloat("Max Blur Kernel", &scene.PCSSKernelMax, 1.0f, 20.0f, "%.1f");
     }
 }
-void ImGUIManger::renderModelTransformUI() {
+void ImGUIManger::renderModelTransformUI() const {
     if (scene.selModel) {
         static bool uniformScale = true;
         static float uniformScaleValue = 1.0f;
@@ -166,7 +162,7 @@ void ImGUIManger::renderModelTransformUI() {
         // 位置控制
         ImGui::DragFloat3("position", glm::value_ptr(scene.selModel->translation), 0.1f);
         // 旋转控制
-        ImGui::DragFloat3("rotation", glm::value_ptr(scene.selModel->rotation), 1.0f);
+        ImGui::DragFloat3("rotation", glm::value_ptr(scene.selModel->rotation), 1.0f, -180.0f, 180.0f);
         // 缩放控制
         ImGui::Text("scale");
         ImGui::SameLine();
@@ -263,8 +259,8 @@ void ImGUIManger::renderAddModelUI() {
     static int currentModelIndex = 0;
     const char* modelNames[] = { "helmet", "gun", "gaoda","cube","plane" };
 
-    ImGui::Text("Add Default Model:");
-    if (ImGui::BeginCombo("DefaultModel", modelNames[currentModelIndex])) {
+    ImGui::Text("Add Model:");
+    if (ImGui::BeginCombo("Model##", modelNames[currentModelIndex])) {
         for (int n = 0; n < IM_ARRAYSIZE(modelNames); n++) {
             bool is_selected = (currentModelIndex == n);
             if (ImGui::Selectable(modelNames[n], is_selected)) {

@@ -7,8 +7,10 @@
 void Scene::createDefaultTexture() {
     Model::defaultAlbedo    = create1x1Texture(glm::vec4(1.0f), GL_RGBA, GL_RGBA);                   // 白色
     Model::defaultNormal    = create1x1Texture(glm::vec4(0.5f, 0.5f, 1.0f, 1.0f), GL_RGBA, GL_RGBA);  // 法线默认值
-    Model::defaultMetallic  = create1x1Texture(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f), GL_RGBA, GL_RGBA);  // 非金属
-    Model::defaultRoughness = create1x1Texture(glm::vec4(0.5f, 0.5f, 0.5f, 1.0f), GL_RGBA, GL_RGBA);  // 中等粗糙
+    Model::defaultMetallicZero  = create1x1Texture(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f), GL_RGBA, GL_RGBA);  // 非金属
+    Model::defaultMetallicOne  = create1x1Texture(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), GL_RGBA, GL_RGBA);  // 非金属
+    Model::defaultRoughnessMid = create1x1Texture(glm::vec4(0.5f, 0.5f, 0.5f, 1.0f), GL_RGBA, GL_RGBA);  // 中等粗糙
+    Model::defaultRoughnessZero = create1x1Texture(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f), GL_RGBA, GL_RGBA);  // 中等粗糙
     Model::defaultAO        = create1x1Texture(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), GL_RGBA, GL_RGBA);  // 全 AO
     Model::defaultBlack     = create1x1Texture(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f), GL_RGBA, GL_RGBA);  // 用于 emissive 缺省
 }

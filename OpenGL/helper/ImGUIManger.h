@@ -16,7 +16,7 @@ public:
     explicit ImGUIManger(Scene &scene,RenderPipeline * renderPipeline):scene(scene),renderPipeline(renderPipeline){}
     void render();
 
-    void renderModelTransformUI();
+    void renderModelTransformUI() const;
 
     void renderModelListUI();
 

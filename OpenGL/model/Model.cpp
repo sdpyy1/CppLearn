@@ -7,8 +7,10 @@
 
 GLuint Model::defaultAlbedo    = 0;
 GLuint Model::defaultNormal    = 0;
-GLuint Model::defaultMetallic  = 0;
-GLuint Model::defaultRoughness = 0;
+GLuint Model::defaultMetallicZero  = 0;
+GLuint Model::defaultRoughnessMid = 0;
+GLuint Model::defaultRoughnessZero = 0;
+GLuint Model::defaultMetallicOne = 0;
 GLuint Model::defaultAO        = 0;
 GLuint Model::defaultBlack     = 0;
 glm::mat4 AssimpToGlm(const aiMatrix4x4& from)
@@ -285,8 +287,8 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
     // 若缺失，使用 Scene 中默认贴图
     if (!mat.hasAlbedo)    mat.albedo    = defaultAlbedo;
     if (!mat.hasNormal)    mat.normal    = defaultNormal;
-    if (!mat.hasMetallic)  mat.metallic  = defaultMetallic;
-    if (!mat.hasRoughness) mat.roughness = defaultRoughness;
+    if (!mat.hasMetallic)  mat.metallic  = defaultMetallicZero;
+    if (!mat.hasRoughness) mat.roughness = defaultRoughnessMid;
     if (!mat.hasAO)        mat.ao        = defaultAO;
     if (!mat.hasEmission)  mat.emission  = defaultBlack;
 
@@ -457,10 +459,10 @@ Model Model::createCube(float size) {
     }
 
     PBRMaterial mat;
-    mat.metallic = defaultMetallic;
+    mat.metallic = defaultMetallicZero;
     mat.emission = defaultBlack;
     mat.albedo = defaultAlbedo;
-    mat.roughness = defaultRoughness;
+    mat.roughness = defaultRoughnessMid;
     mat.normal = defaultNormal;
     mat.ao = defaultAO;
     Mesh cubeMesh(vertices, indices, mat);
@@ -527,17 +529,13 @@ Model Model::createPlane(float size,int type) {
         mesh.loadNewTexture("assets/floor/AO.jpg","texture_ao");
         mesh.loadNewTexture("assets/floor/normal.jpg","texture_normal");
         mesh.loadNewTexture("assets/floor/roughness.jpg","texture_roughness");
-    }else{
-        mesh.loadNewTexture("assets/metal/albedo.jpg","texture_albedo");
-        mesh.loadNewTexture("assets/floor/Metalness.jpg","texture_metallic");
-        mesh.loadNewTexture("assets/floor/normal.jpg","texture_normal");
     }
-    if(!mat.hasMetallic) mat.metallic = defaultMetallic;
-    if(!mat.hasRoughness) mat.roughness = defaultRoughness;
-    if(!mat.hasAO) mat.ao = defaultAO;
-    if(!mat.hasAlbedo) mat.albedo = defaultAlbedo;
-    if(!mat.hasEmission) mat.emission = defaultBlack;
-    if(!mat.hasNormal) mat.normal = defaultNormal;
+    if(!mesh.mat.hasMetallic) mesh.mat.metallic = defaultMetallicOne;
+    if(!mesh.mat.hasRoughness) mesh.mat.roughness = defaultRoughnessZero;
+    if(!mesh.mat.hasAO) mesh.mat.ao = defaultAO;
+    if(!mesh.mat.hasAlbedo) mesh.mat.albedo = defaultAlbedo;
+    if(!mesh.mat.hasEmission) mesh.mat.emission = defaultBlack;
+    if(!mesh.mat.hasNormal) mesh.mat.normal = defaultNormal;
 
     planeModel.translation = glm::vec3(0.0f, -2.f, 0.0f);
     planeModel.directory = "floor";
@@ -649,9 +647,9 @@ Model Model::createArrow(float shaftLength, float shaftRadius, float headLength,
 
     // 创建材质
     PBRMaterial mat;
-    mat.metallic  = defaultMetallic;
+    mat.metallic  = defaultMetallicZero;
     mat.emission  = defaultBlack;
-    mat.roughness  = defaultRoughness;
+    mat.roughness  = defaultRoughnessMid;
     mat.albedo    = defaultAlbedo;
     mat.ao = defaultAO;
     mat.normal = defaultNormal;
