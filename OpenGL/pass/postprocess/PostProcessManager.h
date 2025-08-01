@@ -33,7 +33,7 @@ public:
     static std::unique_ptr<PostProcessManager> defaultPostProcess(Scene& scene,RenderResource & resource) {
         auto postProcessManager = std::make_unique<PostProcessManager>(resource);
         postProcessManager->addPass(new SSRPass(scene));
-        postProcessManager->addPass(new BloomPass(scene));
+        // postProcessManager->addPass(new BloomPass(scene));
         postProcessManager->addPass(new FinalColorPass(scene));
         return postProcessManager;
     }
