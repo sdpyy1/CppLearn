@@ -24,7 +24,7 @@ set(SOURCES
         ${MODEL_SOURCES}
         ${HELPER_SOURCES}
         ${UTILS_SOURCES}
-        pass/postprocess/PostProcessManager.h
+        core/AABB.h
 )
 add_library(imgui
         ${IMGUI_DIR}/imgui.cpp
