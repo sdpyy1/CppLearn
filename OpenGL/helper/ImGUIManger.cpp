@@ -61,6 +61,7 @@ void ImGUIManger::renderPostprocessSetting() const {
 
 
 void ImGUIManger::renderDebugTextureSelector() {
+    ImGui::Checkbox("Enable ShyBox", &scene.showSkybox);
     ImGui::Checkbox("Enable Outline", &scene.enableOutline);
     ImGui::Checkbox("Draw Light Cubes", &scene.drawLightCube);
     ImGui::Checkbox("Debug Texture", &scene.showDebugTexture);

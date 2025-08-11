@@ -10,6 +10,7 @@ uniform mat4 view;
 uniform sampler2D gPosition;
 uniform sampler2D gDepth;
 uniform sampler2D preTexture;
+uniform samplerCube environmentMap;
 
 // 3D噪声图
 uniform sampler3D noiseTexture;
@@ -82,21 +83,48 @@ float cloudRayMarching( vec3 direction, float depth)
 
     return clamp(sum, 0.0, 1.0);
 }
+vec3 reconstructWorldPos(vec2 uv) {
 
+    mat4 inverseProjection = inverse(projection);
+    mat4 inverseView = inverse(view);
+    // Step 1: UV → NDC
+    vec2 ndc = uv * 2.0 - 1.0;
+
+    // Step 2: 深度值 → 裁剪空间
+    float depth = texture(gDepth, uv).r;
+    vec4 clipPos = vec4(ndc, depth * 2.0 - 1.0, 1.0);
+
+    // Step 3: 裁剪空间 → 观察空间
+    vec4 viewPos = inverseProjection * clipPos;
+    viewPos /= viewPos.w;
+
+    // Step 4: 观察空间 → 世界坐标
+    return (inverseView * vec4(viewPos.xyz, 1.0)).xyz;
+}
 void main() {
+
     // 世界坐标
     vec3 worldPos = texture(gPosition, TexCoords).rgb;
     // raymarching方向
     vec3 worldViewDir = normalize(worldPos - camPos);
     // 像素zBuffer深度
     float depth = LinearizeDepth(texture(gDepth, TexCoords).r);
-
+    vec3 preColor = texture(preTexture, TexCoords).rgb;
+    if(depth > 99) {
+        worldPos = reconstructWorldPos(TexCoords);
+        worldViewDir = normalize(worldPos - camPos);
+        preColor = texture(environmentMap, worldViewDir).rgb;
+    }
     // 计算的是当前着色点云的密度
     float cloud = cloudRayMarching(worldViewDir,depth);
-    vec3 preColor = texture(preTexture, TexCoords).rgb;
+
     float alpha = clamp(cloud, 0.0, 1.0);
     vec3 cloudColor = vec3(1.0);
-    FragColor = vec4(mix(preColor, cloudColor, alpha), 1.0);
-//    FragColor = vec4(vec3(alpha), 1.0);
 
+    FragColor = vec4(mix(preColor, cloudColor, alpha), 1);
+
+    // TODO: （暂时）传递信息 体积云的地方写入深度，防止被天空盒挡住
+    if(depth > 99 && alpha > 0.0) {
+        FragColor = vec4(mix(preColor, cloudColor, alpha), 0.1);
+    }
 }

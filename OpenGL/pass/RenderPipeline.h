@@ -15,9 +15,7 @@
 #include "DebugPass.h"
 #include "postprocess/PostprocessPass.h"
 #include "../core/Shader.h"
-#include "postprocess/SSRPass.h"
-#include "postprocess/FinalColorPass.h"
-#include "postprocess/BloomPass.h"
+
 #include "postprocess/PostProcessManager.h"
 
 class RenderPipeline {
@@ -42,22 +40,34 @@ public:
         resource.shaders["quadShader"] = std::make_unique<Shader>("shader/quad.vert", "../shader/quad.frag");
     }
     void finalOutput() {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LEQUAL);// 因为我在最后绘制时写入了深度（为了天空盒），但是很多地方深度是0，他颜色值会消失，所以这里要直接全部通过测试，但写入深度
         finalShader.bind();
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+        // 清除纹理
         finalShader.setInt("finalTexture",0);
         finalShader.setInt("gDepth",1);
-        glActiveTexture(GL_TEXTURE0);glBindTexture(GL_TEXTURE_2D, resource.textures["preTexture"]);
-        glActiveTexture(GL_TEXTURE1);glBindTexture(GL_TEXTURE_2D, resource.textures["gDepth"]);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, resource.textures["preTexture"]);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, resource.textures["gDepth"]);
         glBindVertexArray(resource.VAOs["quad"]);
         glDrawArrays(GL_TRIANGLES, 0, 3);
         glBindVertexArray(0);
         finalShader.unBind();
+
     }
     void render() {
         for (auto &pass: passes) {
+            if (pass->passName == "DebugPass") {
+                // 先把最终画面输出了，再输出Debug信息
+                finalOutput();
+            }
             pass->render(resource);
         }
-        finalOutput();
+
     }
 
     RenderResource &getResources() { return resource; }

@@ -10,5 +10,8 @@ void main() {
     vec4 texColor = texture(finalTexture, TexCoords);
     // 防止场景被天空盒覆盖
     gl_FragDepth = texture(gDepth, TexCoords).r;
+    if (texColor.a == 0.1) {
+        gl_FragDepth = 0.0;
+    }
     FragColor = texColor;
 }

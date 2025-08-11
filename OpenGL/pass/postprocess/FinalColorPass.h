@@ -1,6 +1,7 @@
 #ifndef OPENGLRENDER_FINALCOLORPASS_H
 #define OPENGLRENDER_FINALCOLORPASS_H
 
+#include "imgui.h"
 #include "PostprocessPass.h"
 
 class FinalColorPass : public PostprocessPass {

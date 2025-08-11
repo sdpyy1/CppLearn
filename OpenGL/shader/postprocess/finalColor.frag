@@ -25,9 +25,9 @@ vec3 ACESFilmToneMapping(vec3 color)
 }
 
 void main() {
-    vec3 lightColor = texture(preTexture, TexCoords).rgb;
+    vec4 lightColor = texture(preTexture, TexCoords);
 
-    vec3 finalColor = lightColor;
+    vec3 finalColor = lightColor.rgb;
 
     // toneMapping
     if (toneMappingType == 1) {
@@ -39,7 +39,5 @@ void main() {
     // 伽马矫正
     finalColor = pow(finalColor, vec3(1.0 / 2.2));
 
-
-
-    FragColor = vec4(finalColor, 1.0);
+    FragColor = vec4(finalColor,lightColor.a);
 }

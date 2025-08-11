@@ -17,17 +17,26 @@ void DebugPass::init(RenderResource &resource) {
 }
 
 void DebugPass::render(RenderResource &resource) {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
     // 天空盒
-    skyboxShader.bind();
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LEQUAL);
-    skyboxShader.setMat4("projection", scene.camera->getProjectionMatrix());
-    skyboxShader.setMat4("view", scene.camera->getViewMatrix());
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, scene.envCubemap);
-    GL_CALL(scene.renderCube());
-    glDepthFunc(GL_LESS);
-    skyboxShader.unBind();
+    if (scene.showSkybox) {
+        skyboxShader.bind();
+        glEnable(GL_DEPTH_TEST);
+        glDepthMask(GL_FALSE);
+        // 小于等于都通过测试，因为天空盒z永远=1，所以没有模型的地方肯定会通过测试
+        glDepthFunc(GL_LEQUAL);
+        skyboxShader.setMat4("projection", scene.camera->getProjectionMatrix());
+        skyboxShader.setMat4("view", scene.camera->getViewMatrix());
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, scene.envCubemap);
+        scene.renderCube();
+        glDepthFunc(GL_LESS);
+        glDisable(GL_DEPTH_TEST);
+        glDepthMask(GL_TRUE);
+        skyboxShader.unBind();
+    }
+
 
     // 描边渲染
     if (scene.selModel && scene.enableOutline) {
@@ -35,7 +44,6 @@ void DebugPass::render(RenderResource &resource) {
         glDepthMask(GL_FALSE); // 关闭深度写入
         glEnable(GL_CULL_FACE);
         glCullFace(GL_FRONT); // 剔除正面，只渲染膨胀模型背面
-
         outlineShader.bind();
         outlineShader.setMat4("projection", scene.camera->getProjectionMatrix());
         outlineShader.setMat4("view", scene.camera->getViewMatrix());
@@ -44,10 +52,10 @@ void DebugPass::render(RenderResource &resource) {
         outlineShader.setVec3("outlineColor", glm::vec3(1.0, 1.0, 0.0));
         scene.selModel->draw(outlineShader);
         outlineShader.unBind();
-
         glDepthMask(GL_TRUE);
         glCullFace(GL_BACK);
         glDisable(GL_CULL_FACE);
+        glDisable(GL_DEPTH_TEST);
     }
     // 光源方块
     if (scene.drawLightCube) {
@@ -68,7 +76,6 @@ void DebugPass::render(RenderResource &resource) {
             GL_CALL(scene.renderCube());
         }
         lightCubeShader.unBind();
-        glDepthFunc(GL_LESS);
     }
     if (scene.showDebugTexture) {
         glDisable(GL_DEPTH_TEST);

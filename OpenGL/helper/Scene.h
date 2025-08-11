@@ -59,9 +59,7 @@ public:
     bool showLightTexture = false;
 
     int toneMappingType = 2; // 0=None 1=Uncharted2 2=ACESFilm
-
-
-
+    bool showSkybox = true;
 
 
     explicit Scene(Camera* camera);

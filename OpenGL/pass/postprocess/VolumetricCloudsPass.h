@@ -18,6 +18,11 @@ public:
         postShader.setInt("noiseTexture", nextFreeTextureId);
         glActiveTexture(GL_TEXTURE0 + nextFreeTextureId);
         glBindTexture(GL_TEXTURE_3D, noiseTexture);
+
+        glActiveTexture(GL_TEXTURE0 + nextFreeTextureId + 1);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, scene.envCubemap);
+        postShader.setInt("environmentMap", nextFreeTextureId + 1);
+
         PostprocessPass::render(resource);
         postShader.unBind();
     }

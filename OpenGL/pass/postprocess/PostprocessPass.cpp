@@ -24,7 +24,7 @@ void PostprocessPass::init(RenderResource &resource) {
     // 绑定输出纹理
     glGenTextures(1, &renderedTexture);
     glBindTexture(GL_TEXTURE_2D, renderedTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, scene.width, scene.height, 0, GL_RGBA, GL_FLOAT, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, scene.width, scene.height, 0, GL_RGBA, GL_FLOAT, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderedTexture, 0);
@@ -35,9 +35,9 @@ void PostprocessPass::init(RenderResource &resource) {
 void PostprocessPass::render(RenderResource &resource) {
     if (isRender) {
         glBindFramebuffer(GL_FRAMEBUFFER, postFBO);
-        // 清除纹理
-        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
+        glDisable(GL_DEPTH_TEST);
         glBindVertexArray(resource.VAOs["quad"]);
         glDrawArrays(GL_TRIANGLES, 0, 3);
         glBindVertexArray(0);
@@ -45,6 +45,7 @@ void PostprocessPass::render(RenderResource &resource) {
         // 给下一个pass传递上一个pass的结果
         resource.textures["preTexture"] = renderedTexture;
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
     }
 }
 
