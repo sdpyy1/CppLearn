@@ -10,6 +10,7 @@ public:
     bool isUsing = false;
     Shader(const char* vertexPath, const char* fragmentPath);
     Shader(const char* vertexPath, const char* geometryPath, const char* fragmentPath);
+    explicit Shader(const char* computePath);
 
     void bind();
     void unBind();
@@ -23,7 +24,7 @@ public:
 
     void setVec3(const std::string &name, const glm::vec3 &value) const;
     void setVec3(const std::string &name, float x, float y, float z) const;
-
+    void setVec3i(const std::string& name, const glm::ivec3& value) const;
     void setVec4(const std::string &name, const glm::vec4 &value) const;
     void setVec4(const std::string &name, float x, float y, float z, float w) const;
 

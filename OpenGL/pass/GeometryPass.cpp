@@ -1,13 +1,12 @@
 #include "GeometryPass.h"
 
-GeometryPass::GeometryPass(Scene& scene)
-    :RenderPass("GeometryPass"),
-    scene(scene),
-    shader("shader/geometry.vert", "shader/geometry.frag")
-{}
+GeometryPass::GeometryPass(Scene &scene)
+    : RenderPass("GeometryPass"),
+      scene(scene),
+      shader("shader/geometry.vert", "shader/geometry.frag") {
+}
 
-void GeometryPass::init(RenderResource& resource)
-{
+void GeometryPass::init(RenderResource &resource) {
     GL_CALL(glGenFramebuffers(1, &gBuffer));
     GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, gBuffer));
     GL_CALL(glViewport(0, 0, scene.width, scene.height);)
@@ -49,7 +48,8 @@ void GeometryPass::init(RenderResource& resource)
     // Depth renderbuffer
     glGenTextures(1, &gDepth);
     glBindTexture(GL_TEXTURE_2D, gDepth);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, scene.width, scene.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, scene.width, scene.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT,
+                 nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
@@ -59,11 +59,12 @@ void GeometryPass::init(RenderResource& resource)
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, gDepth, 0);
     // attach 到 FBO 的 color attachmentN，比如 GL_COLOR_ATTACHMENT4
     // TODO:添加了gBuffer缓冲后，必须添加在这
-    GLuint attachments[5] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4};
+    GLuint attachments[5] = {
+        GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4
+    };
     glDrawBuffers(5, attachments);
 
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-    {
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         std::cerr << "Framebuffer not complete!" << std::endl;
     }
     resource.textures["gPosition"] = gPosition;
@@ -78,14 +79,14 @@ void GeometryPass::init(RenderResource& resource)
 }
 
 
-void GeometryPass::render(RenderResource& resource)
-{
+void GeometryPass::render(RenderResource &resource) {
     shader.bind();
     glEnable(GL_DEPTH_TEST);
+    glViewport(0, 0, scene.width, scene.height);
     glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     GL_CALL(scene.drawAll(shader));
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-//    glDisable(GL_DEPTH_TEST);
+    // glDisable(GL_DEPTH_TEST);
     shader.unBind();
 }

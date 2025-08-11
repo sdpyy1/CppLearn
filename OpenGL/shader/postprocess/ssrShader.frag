@@ -14,7 +14,7 @@ uniform sampler2D gMaterial;
 uniform sampler2D gEmission;
 uniform sampler2D gDepth;
 uniform sampler2D shadowMap;
-uniform sampler2D lightTexture;
+uniform sampler2D preTexture;
 // SSR
 uniform int EnableSSR;
 uniform int totalStepTimes;
@@ -27,7 +27,7 @@ vec4 Project(vec4 a) {
     return a / a.w;
 }
 vec2 GetScreenCoordinate(vec3 posWorld) {
-    vec2 uv = Project(projection*view * vec4(posWorld, 1.0)).xy * 0.5 + 0.5;
+    vec2 uv = Project(projection * view * vec4(posWorld, 1.0)).xy * 0.5 + 0.5;
     return uv;
 }
 float GetDepth(vec3 posWorld) {
@@ -52,7 +52,7 @@ float LinearizeDepth(float d) {
 
 
 bool RayMarch(vec3 ori, vec3 dir, out vec3 hitPos) {
-    if(EnableSSR == 0){
+    if (EnableSSR == 0) {
         return false;
     }
     bool result = false;
@@ -60,30 +60,30 @@ bool RayMarch(vec3 ori, vec3 dir, out vec3 hitPos) {
     vec3 curPos = ori;
     float stepSzieInnder = stepSize;
     vec3 nextPos;
-    for(int i = 0; i < totalStepTimes; i++) {
+    for (int i = 0; i < totalStepTimes; i++) {
         // 步进
         nextPos = curPos + dir * stepSzieInnder;
         // 获取步进后的空间坐标对应的uv坐标
         vec2 uvScreen = GetScreenCoordinate(nextPos);
         // 超出屏幕，直接返回
-        if(any(lessThan(uvScreen, vec2(0.0))) || any(greaterThan(uvScreen, vec2(1.0)))) break;
+        if (any(lessThan(uvScreen, vec2(0.0))) || any(greaterThan(uvScreen, vec2(1.0)))) break;
         // 没有碰到物体
-        if(LinearizeDepth(GetDepth(nextPos)) < LinearizeDepth(GetGBufferDepth(GetScreenCoordinate(nextPos)))){
+        if (LinearizeDepth(GetDepth(nextPos)) < LinearizeDepth(GetGBufferDepth(GetScreenCoordinate(nextPos)))) {
             curPos += dir * stepSzieInnder;
-            if(firstIn) stepSzieInnder *= 0.5;
+            if (firstIn) stepSzieInnder *= 0.5;
             continue;
         }
         firstIn = true;
-        if(stepSzieInnder < EPS){
+        if (stepSzieInnder < EPS) {
             float s1 = LinearizeDepth(GetGBufferDepth(GetScreenCoordinate(curPos))) - LinearizeDepth(GetDepth(curPos)) + EPS;
             float s2 = LinearizeDepth(GetDepth(nextPos)) - LinearizeDepth(GetGBufferDepth(GetScreenCoordinate(nextPos))) + EPS;
-            if(s1 < threshold && s2 < threshold){
+            if (s1 < threshold && s2 < threshold) {
                 hitPos = curPos + 2.0 * dir * stepSzieInnder * s1 / (s1 + s2);
                 result = true;
             }
             break;
         }
-        if(firstIn) stepSzieInnder *= 0.5;
+        if (firstIn) stepSzieInnder *= 0.5;
     }
     return result;
 }
@@ -102,11 +102,11 @@ vec3 ACESFilmToneMapping(vec3 color)
     // Clamp 到 [0, 1]
     return clamp(color, 0.0, 1.0);
 }
-    
+
 void main() {
-    vec3 lightColor = texture(lightTexture, TexCoords).rgb;
+    vec3 lightColor = texture(preTexture, TexCoords).rgb;
     vec3 WorldPos = texture(gPosition, TexCoords).rgb;
-    vec3 albedo     = pow(texture(gAlbedo, TexCoords).rgb, vec3(2.2));
+    vec3 albedo = pow(texture(gAlbedo, TexCoords).rgb, vec3(2.2));
     float roughness = texture(gMaterial, TexCoords).g;
 
     vec3 N = texture(gNormal, TexCoords).rgb;   // 法线
@@ -116,16 +116,15 @@ void main() {
     vec3 finalColor = lightColor;
     float roughnessThreshold = 0.3;
     // SSR计算光滑表面镜面反射
-    if(roughness < roughnessThreshold){
+    if (roughness < roughnessThreshold) {
         bool hit = false;
         vec3 ssrColor = vec3(0.0);
         vec3 hitPos;
         hit = RayMarch(WorldPos, R, hitPos);
-        if(hit) {
+        if (hit) {
             vec2 uvHit = GetScreenCoordinate(hitPos);
             // 从之前的渲染结果中采样反射颜色
-            ssrColor = pow(texture(lightTexture, uvHit).rgb, vec3(2.2));
-            // 混合SSR颜色和IBL
+            ssrColor = pow(texture(preTexture, uvHit).rgb, vec3(2.2));
             // 混合SSR颜色和IBL
             float fade = smoothstep(0.0, 0.05, uvHit.x) * smoothstep(0.0, 0.05, uvHit.y) *
             smoothstep(0.0, 0.95, 1.0 - uvHit.x) * smoothstep(0.0, 0.95, 1.0 - uvHit.y);

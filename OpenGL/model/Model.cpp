@@ -5,25 +5,38 @@
 #include <cstring>
 #include <glm/ext/matrix_transform.hpp>
 
-GLuint Model::defaultAlbedo    = 0;
-GLuint Model::defaultNormal    = 0;
-GLuint Model::defaultMetallicZero  = 0;
+GLuint Model::defaultAlbedo = 0;
+GLuint Model::defaultNormal = 0;
+GLuint Model::defaultMetallicZero = 0;
 GLuint Model::defaultRoughnessMid = 0;
 GLuint Model::defaultRoughnessZero = 0;
 GLuint Model::defaultMetallicOne = 0;
-GLuint Model::defaultAO        = 0;
-GLuint Model::defaultBlack     = 0;
-glm::mat4 AssimpToGlm(const aiMatrix4x4& from)
-{
+GLuint Model::defaultAO = 0;
+GLuint Model::defaultBlack = 0;
+
+glm::mat4 AssimpToGlm(const aiMatrix4x4 &from) {
     glm::mat4 to;
 
-    to[0][0] = from.a1; to[1][0] = from.a2; to[2][0] = from.a3; to[3][0] = from.a4;
-    to[0][1] = from.b1; to[1][1] = from.b2; to[2][1] = from.b3; to[3][1] = from.b4;
-    to[0][2] = from.c1; to[1][2] = from.c2; to[2][2] = from.c3; to[3][2] = from.c4;
-    to[0][3] = from.d1; to[1][3] = from.d2; to[2][3] = from.d3; to[3][3] = from.d4;
+    to[0][0] = from.a1;
+    to[1][0] = from.a2;
+    to[2][0] = from.a3;
+    to[3][0] = from.a4;
+    to[0][1] = from.b1;
+    to[1][1] = from.b2;
+    to[2][1] = from.b3;
+    to[3][1] = from.b4;
+    to[0][2] = from.c1;
+    to[1][2] = from.c2;
+    to[2][2] = from.c3;
+    to[3][2] = from.c4;
+    to[0][3] = from.d1;
+    to[1][3] = from.d2;
+    to[2][3] = from.d3;
+    to[3][3] = from.d4;
 
     return to;
 }
+
 GLuint createNewTextureG2R(GLuint srcTexID) {
     glBindTexture(GL_TEXTURE_2D, srcTexID);
     int width, height;
@@ -33,7 +46,7 @@ GLuint createNewTextureG2R(GLuint srcTexID) {
     std::vector<glm::vec3> pixels(width * height);
     glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, pixels.data());
 
-    for (auto& px : pixels) {
+    for (auto &px: pixels) {
         // 将 G 通道复制到 R 通道
         px.r = px.g;
     }
@@ -60,7 +73,7 @@ GLuint createNewTextureB2R(GLuint srcTexID) {
     std::vector<glm::vec3> pixels(width * height);
     glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, pixels.data());
 
-    for (auto& px : pixels) {
+    for (auto &px: pixels) {
         // 将 G 通道复制到 R 通道
         px.r = px.b;
     }
@@ -77,42 +90,36 @@ GLuint createNewTextureB2R(GLuint srcTexID) {
 
     return newTex;
 }
-Model::Model(const string& path, bool gamma)
-    : gammaCorrection(gamma)
-{
+
+Model::Model(const string &path, bool gamma)
+    : gammaCorrection(gamma) {
     loadModel(path);
 
 
     std::cout << path << ":{load success}"
-        << "\tmeshes:{" << meshes.size() << "}"
-        << "\ttexture:{" << textures_loaded.size() << "}" << std::endl;
-    for (auto& texture : textures_loaded)
-    {
+            << "\tmeshes:{" << meshes.size() << "}"
+            << "\ttexture:{" << textures_loaded.size() << "}" << std::endl;
+    for (auto &texture: textures_loaded) {
         std::cout << "\ttexture:{" << texture.type << "}" << std::endl;
     }
     calculateOrientationFix();
-
 }
 
-void Model::draw(Shader& shader)
-{
-    for (auto& mesh : meshes)
-    {
+void Model::draw(Shader &shader) {
+    for (auto &mesh: meshes) {
         mesh.draw(shader);
     }
 }
 
-unsigned int Model::TextureFromFile(const char* path, const string& directory)
-{
+unsigned int Model::TextureFromFile(const char *path, const string &directory) {
     string filename = directory + '/' + string(path);
 
     unsigned int textureID;
     glGenTextures(1, &textureID);
 
     int width, height, nrComponents;
-    unsigned char* data = stbi_load(filename.c_str(), &width, &height, &nrComponents, 0);
-    if (data)
-    {
+    unsigned char *data = stbi_load(filename.c_str(), &width, &height, &nrComponents, 0);
+    if (data) {
         GLenum format = GL_RGB;
         if (nrComponents == 1)
             format = GL_RED;
@@ -131,28 +138,25 @@ unsigned int Model::TextureFromFile(const char* path, const string& directory)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         stbi_image_free(data);
-    }
-    else
-    {
+    } else {
         std::cout << "Texture failed to load at path: " << path << std::endl;
         stbi_image_free(data);
     }
 
     return textureID;
 }
-void Model::loadModel(const string& path)
-{
+
+void Model::loadModel(const string &path) {
     Assimp::Importer importer;
-    const aiScene* scene = importer.ReadFile(path,
-                                             aiProcess_Triangulate  // 全部转化为三角形
+    const aiScene *scene = importer.ReadFile(path,
+                                             aiProcess_Triangulate // 全部转化为三角形
                                              | aiProcess_FlipUVs // y坐标反转
-                                             |aiProcess_CalcTangentSpace  // 计算切线副切线
+                                             | aiProcess_CalcTangentSpace // 计算切线副切线
                                              | aiProcess_PreTransformVertices // 适用于静态模型  开启后无骨骼信息
                                              | aiProcess_GlobalScale // FBX文件大小单位不一致，缩小模型
-                                             );
+    );
 
-    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
-    {
+    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
         std::cout << "ERROR::ASSIMP:: " << importer.GetErrorString() << std::endl;
         return;
     }
@@ -161,43 +165,36 @@ void Model::loadModel(const string& path)
     processNode(scene->mRootNode, scene);
 }
 
-void Model::processNode(aiNode* node, const aiScene* scene)
-{
-    for (unsigned int i = 0; i < node->mNumMeshes; i++)
-    {
-        aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+void Model::processNode(aiNode *node, const aiScene *scene) {
+    for (unsigned int i = 0; i < node->mNumMeshes; i++) {
+        aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
         meshes.push_back(processMesh(mesh, scene));
     }
 
-    for (unsigned int i = 0; i < node->mNumChildren; i++)
-    {
+    for (unsigned int i = 0; i < node->mNumChildren; i++) {
         processNode(node->mChildren[i], scene);
     }
 }
 
-Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
-{
+Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
     vector<Vertex> vertices;
     vector<unsigned int> indices;
     vector<Texture> textures;
     // 封装Mesh的顶点、UV坐标、index、切线、副切线
-    for (unsigned int i = 0; i < mesh->mNumVertices; i++)
-    {
+    for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
         Vertex vertex;
         glm::vec3 vector;
         vector.x = mesh->mVertices[i].x;
         vector.y = mesh->mVertices[i].y;
         vector.z = mesh->mVertices[i].z;
         vertex.Position = vector;
-        if (mesh->HasNormals())
-        {
+        if (mesh->HasNormals()) {
             vector.x = mesh->mNormals[i].x;
             vector.y = mesh->mNormals[i].y;
             vector.z = mesh->mNormals[i].z;
             vertex.Normal = vector;
         }
-        if (mesh->mTextureCoords[0])
-        {
+        if (mesh->mTextureCoords[0]) {
             glm::vec2 vec;
             vec.x = mesh->mTextureCoords[0][i].x;
             vec.y = mesh->mTextureCoords[0][i].y;
@@ -211,13 +208,11 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
             vector.y = mesh->mBitangents[i].y;
             vector.z = mesh->mBitangents[i].z;
             vertex.Bitangent = vector;
-        }
-        else
+        } else
             vertex.TexCoords = glm::vec2(0.0f, 0.0f);
         vertices.push_back(vertex);
     }
-    for (unsigned int i = 0; i < mesh->mNumFaces; i++)
-    {
+    for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
         aiFace face = mesh->mFaces[i];
         for (unsigned int j = 0; j < face.mNumIndices; j++)
             indices.push_back(face.mIndices[j]);
@@ -249,10 +244,10 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
     }
 
     // 开始处理材质
-    aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+    aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
     // 打印所有导入的纹理
     for (unsigned int i = 0; i < scene->mNumMaterials; ++i) {
-        aiMaterial* material = scene->mMaterials[i];
+        aiMaterial *material = scene->mMaterials[i];
 
         std::cout << "Material " << i << ":\n";
         for (int type = aiTextureType_NONE; type <= aiTextureType_UNKNOWN; ++type) {
@@ -269,9 +264,9 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
 
     PBRMaterial mat;
     // 定义lambda
-    auto loadSingleTexture = [&](aiTextureType type, const std::string& uniformName, GLuint& outID, bool& hasFlag) {
+    auto loadSingleTexture = [&](aiTextureType type, const std::string &uniformName, GLuint &outID, bool &hasFlag) {
         vector<Texture> loaded = loadMaterialTextures(material, type, uniformName);
-        if (!loaded.empty()){
+        if (!loaded.empty()) {
             outID = loaded[0].id;
             hasFlag = true;
         }
@@ -285,12 +280,12 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
     loadSingleTexture(aiTextureType_EMISSIVE, "texture_emission", mat.emission, mat.hasEmission);
 
     // 若缺失，使用 Scene 中默认贴图
-    if (!mat.hasAlbedo)    mat.albedo    = defaultAlbedo;
-    if (!mat.hasNormal)    mat.normal    = defaultNormal;
-    if (!mat.hasMetallic)  mat.metallic  = defaultMetallicZero;
+    if (!mat.hasAlbedo) mat.albedo = defaultAlbedo;
+    if (!mat.hasNormal) mat.normal = defaultNormal;
+    if (!mat.hasMetallic) mat.metallic = defaultMetallicZero;
     if (!mat.hasRoughness) mat.roughness = defaultRoughnessMid;
-    if (!mat.hasAO)        mat.ao        = defaultAO;
-    if (!mat.hasEmission)  mat.emission  = defaultBlack;
+    if (!mat.hasAO) mat.ao = defaultAO;
+    if (!mat.hasEmission) mat.emission = defaultBlack;
 
     // 对金属度和粗糙度在同一张贴图的情况进行处理  G存储金属度、B存储粗糙度
     if (mat.roughness == mat.metallic && mat.hasRoughness && mat.hasMetallic) {
@@ -299,7 +294,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
         mat.roughness = G2R;
         GLuint B2R = createNewTextureB2R(oldTex);
         mat.metallic = B2R;
-        for (auto it = textures_loaded.begin(); it != textures_loaded.end(); ) {
+        for (auto it = textures_loaded.begin(); it != textures_loaded.end();) {
             if (it->id == oldTex) {
                 glDeleteTextures(1, &(it->id));
                 it = textures_loaded.erase(it);
@@ -311,19 +306,15 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
     return Mesh(vertices, indices, mat);
 }
 
-vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type, const string& typeName)
-{
+vector<Texture> Model::loadMaterialTextures(aiMaterial *mat, aiTextureType type, const string &typeName) {
     vector<Texture> textures;
-    for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
-    {
+    for (unsigned int i = 0; i < mat->GetTextureCount(type); i++) {
         aiString str;
         mat->GetTexture(type, i, &str);
 
         bool skip = false;
-        for (auto& item : textures_loaded)
-        {
-            if (std::strcmp(item.path.data(), str.C_Str()) == 0)
-            {
+        for (auto &item: textures_loaded) {
+            if (std::strcmp(item.path.data(), str.C_Str()) == 0) {
                 Texture texture;
                 texture.id = item.id;
                 texture.path = str.C_Str();
@@ -333,8 +324,7 @@ vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type,
                 break;
             }
         }
-        if (!skip)
-        {
+        if (!skip) {
             Texture texture;
             texture.id = TextureFromFile(str.C_Str(), this->directory);
             texture.type = typeName;
@@ -350,10 +340,8 @@ void Model::calculateOrientationFix() {
     glm::vec3 minPos(FLT_MAX);
     glm::vec3 maxPos(-FLT_MAX);
 
-    for (const auto& mesh : meshes)
-    {
-        for (const auto& vertex : mesh.vertices)
-        {
+    for (const auto &mesh: meshes) {
+        for (const auto &vertex: mesh.vertices) {
             minPos = glm::min(minPos, vertex.Position);
             maxPos = glm::max(maxPos, vertex.Position);
         }
@@ -362,12 +350,9 @@ void Model::calculateOrientationFix() {
     glm::vec3 size = maxPos - minPos;
 
     // 如果 Y 方向最高，说明模型立着，需要旋转到卧倒状态（z轴为高）
-    if (size.y > size.x && size.y > size.z)
-    {
-        rotation.x = 90.0f;  // 沿 X 轴旋转 90 度
-    }
-    else
-    {
+    if (size.y > size.x && size.y > size.z) {
+        rotation.x = 90.0f; // 沿 X 轴旋转 90 度
+    } else {
         rotation = glm::vec3(0.0f); // 不旋转
     }
 }
@@ -381,6 +366,7 @@ glm::mat4 Model::getModelMatrix() const {
     mat = mat * glm::scale(glm::mat4(1.0f), scale);
     return mat;
 }
+
 Model Model::createCube(float size) {
     Model cubeModel;
     float halfSize = size / 2.0f;
@@ -397,21 +383,21 @@ Model Model::createCube(float size) {
     };
 
     std::vector<Face> faces = {
-            // Front (+Z)
-            {{{-1, -1,  1}, { 1, -1,  1}, { 1,  1,  1}, {-1,  1,  1}}, {0, 0, 1}, {{0,0},{1,0},{1,1},{0,1}}},
-            // Back (-Z)
-            {{{ 1, -1, -1}, {-1, -1, -1}, {-1,  1, -1}, { 1,  1, -1}}, {0, 0, -1}, {{0,0},{1,0},{1,1},{0,1}}},
-            // Left (-X)
-            {{{-1, -1, -1}, {-1, -1,  1}, {-1,  1,  1}, {-1,  1, -1}}, {-1, 0, 0}, {{0,0},{1,0},{1,1},{0,1}}},
-            // Right (+X)
-            {{{ 1, -1,  1}, { 1, -1, -1}, { 1,  1, -1}, { 1,  1,  1}}, {1, 0, 0}, {{0,0},{1,0},{1,1},{0,1}}},
-            // Top (+Y)
-            {{{-1,  1,  1}, { 1,  1,  1}, { 1,  1, -1}, {-1,  1, -1}}, {0, 1, 0}, {{0,0},{1,0},{1,1},{0,1}}},
-            // Bottom (-Y)
-            {{{-1, -1, -1}, { 1, -1, -1}, { 1, -1,  1}, {-1, -1,  1}}, {0, -1, 0}, {{0,0},{1,0},{1,1},{0,1}}},
+        // Front (+Z)
+        {{{-1, -1, 1}, {1, -1, 1}, {1, 1, 1}, {-1, 1, 1}}, {0, 0, 1}, {{0, 0}, {1, 0}, {1, 1}, {0, 1}}},
+        // Back (-Z)
+        {{{1, -1, -1}, {-1, -1, -1}, {-1, 1, -1}, {1, 1, -1}}, {0, 0, -1}, {{0, 0}, {1, 0}, {1, 1}, {0, 1}}},
+        // Left (-X)
+        {{{-1, -1, -1}, {-1, -1, 1}, {-1, 1, 1}, {-1, 1, -1}}, {-1, 0, 0}, {{0, 0}, {1, 0}, {1, 1}, {0, 1}}},
+        // Right (+X)
+        {{{1, -1, 1}, {1, -1, -1}, {1, 1, -1}, {1, 1, 1}}, {1, 0, 0}, {{0, 0}, {1, 0}, {1, 1}, {0, 1}}},
+        // Top (+Y)
+        {{{-1, 1, 1}, {1, 1, 1}, {1, 1, -1}, {-1, 1, -1}}, {0, 1, 0}, {{0, 0}, {1, 0}, {1, 1}, {0, 1}}},
+        // Bottom (-Y)
+        {{{-1, -1, -1}, {1, -1, -1}, {1, -1, 1}, {-1, -1, 1}}, {0, -1, 0}, {{0, 0}, {1, 0}, {1, 1}, {0, 1}}},
     };
 
-    auto computeTBN = [](Vertex& v0, Vertex& v1, Vertex& v2) {
+    auto computeTBN = [](Vertex &v0, Vertex &v1, Vertex &v2) {
         glm::vec3 edge1 = v1.Position - v0.Position;
         glm::vec3 edge2 = v2.Position - v0.Position;
         glm::vec2 deltaUV1 = v1.TexCoords - v0.TexCoords;
@@ -435,12 +421,12 @@ Model Model::createCube(float size) {
         v0.Bitangent = v1.Bitangent = v2.Bitangent = bitangent;
     };
 
-    for (const auto& face : faces) {
+    for (const auto &face: faces) {
         int startIdx = vertices.size();
-        Vertex v0 = { face.pos[0] * halfSize, face.normal, face.uv[0] * uvTiling };
-        Vertex v1 = { face.pos[1] * halfSize, face.normal, face.uv[1] * uvTiling };
-        Vertex v2 = { face.pos[2] * halfSize, face.normal, face.uv[2] * uvTiling };
-        Vertex v3 = { face.pos[3] * halfSize, face.normal, face.uv[3] * uvTiling };
+        Vertex v0 = {face.pos[0] * halfSize, face.normal, face.uv[0] * uvTiling};
+        Vertex v1 = {face.pos[1] * halfSize, face.normal, face.uv[1] * uvTiling};
+        Vertex v2 = {face.pos[2] * halfSize, face.normal, face.uv[2] * uvTiling};
+        Vertex v3 = {face.pos[3] * halfSize, face.normal, face.uv[3] * uvTiling};
 
         computeTBN(v0, v1, v2);
         computeTBN(v0, v2, v3);
@@ -472,25 +458,26 @@ Model Model::createCube(float size) {
     cubeModel.directory = "cube";
     return cubeModel;
 }
-Model Model::createPlane(float size,int type) {
+
+Model Model::createPlane(float size, int type) {
     Model planeModel;
 
     float halfSize = size / 2.0f;
 
     // 4 顶点数据
-    Vertex v0 = { {-halfSize, 0.0f, -halfSize}, {0,1,0}, {0,0} };
-    Vertex v1 = { { halfSize, 0.0f, -halfSize}, {0,1,0}, {1,0} };
-    Vertex v2 = { { halfSize, 0.0f,  halfSize}, {0,1,0}, {1,1} };
-    Vertex v3 = { {-halfSize, 0.0f,  halfSize}, {0,1,0}, {0,1} };
+    Vertex v0 = {{-halfSize, 0.0f, -halfSize}, {0, 1, 0}, {0, 0}};
+    Vertex v1 = {{halfSize, 0.0f, -halfSize}, {0, 1, 0}, {1, 0}};
+    Vertex v2 = {{halfSize, 0.0f, halfSize}, {0, 1, 0}, {1, 1}};
+    Vertex v3 = {{-halfSize, 0.0f, halfSize}, {0, 1, 0}, {0, 1}};
 
     std::vector<Vertex> vertices = {v0, v1, v2, v3};
     std::vector<unsigned int> indices = {0, 1, 2, 0, 2, 3};
     float uvTiling = 10.0f;
-    for (auto& v : vertices) {
+    for (auto &v: vertices) {
         v.TexCoords *= uvTiling;
     }
     // 计算两个三角形的切线副切线
-    auto computeTBN = [](Vertex& v0, Vertex& v1, Vertex& v2) {
+    auto computeTBN = [](Vertex &v0, Vertex &v1, Vertex &v2) {
         glm::vec3 edge1 = v1.Position - v0.Position;
         glm::vec3 edge2 = v2.Position - v0.Position;
         glm::vec2 deltaUV1 = v1.TexCoords - v0.TexCoords;
@@ -524,23 +511,24 @@ Model Model::createPlane(float size,int type) {
     planeModel.meshes.push_back(planeMesh);
 
     Mesh &mesh = planeModel.meshes[0];
-    if(type == 1){
-        mesh.loadNewTexture("assets/floor/albedo.jpg","texture_albedo");
-        mesh.loadNewTexture("assets/floor/AO.jpg","texture_ao");
-        mesh.loadNewTexture("assets/floor/normal.jpg","texture_normal");
-        mesh.loadNewTexture("assets/floor/roughness.jpg","texture_roughness");
+    if (type == 1) {
+        mesh.loadNewTexture("assets/floor/albedo.jpg", "texture_albedo");
+        mesh.loadNewTexture("assets/floor/AO.jpg", "texture_ao");
+        mesh.loadNewTexture("assets/floor/normal.jpg", "texture_normal");
+        mesh.loadNewTexture("assets/floor/roughness.jpg", "texture_roughness");
     }
-    if(!mesh.mat.hasMetallic) mesh.mat.metallic = defaultMetallicOne;
-    if(!mesh.mat.hasRoughness) mesh.mat.roughness = defaultRoughnessZero;
-    if(!mesh.mat.hasAO) mesh.mat.ao = defaultAO;
-    if(!mesh.mat.hasAlbedo) mesh.mat.albedo = defaultAlbedo;
-    if(!mesh.mat.hasEmission) mesh.mat.emission = defaultBlack;
-    if(!mesh.mat.hasNormal) mesh.mat.normal = defaultNormal;
+    if (!mesh.mat.hasMetallic) mesh.mat.metallic = defaultMetallicOne;
+    if (!mesh.mat.hasRoughness) mesh.mat.roughness = defaultRoughnessZero;
+    if (!mesh.mat.hasAO) mesh.mat.ao = defaultAO;
+    if (!mesh.mat.hasAlbedo) mesh.mat.albedo = defaultAlbedo;
+    if (!mesh.mat.hasEmission) mesh.mat.emission = defaultBlack;
+    if (!mesh.mat.hasNormal) mesh.mat.normal = defaultNormal;
 
     planeModel.translation = glm::vec3(0.0f, -2.f, 0.0f);
     planeModel.directory = "floor";
     return planeModel;
 }
+
 Model Model::createArrow(float shaftLength, float shaftRadius, float headLength, float headRadius) {
     Model arrowModel;
 
@@ -557,32 +545,34 @@ Model Model::createArrow(float shaftLength, float shaftRadius, float headLength,
     float shaftEndZ = shaftLength;
 
     // 底面4个顶点 (z=0)
-    vertices.push_back({{-halfRadius, -halfRadius, 0.0f}, {0,0,-1}, {0,0}});
-    vertices.push_back({{ halfRadius, -halfRadius, 0.0f}, {0,0,-1}, {1,0}});
-    vertices.push_back({{ halfRadius,  halfRadius, 0.0f}, {0,0,-1}, {1,1}});
-    vertices.push_back({{-halfRadius,  halfRadius, 0.0f}, {0,0,-1}, {0,1}});
+    vertices.push_back({{-halfRadius, -halfRadius, 0.0f}, {0, 0, -1}, {0, 0}});
+    vertices.push_back({{halfRadius, -halfRadius, 0.0f}, {0, 0, -1}, {1, 0}});
+    vertices.push_back({{halfRadius, halfRadius, 0.0f}, {0, 0, -1}, {1, 1}});
+    vertices.push_back({{-halfRadius, halfRadius, 0.0f}, {0, 0, -1}, {0, 1}});
 
     // 顶面4个顶点 (z=shaftEndZ)
-    vertices.push_back({{-halfRadius, -halfRadius, shaftEndZ}, {0,0,1}, {0,0}});
-    vertices.push_back({{ halfRadius, -halfRadius, shaftEndZ}, {0,0,1}, {1,0}});
-    vertices.push_back({{ halfRadius,  halfRadius, shaftEndZ}, {0,0,1}, {1,1}});
-    vertices.push_back({{-halfRadius,  halfRadius, shaftEndZ}, {0,0,1}, {0,1}});
+    vertices.push_back({{-halfRadius, -halfRadius, shaftEndZ}, {0, 0, 1}, {0, 0}});
+    vertices.push_back({{halfRadius, -halfRadius, shaftEndZ}, {0, 0, 1}, {1, 0}});
+    vertices.push_back({{halfRadius, halfRadius, shaftEndZ}, {0, 0, 1}, {1, 1}});
+    vertices.push_back({{-halfRadius, halfRadius, shaftEndZ}, {0, 0, 1}, {0, 1}});
 
     // 箭杆索引 (组成长方体6个面，每面两个三角形)
     unsigned int baseIndex = 0;
     // 底面
-    indices.insert(indices.end(), {baseIndex, baseIndex+1, baseIndex+2, baseIndex, baseIndex+2, baseIndex+3});
+    indices.insert(indices.end(), {baseIndex, baseIndex + 1, baseIndex + 2, baseIndex, baseIndex + 2, baseIndex + 3});
     // 顶面
-    indices.insert(indices.end(), {baseIndex+4, baseIndex+5, baseIndex+6, baseIndex+4, baseIndex+6, baseIndex+7});
+    indices.insert(indices.end(), {
+                       baseIndex + 4, baseIndex + 5, baseIndex + 6, baseIndex + 4, baseIndex + 6, baseIndex + 7
+                   });
     // 侧面（4个面，每面两个三角形）
     // 0->1->5->4 面
-    indices.insert(indices.end(), {0,1,5, 0,5,4});
+    indices.insert(indices.end(), {0, 1, 5, 0, 5, 4});
     // 1->2->6->5 面
-    indices.insert(indices.end(), {1,2,6, 1,6,5});
+    indices.insert(indices.end(), {1, 2, 6, 1, 6, 5});
     // 2->3->7->6 面
-    indices.insert(indices.end(), {2,3,7, 2,7,6});
+    indices.insert(indices.end(), {2, 3, 7, 2, 7, 6});
     // 3->0->4->7 面
-    indices.insert(indices.end(), {3,0,4, 3,4,7});
+    indices.insert(indices.end(), {3, 0, 4, 3, 4, 7});
 
     // 现在箭头锥体 (4个三角形顶点 + 底面圆)
     // 箭头底面中心点在 shaftEndZ 位置，箭头顶点在 shaftEndZ + headLength 位置
@@ -590,37 +580,37 @@ Model Model::createArrow(float shaftLength, float shaftRadius, float headLength,
     glm::vec3 headTip(0, 0, shaftEndZ + headLength);
 
     // 底面4顶点（围绕Z轴，围绕箭杆顶面中心旋转）用正方形近似底面（也可以细分圆形）
-    baseIndex = (unsigned int)vertices.size();
-    vertices.push_back({{-headRadius, -headRadius, shaftEndZ}, {0,0,-1}, {0,0}});
-    vertices.push_back({{ headRadius, -headRadius, shaftEndZ}, {0,0,-1}, {1,0}});
-    vertices.push_back({{ headRadius,  headRadius, shaftEndZ}, {0,0,-1}, {1,1}});
-    vertices.push_back({{-headRadius,  headRadius, shaftEndZ}, {0,0,-1}, {0,1}});
+    baseIndex = (unsigned int) vertices.size();
+    vertices.push_back({{-headRadius, -headRadius, shaftEndZ}, {0, 0, -1}, {0, 0}});
+    vertices.push_back({{headRadius, -headRadius, shaftEndZ}, {0, 0, -1}, {1, 0}});
+    vertices.push_back({{headRadius, headRadius, shaftEndZ}, {0, 0, -1}, {1, 1}});
+    vertices.push_back({{-headRadius, headRadius, shaftEndZ}, {0, 0, -1}, {0, 1}});
 
     // 箭头顶点
-    vertices.push_back({headTip, glm::normalize(headTip - glm::vec3(0,0,shaftEndZ)), {0.5f,0.5f}});
+    vertices.push_back({headTip, glm::normalize(headTip - glm::vec3(0, 0, shaftEndZ)), {0.5f, 0.5f}});
 
-    unsigned int tipIndex = (unsigned int)vertices.size() - 1;
+    unsigned int tipIndex = (unsigned int) vertices.size() - 1;
 
     // 箭头底面
     indices.insert(indices.end(), {
-            baseIndex, baseIndex+1, baseIndex+2,
-            baseIndex, baseIndex+2, baseIndex+3
-    });
+                       baseIndex, baseIndex + 1, baseIndex + 2,
+                       baseIndex, baseIndex + 2, baseIndex + 3
+                   });
 
     // 箭头侧面4个三角形，连接底面四个顶点和箭头顶点
     for (int i = 0; i < 4; ++i) {
-        unsigned int next = baseIndex + (i+1) % 4;
+        unsigned int next = baseIndex + (i + 1) % 4;
         indices.insert(indices.end(), {
-                baseIndex + i, next, tipIndex
-        });
+                           baseIndex + i, next, tipIndex
+                       });
     }
 
     // 计算切线和副切线（简单版，法线暂时给固定值）
 
     for (size_t i = 0; i + 2 < indices.size(); i += 3) {
-        Vertex& v0 = vertices[indices[i]];
-        Vertex& v1 = vertices[indices[i+1]];
-        Vertex& v2 = vertices[indices[i+2]];
+        Vertex &v0 = vertices[indices[i]];
+        Vertex &v1 = vertices[indices[i + 1]];
+        Vertex &v2 = vertices[indices[i + 2]];
 
         glm::vec3 edge1 = v1.Position - v0.Position;
         glm::vec3 edge2 = v2.Position - v0.Position;
@@ -641,16 +631,20 @@ Model Model::createArrow(float shaftLength, float shaftRadius, float headLength,
         bitangent.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
         bitangent = glm::normalize(bitangent);
 
-        v0.Tangent = tangent; v1.Tangent = tangent; v2.Tangent = tangent;
-        v0.Bitangent = bitangent; v1.Bitangent = bitangent; v2.Bitangent = bitangent;
+        v0.Tangent = tangent;
+        v1.Tangent = tangent;
+        v2.Tangent = tangent;
+        v0.Bitangent = bitangent;
+        v1.Bitangent = bitangent;
+        v2.Bitangent = bitangent;
     }
 
     // 创建材质
     PBRMaterial mat;
-    mat.metallic  = defaultMetallicZero;
-    mat.emission  = defaultBlack;
-    mat.roughness  = defaultRoughnessMid;
-    mat.albedo    = defaultAlbedo;
+    mat.metallic = defaultMetallicZero;
+    mat.emission = defaultBlack;
+    mat.roughness = defaultRoughnessMid;
+    mat.albedo = defaultAlbedo;
     mat.ao = defaultAO;
     mat.normal = defaultNormal;
 

@@ -6,17 +6,17 @@
 #include "../core/Shader.h"
 #include "../utils/checkGlCommand.h"
 
-DebugPass::DebugPass(Scene &scene) :RenderPass("DebugPass") ,scene(scene), skyboxShader("shader/debug/skybox.vert", "shader/debug/skybox.frag"),
-                                    lightCubeShader("shader/debug/lightCube.vert", "shader/debug/lightCube.frag"),
-                                    outlineShader("shader/debug/outline.vert", "shader/debug/outline.frag"){
-
+DebugPass::DebugPass(Scene &scene) : RenderPass("DebugPass"), scene(scene),
+                                     skyboxShader("shader/debug/skybox.vert", "shader/debug/skybox.frag"),
+                                     lightCubeShader("shader/debug/lightCube.vert", "shader/debug/lightCube.frag"),
+                                     outlineShader("shader/debug/outline.vert", "shader/debug/outline.frag") {
 }
 
-void DebugPass::init(RenderResource& resource){
+void DebugPass::init(RenderResource &resource) {
     RenderPass::init(resource);
 }
 
-void DebugPass::render(RenderResource& resource){
+void DebugPass::render(RenderResource &resource) {
     // 天空盒
     skyboxShader.bind();
     glEnable(GL_DEPTH_TEST);
@@ -32,9 +32,9 @@ void DebugPass::render(RenderResource& resource){
     // 描边渲染
     if (scene.selModel && scene.enableOutline) {
         glEnable(GL_DEPTH_TEST);
-        glDepthMask(GL_FALSE);  // 关闭深度写入
+        glDepthMask(GL_FALSE); // 关闭深度写入
         glEnable(GL_CULL_FACE);
-        glCullFace(GL_FRONT);  // 剔除正面，只渲染膨胀模型背面
+        glCullFace(GL_FRONT); // 剔除正面，只渲染膨胀模型背面
 
         outlineShader.bind();
         outlineShader.setMat4("projection", scene.camera->getProjectionMatrix());
@@ -50,16 +50,16 @@ void DebugPass::render(RenderResource& resource){
         glDisable(GL_CULL_FACE);
     }
     // 光源方块
-    if (scene.drawLightCube){
+    if (scene.drawLightCube) {
         lightCubeShader.bind();
         lightCubeShader.setMat4("projection", scene.camera->getProjectionMatrix());
         lightCubeShader.setMat4("view", scene.camera->getViewMatrix());
-        for (auto& light : scene.lights) {
+        for (auto &light: scene.lights) {
             auto model = glm::mat4(1.0f);
             if (auto dirLight = std::dynamic_pointer_cast<DirectionalLight>(scene.selLight)) {
                 // 平行光position存储的是方向，而不是位置
-                model = glm::translate(model, -light->position*10.0f);
-            }else{
+                model = glm::translate(model, -light->position * 10.0f);
+            } else {
                 model = glm::translate(model, light->position);
             }
             model = glm::scale(model, glm::vec3(0.1f)); // 小立方体尺寸
@@ -71,6 +71,7 @@ void DebugPass::render(RenderResource& resource){
         glDepthFunc(GL_LESS);
     }
     if (scene.showDebugTexture) {
+        glDisable(GL_DEPTH_TEST);
         glBindVertexArray(resource.VAOs["quad"]);
         resource.shaders["quadShader"].get()->bind();
         glDepthMask(GL_FALSE);
@@ -78,10 +79,10 @@ void DebugPass::render(RenderResource& resource){
 
         const int maxPerRow = 2;
         int totalSelected = 0;
-        std::vector<std::tuple<GLuint, int, std::string>> selectedTextures;
+        std::vector<std::tuple<GLuint, int, std::string> > selectedTextures;
 
         // 收集选中的纹理（逻辑不变）
-        auto addIfSelected = [&](bool isSelected, GLuint texId, int channel, const std::string& name) {
+        auto addIfSelected = [&](bool isSelected, GLuint texId, int channel, const std::string &name) {
             if (isSelected && totalSelected < 4) {
                 selectedTextures.emplace_back(texId, channel, name);
                 totalSelected++;
@@ -89,19 +90,20 @@ void DebugPass::render(RenderResource& resource){
         };
 
         // 添加选中的纹理（按顺序）
-        addIfSelected(scene.showAlbedo,    resource.textures["gAlbedo"],    0, "Albedo");
-        addIfSelected(scene.showNormal,    resource.textures["gNormal"],    5, "Normal");
-        addIfSelected(scene.showPosition,  resource.textures["gPosition"],  0, "Position");
-        addIfSelected(scene.showDepth,     resource.textures["gDepth"],     6, "Depth");
-        addIfSelected(scene.showShadowMap, resource.textures["shadowMap"],  1, "ShadowMap");
-        addIfSelected(scene.showMetallic,  resource.textures["gMaterial"],  1, "Metallic");
-        addIfSelected(scene.showRoughness, resource.textures["gMaterial"],  2, "Roughness");
-        addIfSelected(scene.showAO,        resource.textures["gMaterial"],  3, "AO");
-        addIfSelected(scene.showEmission,  resource.textures["gEmission"],  0, "Emission");
-        addIfSelected(scene.showLightTexture,  resource.textures["lightTexture"],  0, "lightTexture");
+        addIfSelected(scene.showAlbedo, resource.textures["gAlbedo"], 0, "Albedo");
+        addIfSelected(scene.showNormal, resource.textures["gNormal"], 5, "Normal");
+        addIfSelected(scene.showPosition, resource.textures["gPosition"], 0, "Position");
+        addIfSelected(scene.showDepth, resource.textures["gDepth"], 6, "Depth");
+        addIfSelected(scene.showShadowMap, resource.textures["shadowMap"], 1, "ShadowMap");
+        addIfSelected(scene.showMetallic, resource.textures["gMaterial"], 1, "Metallic");
+        addIfSelected(scene.showRoughness, resource.textures["gMaterial"], 2, "Roughness");
+        addIfSelected(scene.showAO, resource.textures["gMaterial"], 3, "AO");
+        addIfSelected(scene.showEmission, resource.textures["gEmission"], 0, "Emission");
+        addIfSelected(scene.showLightTexture, resource.textures["lightTexture"], 0, "lightTexture");
 
         // 关键修复：处理 totalSelected = 0 的情况
-        if (totalSelected > 0) { // 只有选中纹理时才计算网格并绘制
+        if (totalSelected > 0) {
+            // 只有选中纹理时才计算网格并绘制
             // 计算行数（向上取整，避免除以零）
             int rows = (totalSelected + maxPerRow - 1) / maxPerRow;
             // 计算网格尺寸（此时 rows 至少为1，不会除以零）
@@ -111,8 +113,8 @@ void DebugPass::render(RenderResource& resource){
             // 绘制选中的纹理
             for (int i = 0; i < totalSelected; i++) {
                 auto [texId, channel, name] = selectedTextures[i];
-                int col = i % maxPerRow;   // 列索引（0或1）
-                int row = i / maxPerRow;   // 行索引（0或1，因为最多4个）
+                int col = i % maxPerRow; // 列索引（0或1）
+                int row = i / maxPerRow; // 行索引（0或1，因为最多4个）
 
                 // 计算视口位置
                 int x = col * gridW;

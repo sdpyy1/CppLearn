@@ -5,14 +5,15 @@
 
 class FinalColorPass : public PostprocessPass {
 public:
-    explicit FinalColorPass(Scene& scene)
-            : PostprocessPass(scene, Shader("shader/quad.vert", "shader/postprocess/finalColor.frag")) {
+    explicit FinalColorPass(Scene &scene)
+        : PostprocessPass(scene, Shader("shader/quad.vert", "shader/postprocess/finalColor.frag")) {
     }
 
-    void init(RenderResource& resource) override {
+    void init(RenderResource &resource) override {
         passName = "ToneMapping";
         PostprocessPass::init(resource);
     }
+
     void GUIRender() override {
         ImGui::RadioButton("None", &scene.toneMappingType, 0);
         ImGui::SameLine(); // 可选：让按钮横向排列
@@ -20,7 +21,8 @@ public:
         ImGui::SameLine();
         ImGui::RadioButton("ACES Film", &scene.toneMappingType, 2);
     }
-    void render(RenderResource& resource) override {
+
+    void render(RenderResource &resource) override {
         int nextFreeTextureId = bindParams(resource);
 
         postShader.setInt("toneMappingType", scene.toneMappingType);

@@ -8,11 +8,12 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
 #include <iostream>
-ShadowPass::ShadowPass(Scene &scene): RenderPass("ShadowPass"),scene(scene), shadowShader("shader/shadow.vert", "shader/shadow.frag")
-{
+
+ShadowPass::ShadowPass(Scene &scene): RenderPass("ShadowPass"), scene(scene),
+                                      shadowShader("shader/shadow.vert", "shader/shadow.frag") {
 }
 
-void ShadowPass::init(RenderResource& resource) {
+void ShadowPass::init(RenderResource &resource) {
     glGenFramebuffers(1, &shadowFBO);
     // 创建深度纹理
     glGenTextures(1, &shadowMap);
@@ -38,11 +39,11 @@ void ShadowPass::init(RenderResource& resource) {
     RenderPass::init(resource);
 }
 
-void ShadowPass::render(RenderResource& resource) {
+void ShadowPass::render(RenderResource &resource) {
     glViewport(0, 0, shadowMapWidth, shadowMapHeight);
     glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
     glClear(GL_DEPTH_BUFFER_BIT);
-
+    glEnable(GL_DEPTH_TEST);
     // TODO:这里得查一下为什么可以防止
     // 可选：开启面剔除，防止 Peter-panning
     // glCullFace(GL_FRONT);
@@ -51,7 +52,8 @@ void ShadowPass::render(RenderResource& resource) {
     // 正交投影，范围是正交体体积，覆盖阴影区域
     glm::mat4 lightProjection = glm::ortho(-orthoSize, orthoSize, -orthoSize, orthoSize, near_plane, far_plane);
 
-    glm::mat4 lightView = glm::lookAt(-glm::normalize(scene.lights[0]->position)*10.0f, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 lightView = glm::lookAt(-glm::normalize(scene.lights[0]->position) * 10.0f, glm::vec3(0.0f),
+                                      glm::vec3(0.0f, 1.0f, 0.0f));
 
     // 计算光空间矩阵
     lightSpaceMatrix = lightProjection * lightView;
@@ -60,7 +62,7 @@ void ShadowPass::render(RenderResource& resource) {
     shadowShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
     resource.matrices["lightSpaceMatrix"] = lightSpaceMatrix;
     // 2. 渲染场景中所有模型的深度
-    for (auto& model : scene.models) {
+    for (auto &model: scene.models) {
         glm::mat4 modelMatrix = model.getModelMatrix();
         shadowShader.setMat4("model", modelMatrix);
         model.draw(shadowShader);
@@ -74,4 +76,5 @@ void ShadowPass::render(RenderResource& resource) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     // 恢复视口为窗口大小
     glViewport(0, 0, scene.width, scene.height);
+    glDisable(GL_DEPTH_TEST);
 }

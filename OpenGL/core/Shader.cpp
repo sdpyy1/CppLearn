@@ -108,6 +108,39 @@ Shader::Shader(const char* vertexPath, const char* geometryPath, const char* fra
     GL_CALL(glDeleteShader(fragment));
 }
 
+Shader::Shader(const char* computePath) {
+    // 1. 读取计算着色器源码
+    std::string computeCode;
+    std::ifstream cShaderFile;
+    cShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+    try {
+        cShaderFile.open(computePath);
+        std::stringstream cShaderStream;
+        cShaderStream << cShaderFile.rdbuf();
+        cShaderFile.close();
+        computeCode = cShaderStream.str();
+    } catch (std::ifstream::failure& e) {
+        std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ: " << computePath << std::endl;
+    }
+    const char* cShaderCode = computeCode.c_str();
+
+    // 2. 编译 Compute Shader
+    unsigned int compute;
+    compute = glCreateShader(GL_COMPUTE_SHADER);
+    glShaderSource(compute, 1, &cShaderCode, nullptr);
+    glCompileShader(compute);
+    checkCompileErrors(compute, "COMPUTE");
+
+    // 3. 创建程序并链接
+    ID = glCreateProgram();
+    glAttachShader(ID, compute);
+    glLinkProgram(ID);
+    checkCompileErrors(ID, "PROGRAM");
+
+    // 4. 删除着色器对象
+    glDeleteShader(compute);
+}
+
 void Shader::bind() {
     glUseProgram(ID);
     isUsing = true;
@@ -157,7 +190,15 @@ void Shader::setVec2(const std::string& name, float x, float y) const
     }
     glUniform2f(glGetUniformLocation(ID, name.c_str()), x, y);
 }
-
+void Shader::setVec3i(const std::string& name, const glm::ivec3& value) const
+{
+    if (!isUsing) {
+        std::cerr << "Shader未use" << "\n";
+        return;
+    }
+    // 使用glUniform3iv设置整数向量，注意函数后缀是iv
+    glUniform3iv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]);
+}
 void Shader::setVec3(const std::string& name, const glm::vec3& value) const
 {
     if (!isUsing){

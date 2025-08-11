@@ -3,6 +3,7 @@ out vec4 FragColor;
 in vec2 TexCoords;
 
 uniform sampler2D preTexture;
+uniform sampler2D lightTexture;
 uniform sampler2D gDepth;
 // Tone Mapping
 uniform int toneMappingType;

@@ -10,14 +10,18 @@
 #include "../core/Shader.h"
 #include "../helper/Scene.h"
 
-class DebugPass : public RenderPass{
+class DebugPass : public RenderPass {
 public:
     explicit DebugPass(Scene &scene);
+
     Shader skyboxShader;
     Shader lightCubeShader;
     Shader outlineShader;
-    void init(RenderResource& resource) override;
-    void render(RenderResource& resource) override;
+
+    void init(RenderResource &resource) override;
+
+    void render(RenderResource &resource) override;
+
     Scene &scene;
 };
 

@@ -31,7 +31,7 @@ add_library(imgui
         ${IMGUI_DIR}/imgui_draw.cpp
         ${IMGUI_DIR}/imgui_tables.cpp
         ${IMGUI_DIR}/imgui_widgets.cpp
-#        ${IMGUI_DIR}/imgui_demo.cpp
+        #        ${IMGUI_DIR}/imgui_demo.cpp
         ${IMGUI_BACKENDS_DIR}/imgui_impl_glfw.cpp
         ${IMGUI_BACKENDS_DIR}/imgui_impl_opengl3.cpp
 )
@@ -54,24 +54,42 @@ elseif (APPLE)
 endif ()
 
 # 复制lib目录到输出目录（执行目录）
-add_custom_command(TARGET OpenGLRender POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_CURRENT_SOURCE_DIR}/third/lib
-        $<TARGET_FILE_DIR:OpenGLRender>
-)
-# Copy shader directory
-add_custom_command(TARGET OpenGLRender POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E remove_directory $<TARGET_FILE_DIR:OpenGLRender>/shader
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_CURRENT_SOURCE_DIR}/shader
-        $<TARGET_FILE_DIR:OpenGLRender>/shader
-        COMMENT "Clean and copy shader directory to output folder"
-)
+#add_custom_command(TARGET OpenGLRender POST_BUILD
+#        COMMAND ${CMAKE_COMMAND} -E copy_directory
+#        ${CMAKE_CURRENT_SOURCE_DIR}/third/lib
+#        $<TARGET_FILE_DIR:OpenGLRender>
+#)
 
-add_custom_command(TARGET OpenGLRender POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E remove_directory $<TARGET_FILE_DIR:OpenGLRender>/assets
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_CURRENT_SOURCE_DIR}/assets
-        $<TARGET_FILE_DIR:OpenGLRender>/assets
-        COMMENT "Clean and copy shader directory to output folder"
-)
+
+# Copy shader directory
+# 收集 shader 和 assets 文件（递归多层目录）
+file(GLOB_RECURSE SHADER_FILES "${CMAKE_CURRENT_SOURCE_DIR}/shader/*")
+file(GLOB_RECURSE ASSETS_FILES "${CMAKE_CURRENT_SOURCE_DIR}/assets/*")
+
+# 定义拷贝 shader 目标
+if (SHADER_FILES)
+    add_custom_target(copy_shaders ALL
+            COMMAND ${CMAKE_COMMAND} -E remove_directory $<TARGET_FILE_DIR:OpenGLRender>/shader
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_CURRENT_SOURCE_DIR}/shader
+            $<TARGET_FILE_DIR:OpenGLRender>/shader
+            DEPENDS ${SHADER_FILES}
+            COMMENT "Copying shaders..."
+    )
+    add_dependencies(OpenGLRender copy_shaders)
+endif ()
+
+if (ASSETS_FILES)
+    add_custom_target(copy_assets ALL
+            COMMAND ${CMAKE_COMMAND} -E remove_directory $<TARGET_FILE_DIR:OpenGLRender>/assets
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_CURRENT_SOURCE_DIR}/assets
+            $<TARGET_FILE_DIR:OpenGLRender>/assets
+            DEPENDS ${ASSETS_FILES}
+            COMMENT "Copying assets..."
+    )
+    add_dependencies(OpenGLRender copy_assets)
+endif ()
+
+# 让 OpenGLRender 构建前先执行资源拷贝
+add_dependencies(OpenGLRender copy_shaders copy_assets)

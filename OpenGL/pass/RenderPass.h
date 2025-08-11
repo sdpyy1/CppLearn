@@ -14,20 +14,23 @@ struct RenderResource {
     std::unordered_map<std::string, GLuint> framebuffers;
     std::unordered_map<std::string, glm::mat4> matrices;
     std::unordered_map<std::string, GLuint> VAOs;
-    std::unordered_map<std::string, std::unique_ptr<Shader>> shaders;
+    std::unordered_map<std::string, std::unique_ptr<Shader> > shaders;
 };
-class RenderPass
-{
+
+class RenderPass {
 public:
-    explicit RenderPass(std::string passName):passName(std::move(passName)){};
+    explicit RenderPass(std::string passName): passName(std::move(passName)) {
+    };
     std::string passName = "Unknown";
     bool isInit = false;
-    virtual void init(RenderResource& resource){
-        std::cout << "Init {" << passName <<"} done!"<< std::endl;
+
+    virtual void init(RenderResource &resource) {
+        std::cout << "Init {" << passName << "} done!" << std::endl;
         isInit = true;
     };
 
-    virtual void render(RenderResource& resource) = 0;
+    virtual void render(RenderResource &resource) = 0;
+
     virtual ~RenderPass() = default;
 };
 
