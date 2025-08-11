@@ -33,6 +33,7 @@ void PostprocessPass::init(RenderResource &resource) {
 }
 
 void PostprocessPass::render(RenderResource &resource) {
+
     if (isRender) {
         glBindFramebuffer(GL_FRAMEBUFFER, postFBO);
         glViewport(0, 0, scene.width, scene.height);

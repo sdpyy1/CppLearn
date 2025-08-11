@@ -21,8 +21,8 @@ void main() {
     int index = 0;
 
     // 固定5x5范围采样（从-2到+2的偏移）
-    for (int y = -2; y <= 2; y++) {
-        for (int x = -2; x <= 2; x++) {
+    for(int y = -2; y <= 2; y++) {
+        for(int x = -2; x <= 2; x++) {
             // 计算采样坐标偏移
             vec2 offset = vec2(float(x), float(y)) * texelSize;
             // 累加加权采样结果

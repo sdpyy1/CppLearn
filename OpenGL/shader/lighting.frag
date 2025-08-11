@@ -57,7 +57,7 @@ float ShadowCalculation(vec3 fragPosWorld, vec3 normal) {
         // --- PCF ---
         float shadow = 0.0;
         ivec2 texSize = textureSize(shadowMap, 0);
-        vec2 texelSize = 1.0 / vec2(texSize);
+        vec2 texelSize = 1.0 /vec2(texSize);
         int range = pcfScope;
         int samples = 0;
 
@@ -110,12 +110,12 @@ float ShadowCalculation(vec3 fragPosWorld, vec3 normal) {
 // GGX NDF
 float DistributionGGX(vec3 N, vec3 H, float roughness)
 {
-    float a = roughness * roughness;
-    float a2 = a * a;
+    float a = roughness*roughness;
+    float a2 = a*a;
     float NdotH = max(dot(N, H), 0.0);
-    float NdotH2 = NdotH * NdotH;
+    float NdotH2 = NdotH*NdotH;
 
-    float nom = a2;
+    float nom   = a2;
     float denom = (NdotH2 * (a2 - 1.0) + 1.0);
     denom = PI * denom * denom;
 
@@ -126,9 +126,9 @@ float DistributionGGX(vec3 N, vec3 H, float roughness)
 float GeometrySchlickGGX(float NdotV, float roughness)
 {
     float r = (roughness + 1.0);
-    float k = (r * r) / 8.0;
+    float k = (r*r) / 8.0;
 
-    float nom = NdotV;
+    float nom   = NdotV;
     float denom = NdotV * (1.0 - k) + k;
 
     return nom / denom;
@@ -159,11 +159,11 @@ vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
 void main()
 {
     // 纹理采样
-    vec3 albedo = pow(texture(gAlbedo, TexCoords).rgb, vec3(2.2));
-    float metallic = texture(gMaterial, TexCoords).r;
+    vec3 albedo     = pow(texture(gAlbedo, TexCoords).rgb, vec3(2.2));
+    float metallic  = texture(gMaterial, TexCoords).r;
     float roughness = texture(gMaterial, TexCoords).g;
-    float ao = texture(gMaterial, TexCoords).b;
-    vec3 emission = pow(texture(gEmission, TexCoords).rgb, vec3(2.2));
+    float ao        = texture(gMaterial, TexCoords).b;
+    vec3 emission     = pow(texture(gEmission, TexCoords).rgb, vec3(2.2));
     vec3 WorldPos = texture(gPosition, TexCoords).rgb;
 
     // 参数准备
@@ -177,8 +177,8 @@ void main()
 
     // BRDF项
     float NDF = DistributionGGX(N, H, roughness);  // 粗糙度来决定NDF，粗糙度越小，法线越集中在H
-    float G = GeometrySmith(N, V, L, roughness);
-    vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
+    float G   = GeometrySmith(N, V, L, roughness);
+    vec3  F   = fresnelSchlick(max(dot(H, V), 0.0), F0);
     vec3 specular = (NDF * G * F) / (4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.001);
 
     // 镜面反射占比
@@ -190,17 +190,17 @@ void main()
 
 
     // 直接光照计算
-    vec3 Lo = (kD * albedo / PI + specular) * lightColor * NdotL * (1 - ShadowCalculation(WorldPos, N));
+    vec3 Lo = (kD * albedo / PI + specular) * lightColor * NdotL * (1-ShadowCalculation(WorldPos, N));
 
 
     // IBL 环境光
     const float MAX_REFLECTION_LOD = 4.0;
-    vec3 prefilteredColor = textureLod(prefilterMap, R, roughness * MAX_REFLECTION_LOD).rgb;
-    F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
+    vec3 prefilteredColor = textureLod(prefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;
+    F        = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
     vec2 lut = texture(lutMap, vec2(max(dot(N, V), 0.0), roughness)).rg;
     vec3 specularIBL = prefilteredColor * (F * lut.x + lut.y);
     vec3 irradiance = texture(irradianceMap, N).rgb;
-    vec3 diffuse = irradiance * albedo / PI;  // learnOpenGL中并没有 /PI
+    vec3 diffuse    = irradiance * albedo / PI;  // learnOpenGL中并没有 /PI
 
     vec3 ambient = (kD * diffuse + specularIBL) * ao;
 
@@ -208,5 +208,5 @@ void main()
     vec3 color = ambient + Lo + emission;
 
 
-    FragColor = vec4(color, 1.0);
+    FragColor =  vec4(color, 1.0);
 }

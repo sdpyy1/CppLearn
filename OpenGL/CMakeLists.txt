@@ -31,7 +31,7 @@ add_library(imgui
         ${IMGUI_DIR}/imgui_draw.cpp
         ${IMGUI_DIR}/imgui_tables.cpp
         ${IMGUI_DIR}/imgui_widgets.cpp
-        #        ${IMGUI_DIR}/imgui_demo.cpp
+#        ${IMGUI_DIR}/imgui_demo.cpp
         ${IMGUI_BACKENDS_DIR}/imgui_impl_glfw.cpp
         ${IMGUI_BACKENDS_DIR}/imgui_impl_opengl3.cpp
 )
@@ -77,7 +77,7 @@ if (SHADER_FILES)
             COMMENT "Copying shaders..."
     )
     add_dependencies(OpenGLRender copy_shaders)
-endif ()
+endif()
 
 if (ASSETS_FILES)
     add_custom_target(copy_assets ALL
@@ -89,7 +89,7 @@ if (ASSETS_FILES)
             COMMENT "Copying assets..."
     )
     add_dependencies(OpenGLRender copy_assets)
-endif ()
+endif()
 
 # 让 OpenGLRender 构建前先执行资源拷贝
 add_dependencies(OpenGLRender copy_shaders copy_assets)

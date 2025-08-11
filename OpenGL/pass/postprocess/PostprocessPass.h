@@ -9,20 +9,15 @@
 #include "../RenderPass.h"
 #include "../../helper/Scene.h"
 
-class PostprocessPass : public RenderPass {
+class PostprocessPass : public RenderPass{
 public:
-    PostprocessPass(Scene &scene, const Shader &postShader);
+    PostprocessPass(Scene &scene,const Shader &postShader);
 
-    virtual void init(RenderResource &resource) override;
-
-    virtual void render(RenderResource &resource) override;
-
+    virtual void init(RenderResource& resource) override ;
+    virtual void render(RenderResource& resource) override ;
     int bindParams(RenderResource &resource);
-
     void toScreen();
-
     virtual void GUIRender() = 0;
-
     Shader postShader;
     Scene &scene;
     bool isRender = false;

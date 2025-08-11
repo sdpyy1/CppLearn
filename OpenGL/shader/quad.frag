@@ -21,7 +21,7 @@ vec3 visualizeNormal(vec3 normal) {
 void main() {
     vec4 texColor = texture(debugTexture, TexCoords);
 
-    switch (channel) {
+    switch(channel) {
         case 0: // 完整纹理
             FragColor = texColor;
             break;

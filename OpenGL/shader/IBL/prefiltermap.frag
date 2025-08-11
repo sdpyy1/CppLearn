@@ -10,12 +10,12 @@ const float PI = 3.14159265359;
 // ----------------------------------------------------------------------------
 float DistributionGGX(vec3 N, vec3 H, float roughness)
 {
-    float a = roughness * roughness;
-    float a2 = a * a;
+    float a = roughness*roughness;
+    float a2 = a*a;
     float NdotH = max(dot(N, H), 0.0);
-    float NdotH2 = NdotH * NdotH;
+    float NdotH2 = NdotH*NdotH;
 
-    float nom = a2;
+    float nom   = a2;
     float denom = (NdotH2 * (a2 - 1.0) + 1.0);
     denom = PI * denom * denom;
 
@@ -37,17 +37,17 @@ float RadicalInverse_VdC(uint bits)
 // 低差异序列
 vec2 Hammersley(uint i, uint N)
 {
-    return vec2(float(i) / float(N), RadicalInverse_VdC(i));
+    return vec2(float(i)/float(N), RadicalInverse_VdC(i));
 }
 // ----------------------------------------------------------------------------
 // GGX法线分布函数下的重要性采样
 vec3 ImportanceSampleGGX(vec2 Xi, vec3 N, float roughness)
 {
-    float a = roughness * roughness;
+    float a = roughness*roughness;
 
     float phi = 2.0 * PI * Xi.x;
-    float cosTheta = sqrt((1.0 - Xi.y) / (1.0 + (a * a - 1.0) * Xi.y));
-    float sinTheta = sqrt(1.0 - cosTheta * cosTheta);
+    float cosTheta = sqrt((1.0 - Xi.y) / (1.0 + (a*a - 1.0) * Xi.y));
+    float sinTheta = sqrt(1.0 - cosTheta*cosTheta);
 
     // from spherical coordinates to cartesian coordinates - halfway vector
     vec3 H;
@@ -56,8 +56,8 @@ vec3 ImportanceSampleGGX(vec2 Xi, vec3 N, float roughness)
     H.z = cosTheta;
 
     // from tangent-space H vector to world-space sample vector
-    vec3 up = abs(N.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
-    vec3 tangent = normalize(cross(up, N));
+    vec3 up          = abs(N.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
+    vec3 tangent   = normalize(cross(up, N));
     vec3 bitangent = cross(N, tangent);
 
     vec3 sampleVec = tangent * H.x + bitangent * H.y + N * H.z;
@@ -75,14 +75,14 @@ void main()
     vec3 prefilteredColor = vec3(0.0);
     float totalWeight = 0.0;
 
-    for (uint i = 0u; i < SAMPLE_COUNT; ++i)
+    for(uint i = 0u; i < SAMPLE_COUNT; ++i)
     {
         vec2 Xi = Hammersley(i, SAMPLE_COUNT);           // 第 i 个低差异采样点
         vec3 H = ImportanceSampleGGX(Xi, N, roughness);  // 半程向量 H
-        vec3 L = normalize(2.0 * dot(V, H) * H - V);     // 入射光方向 L = reflect(-V, H)
+        vec3 L  = normalize(2.0 * dot(V, H) * H - V);     // 入射光方向 L = reflect(-V, H)
 
         float NdotL = max(dot(N, L), 0.0);
-        if (NdotL > 0.0)
+        if(NdotL > 0.0)
         {
             // 计算重要性采样的 pdf
             float D = DistributionGGX(N, H, roughness);
@@ -92,7 +92,7 @@ void main()
 
             // 环境贴图的信息
             float resolution = 512.0; // 原始 cube map 每个面宽度
-            float saTexel = 4.0 * PI / (6.0 * resolution * resolution); // 每个 texel 的立体角大小
+            float saTexel  = 4.0 * PI / (6.0 * resolution * resolution); // 每个 texel 的立体角大小
             float saSample = 1.0 / (float(SAMPLE_COUNT) * pdf + 0.0001); // 当前 sample 对应的立体角
 
             // 根据 sample 的“模糊度”选择 mipmap 层级
