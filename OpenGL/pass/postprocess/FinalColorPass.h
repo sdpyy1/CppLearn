@@ -24,10 +24,7 @@ public:
 
     void render(RenderResource &resource) override {
         int nextFreeTextureId = bindParams(resource);
-
         postShader.setInt("toneMappingType", scene.toneMappingType);
-        // 强制输出到屏幕
-        toScreen();
         PostprocessPass::render(resource);
         postShader.unBind();
     }

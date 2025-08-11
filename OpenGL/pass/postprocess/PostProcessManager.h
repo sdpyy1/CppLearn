@@ -16,7 +16,6 @@
 class PostProcessManager {
 public:
     std::vector<PostprocessPass *> passes;
-
     explicit PostProcessManager(RenderResource &resource): resource(resource) {
     };
 
@@ -30,11 +29,12 @@ public:
         }
     }
 
-    void render() {
-        for (auto &pass: passes) {
-            pass->render(resource);
-        }
-    }
+    // 不需要单独执行，会合并到pipeline中
+    // void render() {
+    //     for (auto &pass: passes) {
+    //         pass->render(resource);
+    //     }
+    // }
 
     static std::unique_ptr<PostProcessManager> defaultPostProcess(Scene &scene, RenderResource &resource) {
         auto postProcessManager = std::make_unique<PostProcessManager>(resource);

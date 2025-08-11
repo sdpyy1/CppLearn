@@ -39,8 +39,7 @@ void main() {
     // 伽马矫正
     finalColor = pow(finalColor, vec3(1.0 / 2.2));
 
-    // 防止场景被天空盒覆盖
-    gl_FragDepth = texture(gDepth, TexCoords).r;
+
 
     FragColor = vec4(finalColor, 1.0);
 }

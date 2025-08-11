@@ -44,23 +44,13 @@ void ImGUIManger::render() {
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
-void ImGUIManger::renderPostprocessSetting() const{
-    if(renderPipeline->postProcessManager!= nullptr){
+void ImGUIManger::renderPostprocessSetting() const {
+    if(renderPipeline->postProcessManager != nullptr) {
         auto& passes = renderPipeline->postProcessManager->passes;
-        if(!passes.empty()){
-            // 使用索引循环以便判断是否为最后一项
-            for(size_t i = 0; i < passes.size(); ++i){
-                auto postPass = passes[i];
-                bool isLastItem = (i == passes.size() - 1);
-                if(isLastItem){
-                    ImGui::BeginDisabled();
-                }
+        if(!passes.empty()) {
+            for(auto postPass : passes) {
                 ImGui::Checkbox(postPass->passName.c_str(), &postPass->isRender);
-
-                if(isLastItem){
-                    ImGui::EndDisabled();
-                }
-                if(postPass->isRender){
+                if(postPass->isRender) {
                     postPass->GUIRender();
                 }
                 ImGui::Separator();
@@ -68,6 +58,7 @@ void ImGUIManger::renderPostprocessSetting() const{
         }
     }
 }
+
 
 void ImGUIManger::renderDebugTextureSelector() {
     ImGui::Checkbox("Enable Outline", &scene.enableOutline);
@@ -90,6 +81,7 @@ void ImGUIManger::renderDebugTextureSelector() {
                 &scene.showEmission,
                 &scene.showShadowMap,    // 包含新增的ShadowMap
                 &scene.showLightTexture,
+
         };
 
         // 先统计已勾选的数量

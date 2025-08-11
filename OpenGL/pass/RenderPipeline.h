@@ -41,12 +41,23 @@ public:
         // debug纹理专用shader
         resource.shaders["quadShader"] = std::make_unique<Shader>("shader/quad.vert", "../shader/quad.frag");
     }
-
+    void finalOutput() {
+        finalShader.bind();
+        finalShader.setInt("finalTexture",0);
+        finalShader.setInt("gDepth",1);
+        glActiveTexture(GL_TEXTURE0);glBindTexture(GL_TEXTURE_2D, resource.textures["preTexture"]);
+        glActiveTexture(GL_TEXTURE1);glBindTexture(GL_TEXTURE_2D, resource.textures["gDepth"]);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glBindVertexArray(resource.VAOs["quad"]);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindVertexArray(0);
+        finalShader.unBind();
+    }
     void render() {
         for (auto &pass: passes) {
             pass->render(resource);
         }
-        postProcessManager->render();
+        finalOutput();
     }
 
     RenderResource &getResources() { return resource; }
@@ -130,6 +141,9 @@ private:
     std::vector<std::unique_ptr<RenderPass> > passes;
     // 管理pipeline上的资源
     RenderResource resource;
+
+    Shader finalShader = Shader("shader/quad.vert", "shader/screen.frag");
+
 };
 
 
