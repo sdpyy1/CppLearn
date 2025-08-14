@@ -271,13 +271,21 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
             hasFlag = true;
         }
     };
-    // 尝试从 Assimp 加载各种贴图
+    // 尝试从 Assimp 加载各种贴图 只支持PBR
     loadSingleTexture(aiTextureType_BASE_COLOR, "texture_albedo", mat.albedo, mat.hasAlbedo);
     loadSingleTexture(aiTextureType_NORMALS, "texture_normal", mat.normal, mat.hasNormal);
     loadSingleTexture(aiTextureType_METALNESS, "texture_metallic", mat.metallic, mat.hasMetallic);
     loadSingleTexture(aiTextureType_DIFFUSE_ROUGHNESS, "texture_roughness", mat.roughness, mat.hasRoughness);
     loadSingleTexture(aiTextureType_LIGHTMAP, "texture_ao", mat.ao, mat.hasAO);
     loadSingleTexture(aiTextureType_EMISSIVE, "texture_emission", mat.emission, mat.hasEmission);
+
+    // TODO：有些模型自动识别贴图类型会出错，需手动调整
+    // loadSingleTexture(aiTextureType_DIFFUSE, "texture_albedo", mat.albedo, mat.hasAlbedo);
+    // loadSingleTexture(aiTextureType_HEIGHT, "texture_normal", mat.normal, mat.hasNormal);
+    // loadSingleTexture(aiTextureType_AMBIENT, "texture_metallic", mat.metallic, mat.hasMetallic);
+    // loadSingleTexture(aiTextureType_SHININESS, "texture_roughness", mat.roughness, mat.hasRoughness);
+    // loadSingleTexture(aiTextureType_LIGHTMAP, "texture_ao", mat.ao, mat.hasAO);
+    // loadSingleTexture(aiTextureType_EMISSIVE, "texture_emission", mat.emission, mat.hasEmission);
 
     // 若缺失，使用 Scene 中默认贴图
     if (!mat.hasAlbedo) mat.albedo = defaultAlbedo;

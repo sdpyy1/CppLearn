@@ -13,14 +13,15 @@
 
 int main() {
     // 初始化系统
-    WindowManager app(2000, 1600);
+    WindowManager app(1600, 1200);
     // 搭建场景
     Scene scene(&app.camera);
     glm::vec3 lightDir = glm::normalize(glm::vec3(-1.0f, -1.0f, -1.0f));
     DirectionalLight directionalLight(lightDir, glm::vec3(1.0f), 1.0f);
-    Model plane = Model::createPlane(100, 1);
+    Model plane = Model::createPlane(100, 2);
     scene.loadHDRAndIBL("assets/HDR/2.hdr");
     scene.addModel(plane);
+    scene.addModel("assets/Empty/CornellBox.obj");
     // scene.addDefaultModel("helmet");
     Model cube = Model::createCube();
     cube.translation = glm::vec3(2, 2, 2);
