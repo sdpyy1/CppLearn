@@ -19,23 +19,23 @@ void DebugPass::init(RenderResource &resource) {
 void DebugPass::render(RenderResource &resource) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    // 天空盒
-    if (scene.showSkybox) {
-        skyboxShader.bind();
-        glEnable(GL_DEPTH_TEST);
-        glDepthMask(GL_FALSE);
-        // 小于等于都通过测试，因为天空盒z永远=1，所以没有模型的地方肯定会通过测试
-        glDepthFunc(GL_LEQUAL);
-        skyboxShader.setMat4("projection", scene.camera->getProjectionMatrix());
-        skyboxShader.setMat4("view", scene.camera->getViewMatrix());
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, scene.envCubemap);
-        scene.renderCube();
-        glDepthFunc(GL_LESS);
-        glDisable(GL_DEPTH_TEST);
-        glDepthMask(GL_TRUE);
-        skyboxShader.unBind();
-    }
+    // 天空盒  整合到体积云中
+    // if (scene.showSkybox) {
+    //     skyboxShader.bind();
+    //     glEnable(GL_DEPTH_TEST);
+    //     glDepthMask(GL_FALSE);
+    //     // 小于等于都通过测试，因为天空盒z永远=1，所以没有模型的地方肯定会通过测试
+    //     glDepthFunc(GL_LEQUAL);
+    //     skyboxShader.setMat4("projection", scene.camera->getProjectionMatrix());
+    //     skyboxShader.setMat4("view", scene.camera->getViewMatrix());
+    //     glActiveTexture(GL_TEXTURE0);
+    //     glBindTexture(GL_TEXTURE_CUBE_MAP, scene.envCubemap);
+    //     scene.renderCube();
+    //     glDepthFunc(GL_LESS);
+    //     glDisable(GL_DEPTH_TEST);
+    //     glDepthMask(GL_TRUE);
+    //     skyboxShader.unBind();
+    // }
 
 
     // 描边渲染

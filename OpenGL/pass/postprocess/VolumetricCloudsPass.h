@@ -10,6 +10,7 @@ public:
     }
 
     void GUIRender() override {
+        ImGui::Checkbox("Enable ShyBox", &scene.showSkybox);
     }
 
     void render(RenderResource &resource) override {
@@ -23,6 +24,7 @@ public:
         glBindTexture(GL_TEXTURE_CUBE_MAP, scene.envCubemap);
         postShader.setInt("environmentMap", nextFreeTextureId + 1);
 
+        postShader.setInt("showSkyBox", scene.showSkybox == true?1:0);
         PostprocessPass::render(resource);
         postShader.unBind();
     }
@@ -33,7 +35,7 @@ public:
         noiseGenShader.bind();
         create3DTextureRGBA(30, 30, 30);
         glBindImageTexture(0, noiseTexture, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA32F);
-        noiseGenShader.setVec3i("texSize", glm::ivec3(30, 30, 30));
+        noiseGenShader.setVec3i("texSize", glm::ivec3(40, 40, 40));
 
         int groupX = (30 + 7) / 8;
         int groupY = (30 + 7) / 8;

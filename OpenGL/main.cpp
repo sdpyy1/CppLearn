@@ -21,10 +21,10 @@ int main() {
     Model plane = Model::createPlane(100, 1);
     scene.loadHDRAndIBL("assets/HDR/2.hdr");
     scene.addModel(plane);
-    scene.addDefaultModel("helmet");
+    // scene.addDefaultModel("helmet");
     Model cube = Model::createCube();
     cube.translation = glm::vec3(2, 2, 2);
-    scene.addModel(cube);
+    // scene.addModel(cube);
     scene.addLight(std::make_shared<DirectionalLight>(directionalLight));
 
     // 管线建立
