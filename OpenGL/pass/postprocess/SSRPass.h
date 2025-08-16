@@ -26,7 +26,7 @@ public:
         postShader.setFloat("EPS", scene.EPS);
         postShader.setFloat("threshold", scene.threshold);
         postShader.setFloat("SSRStrength", scene.SSRStrength);
-        PostprocessPass::render(resource);
+        GL_CALL(PostprocessPass::render(resource));
         postShader.unBind();
     }
 

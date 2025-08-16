@@ -19,12 +19,11 @@ public:
     void render(RenderResource &resource) override {
         int nextFreeTextureId = bindParams(resource);
         // 参数设置
-        postShader.setInt("noiseTexture", nextFreeTextureId);
-        postShader.bindTexture("noiseTexture",noiseTexture,nextFreeTextureId);
+        postShader.bind3DTexture("noiseTexture",noiseTexture,nextFreeTextureId);
         postShader.bindCubeMapTexture("environmentMap",scene.envCubemap,nextFreeTextureId + 1);
 
         postShader.setInt("showSkyBox", scene.showSkybox == true?1:0);
-        PostprocessPass::render(resource);
+        GL_CALL(PostprocessPass::render(resource));
         postShader.unBind();
     }
 

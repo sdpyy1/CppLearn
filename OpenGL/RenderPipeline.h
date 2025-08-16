@@ -52,7 +52,7 @@ public:
         finalShader.bindTexture("gDepth",resource.textures["gDepth"],1);
 
         glBindVertexArray(resource.VAOs["quad"]);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        GL_CALL(glDrawArrays(GL_TRIANGLES, 0, 3));
         glBindVertexArray(0);
         finalShader.unBind();
     }
@@ -63,7 +63,7 @@ public:
                 // 先把最终画面输出了，再输出Debug信息
                 finalOutput();
             }
-            pass->render(resource);
+            GL_CALL(pass->render(resource));
         }
     }
 

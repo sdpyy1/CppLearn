@@ -272,10 +272,20 @@ void Shader::bindTexture(const std::string& name, unsigned int texture, int slot
 void Shader::bindCubeMapTexture(const std::string& name, unsigned int texture, int slot)
 {
     glActiveTexture(GL_TEXTURE0 + slot);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, texture); // 改成 3D 纹理
-    setInt(name, slot); // 告诉 shader uniform 用哪个 slot
+    glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
+    setInt(name, slot);
 }
+void Shader::bind3DTexture(const std::string& name, unsigned int texture, int slot)
+{
+    // 激活指定的纹理单元
+    glActiveTexture(GL_TEXTURE0 + slot);
 
+    // 绑定3D纹理，使用正确的GL_TEXTURE_3D目标
+    glBindTexture(GL_TEXTURE_3D, texture);
+
+    // 将纹理单元索引传递给着色器中的uniform变量
+    setInt(name, slot);
+}
 void Shader::checkCompileErrors(GLuint shader, const std::string& type)
 {
     GLint success;

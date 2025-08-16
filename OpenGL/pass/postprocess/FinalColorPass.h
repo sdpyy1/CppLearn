@@ -26,7 +26,7 @@ public:
     void render(RenderResource &resource) override {
         int nextFreeTextureId = bindParams(resource);
         postShader.setInt("toneMappingType", scene.toneMappingType);
-        PostprocessPass::render(resource);
+        GL_CALL(PostprocessPass::render(resource));
         postShader.unBind();
     }
 };

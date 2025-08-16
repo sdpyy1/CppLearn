@@ -80,7 +80,7 @@ void LightingPass::render(RenderResource &resource) {
 
     // 渲染
     glBindVertexArray(resource.VAOs["quad"]);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    GL_CALL(glDrawArrays(GL_TRIANGLES, 0, 3));
     glBindVertexArray(0);
 
     lightingShader.unBind();

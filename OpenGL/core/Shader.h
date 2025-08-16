@@ -35,6 +35,8 @@ public:
     void bindTexture(const std::string& name, unsigned int texture, int slot);
     void bindCubeMapTexture(const std::string& name, unsigned int texture, int slot);
 
+    void bind3DTexture(const std::string &name, unsigned int texture, int slot);
+
 private:
     void checkCompileErrors(GLuint shader, const std::string &type);
 };

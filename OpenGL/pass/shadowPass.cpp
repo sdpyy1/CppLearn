@@ -7,7 +7,7 @@
 #include <glm/glm.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
-#include <iostream>
+#include "../utils/checkGlCommand.h"
 
 ShadowPass::ShadowPass(Scene &scene): RenderPass("ShadowPass"), scene(scene),
                                       shadowShader("shader/shadow.vert", "shader/shadow.frag") {
@@ -65,7 +65,7 @@ void ShadowPass::render(RenderResource &resource) {
     for (auto &model: scene.models) {
         glm::mat4 modelMatrix = model.getModelMatrix();
         shadowShader.setMat4("model", modelMatrix);
-        model.draw(shadowShader);
+        GL_CALL(model.draw(shadowShader));
     }
 
     shadowShader.unBind();
