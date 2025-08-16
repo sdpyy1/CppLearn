@@ -51,14 +51,16 @@ elseif (APPLE)
     find_package(assimp REQUIRED)
     target_link_libraries(OpenGLRender assimp::assimp)
     target_link_libraries(OpenGLRender ${CMAKE_CURRENT_SOURCE_DIR}/third/lib/libglfw.3.dylib)
+    target_link_libraries(OpenGLRender imgui)
+
 endif ()
 
 # 复制lib目录到输出目录（执行目录）
-#add_custom_command(TARGET OpenGLRender POST_BUILD
-#        COMMAND ${CMAKE_COMMAND} -E copy_directory
-#        ${CMAKE_CURRENT_SOURCE_DIR}/third/lib
-#        $<TARGET_FILE_DIR:OpenGLRender>
-#)
+add_custom_command(TARGET OpenGLRender POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_CURRENT_SOURCE_DIR}/third/lib
+        $<TARGET_FILE_DIR:OpenGLRender>
+)
 
 
 # Copy shader directory

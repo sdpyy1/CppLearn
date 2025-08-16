@@ -7,8 +7,8 @@
 
 bool WindowManager::initWindow() {
     glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, majorVersion);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minorVersion);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -34,20 +34,26 @@ bool WindowManager::initWindow() {
 
     // 不显示鼠标
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+#if defined(_WIN32) || defined(_WIN64) || defined(__linux__)
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(myDebugCallback, nullptr);
-
+#endif
     // ImGui 初始化
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
 
-// 设置风格（可选）
+    // 设置风格（可选）
     ImGui::StyleColorsDark();
 
-// 初始化 ImGui 平台与渲染器绑定
+    // 初始化 ImGui 平台与渲染器绑定
     ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init("#version 430"); // 传入你的GLSL版本
+#ifdef _WIN32
+    ImGui_ImplOpenGL3_Init("#version 430");
+#endif
+#ifdef __APPLE__
+    ImGui_ImplOpenGL3_Init("#version 330");
+#endif
     return true;
 }
 

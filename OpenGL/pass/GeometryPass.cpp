@@ -9,7 +9,7 @@ GeometryPass::GeometryPass(Scene &scene)
 void GeometryPass::init(RenderResource &resource) {
     GL_CALL(glGenFramebuffers(1, &gBuffer));
     GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, gBuffer));
-    GL_CALL(glViewport(0, 0, scene.width, scene.height);)
+    GL_CALL(glViewport(0, 0, scene.width, scene.height));
     // 1. Position (RGB16F)
     GL_CALL(glGenTextures(1, &gPosition));
     GL_CALL(glBindTexture(GL_TEXTURE_2D, gPosition));

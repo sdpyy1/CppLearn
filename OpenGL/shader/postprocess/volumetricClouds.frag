@@ -13,7 +13,7 @@ uniform sampler2D preTexture;
 uniform samplerCube environmentMap;
 uniform int showSkyBox;
 // 3D噪声图
-uniform sampler3D noiseTexture;
+//uniform sampler3D noiseTexture;
 // AABB盒
 vec3 cloudBoxMin = vec3(20.0, 30.0, 20.0);
 vec3 cloudBoxMax = vec3(-20.0, 26.0, -20.0);

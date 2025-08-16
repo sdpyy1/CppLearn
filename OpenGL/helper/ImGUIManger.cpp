@@ -150,7 +150,7 @@ void ImGUIManger::renderModelTransformUI() const {
         static float uniformScaleValue = 1.0f;
 
         ImGui::Separator();
-        ImGui::Text(scene.selModel->directory.c_str());
+        ImGui::Text("%s", scene.selModel->directory.c_str());
         // 位置控制
         ImGui::DragFloat3("position", glm::value_ptr(scene.selModel->translation), 0.1f);
         // 旋转控制

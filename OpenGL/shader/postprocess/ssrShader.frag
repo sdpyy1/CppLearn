@@ -37,7 +37,7 @@ float GetDepth(vec3 posWorld) {
     return depth;
 }
 float GetGBufferDepth(vec2 uv) {
-    float depth = texture2D(gDepth, uv).x;
+    float depth = texture(gDepth, uv).x;
     if (depth < 1e-2) {
         depth = 1000.0;
     }

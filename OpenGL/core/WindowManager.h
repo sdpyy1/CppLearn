@@ -13,8 +13,14 @@ public:
     Camera camera;
     int width, height;
     bool mouseHide = true;
-
-
+#ifdef _WIN32
+    int majorVersion = 4;
+    int minorVersion = 3;
+#endif
+#ifdef __APPLE__
+    int majorVersion = 3;
+    int minorVersion = 3;
+#endif
     // 构造函数：初始化宽高和相机
     explicit WindowManager(int w = 800, int h = 600)
             : camera(w, h, glm::vec3(.0f, 3.0f, 10.0f)), width(w), height(h){
@@ -23,7 +29,6 @@ public:
         firstMouse = true;
         initWindow();
     }
-
     bool initWindow();
 
     void processInput();

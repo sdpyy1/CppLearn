@@ -5,8 +5,11 @@
 class VolumetricCloudsPass : public PostprocessPass {
 public:
     explicit VolumetricCloudsPass(Scene &scene)
-        : PostprocessPass(scene, Shader("shader/quad.vert", "shader/postprocess/volumetricClouds.frag")),
-          noiseGenShader(Shader("shader/compute/volumetricClouds.comp")) {
+        : PostprocessPass(scene, Shader("shader/quad.vert", "shader/postprocess/volumetricClouds.frag"))
+#ifdef _WIN32
+          ,noiseGenShader(Shader("shader/compute/volumetricClouds.comp"))
+#endif
+          {
     }
 
     void GUIRender() override {
@@ -32,6 +35,7 @@ public:
     void init(RenderResource &resource) override {
         passName = "VolumetricCloudsPass";
         PostprocessPass::init(resource);
+#ifdef _WIN32
         noiseGenShader.bind();
         create3DTextureRGBA(30, 30, 30);
         glBindImageTexture(0, noiseTexture, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA32F);
@@ -43,6 +47,8 @@ public:
         glDispatchCompute(groupX, groupY, groupZ);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
         noiseGenShader.unBind();
+#endif
+
     }
 
     void create3DTextureRGBA(const int width, const int height, const int depth) {
@@ -64,6 +70,8 @@ public:
 
 private:
     GLuint noiseTexture = 0;
+#ifdef _WIN32
     Shader noiseGenShader;
+#endif
 };
 #endif //VOLUMETRICCLOUDSPASS_H
