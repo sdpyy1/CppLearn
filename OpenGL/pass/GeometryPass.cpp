@@ -2,8 +2,8 @@
 
 GeometryPass::GeometryPass(Scene &scene)
     : RenderPass("GeometryPass"),
-      scene(scene),
-      shader("shader/geometry.vert", "shader/geometry.frag") {
+      shader("shader/geometry.vert", "shader/geometry.frag"),
+      scene(scene) {
 }
 
 void GeometryPass::init(RenderResource &resource) {
@@ -59,7 +59,7 @@ void GeometryPass::init(RenderResource &resource) {
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, gDepth, 0);
     // attach 到 FBO 的 color attachmentN，比如 GL_COLOR_ATTACHMENT4
     // TODO:添加了gBuffer缓冲后，必须添加在这
-    GLuint attachments[5] = {
+    const GLuint attachments[5] = {
         GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4
     };
     glDrawBuffers(5, attachments);

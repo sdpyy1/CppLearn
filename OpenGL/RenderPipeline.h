@@ -8,15 +8,15 @@
 
 #include <vector>
 #include <memory>
-#include "RenderPass.h"
-#include "ShadowPass.h"
-#include "GeometryPass.h"
-#include "LightingPass.h"
-#include "DebugPass.h"
-#include "postprocess/PostprocessPass.h"
-#include "../core/Shader.h"
+#include "pass/RenderPass.h"
+#include "pass/ShadowPass.h"
+#include "pass/GeometryPass.h"
+#include "pass/LightingPass.h"
+#include "pass/DebugPass.h"
+#include "pass/postprocess/PostprocessPass.h"
+#include "core/Shader.h"
 
-#include "postprocess/PostProcessManager.h"
+#include "pass/postprocess/PostProcessManager.h"
 
 class RenderPipeline {
 public:
@@ -28,7 +28,7 @@ public:
 
     void init(Scene &scene) {
         createDefaultResources();
-        for (auto &pass: passes) {
+        for (const auto & pass: passes) {
             pass->init(resource);
         }
     }
@@ -37,8 +37,9 @@ public:
         // 正方形VAO，用于铺满屏幕渲染
         resource.VAOs["quad"] = createFullscreenTriangleVAO(); // 用一个三角形就拿下
         // debug纹理专用shader
-        resource.shaders["quadShader"] = std::make_unique<Shader>("shader/quad.vert", "../shader/quad.frag");
+        resource.shaders["quadShader"] = std::make_unique<Shader>("shader/quad.vert", "shader/quad.frag");
     }
+
     void finalOutput() {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glEnable(GL_DEPTH_TEST);
@@ -47,18 +48,15 @@ public:
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         // 清除纹理
-        finalShader.setInt("finalTexture",0);
-        finalShader.setInt("gDepth",1);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, resource.textures["preTexture"]);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, resource.textures["gDepth"]);
+        finalShader.bindTexture("preTexture",resource.textures["preTexture"],0);
+        finalShader.bindTexture("gDepth",resource.textures["gDepth"],1);
+
         glBindVertexArray(resource.VAOs["quad"]);
         glDrawArrays(GL_TRIANGLES, 0, 3);
         glBindVertexArray(0);
         finalShader.unBind();
-
     }
+
     void render() {
         for (auto &pass: passes) {
             if (pass->passName == "DebugPass") {
@@ -67,7 +65,6 @@ public:
             }
             pass->render(resource);
         }
-
     }
 
     RenderResource &getResources() { return resource; }
@@ -79,8 +76,8 @@ public:
 
         // 装载后处理Pass
         postProcessManager = PostProcessManager::defaultPostProcess(scene, resource);
-        for (auto postPass: postProcessManager->passes) {
-            addPass(std::unique_ptr<PostprocessPass>(postPass));
+        for (const auto postprocessPass: postProcessManager->passes) {
+            addPass(std::unique_ptr<PostprocessPass>(postprocessPass));
         }
 
         // DebugPass 画在最前边

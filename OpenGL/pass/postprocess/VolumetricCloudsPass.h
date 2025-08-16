@@ -20,12 +20,8 @@ public:
         int nextFreeTextureId = bindParams(resource);
         // 参数设置
         postShader.setInt("noiseTexture", nextFreeTextureId);
-        glActiveTexture(GL_TEXTURE0 + nextFreeTextureId);
-        glBindTexture(GL_TEXTURE_3D, noiseTexture);
-
-        glActiveTexture(GL_TEXTURE0 + nextFreeTextureId + 1);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, scene.envCubemap);
-        postShader.setInt("environmentMap", nextFreeTextureId + 1);
+        postShader.bindTexture("noiseTexture",noiseTexture,nextFreeTextureId);
+        postShader.bindCubeMapTexture("environmentMap",scene.envCubemap,nextFreeTextureId + 1);
 
         postShader.setInt("showSkyBox", scene.showSkybox == true?1:0);
         PostprocessPass::render(resource);

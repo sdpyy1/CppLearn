@@ -7,7 +7,7 @@
 
 
 #include "Scene.h"
-#include "../pass/RenderPipeline.h"
+#include "../RenderPipeline.h"
 
 class ImGUIManger {
 public:

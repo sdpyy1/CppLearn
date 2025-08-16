@@ -35,29 +35,22 @@ void LightingPass::render(RenderResource &resource) {
     glViewport(0, 0, scene.width, scene.height);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    GL_CALL(lightingShader.bind());
+    lightingShader.bind();
 
     // VP
     lightingShader.setMat4("projection", scene.camera->getProjectionMatrix());
     lightingShader.setMat4("view", scene.camera->getViewMatrix());
     // 摄像机
-    GL_CALL(lightingShader.setVec3("camPos", scene.camera->Position));
+    lightingShader.setVec3("camPos", scene.camera->Position);
     // 灯光
     if (!scene.lights.empty()) {
-        GL_CALL(lightingShader.setVec3("lightPos", scene.lights[0]->position));
-        GL_CALL(lightingShader.setVec3("lightColor", scene.lights[0]->color));
+        lightingShader.setVec3("lightPos", scene.lights[0]->position);
+        lightingShader.setVec3("lightColor", scene.lights[0]->color);
     }
 
-    // gBuffer 和 shadowMap
-    GL_CALL(lightingShader.setInt("gPosition", 0));
-    GL_CALL(lightingShader.setInt("gNormal", 1));
-    GL_CALL(lightingShader.setInt("gAlbedo", 2));
-    GL_CALL(lightingShader.setInt("gMaterial", 3));
-    GL_CALL(lightingShader.setInt("gEmission", 4));
-    GL_CALL(lightingShader.setInt("gDepth", 5));
-    GL_CALL(lightingShader.setInt("shadowMap", 6));
-    lightingShader.setMat4("lightSpaceMatrix", resource.matrices["lightSpaceMatrix"]);
 
+    // 转光源视角的矩阵
+    lightingShader.setMat4("lightSpaceMatrix", resource.matrices["lightSpaceMatrix"]);
 
     // 阴影
     lightingShader.setInt("shadowType", scene.shadowType);
@@ -71,38 +64,27 @@ void LightingPass::render(RenderResource &resource) {
         lightingShader.setFloat("PCSSScale", scene.PCSSScale);
     }
 
-    // 绑定 G-Buffer
-    GL_CALL(glActiveTexture(GL_TEXTURE0));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D, resource.textures["gPosition"]));
-    GL_CALL(glActiveTexture(GL_TEXTURE1));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D, resource.textures["gNormal"]));
-    GL_CALL(glActiveTexture(GL_TEXTURE2));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D, resource.textures["gAlbedo"]));
-    GL_CALL(glActiveTexture(GL_TEXTURE3));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D, resource.textures["gMaterial"]));
-    GL_CALL(glActiveTexture(GL_TEXTURE4));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D, resource.textures["gEmission"]));
-    GL_CALL(glActiveTexture(GL_TEXTURE5));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D, resource.textures["gDepth"]));
-    GL_CALL(glActiveTexture(GL_TEXTURE6));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D, resource.textures["shadowMap"]));
+    // gBuffer 和 shadowMap
+    lightingShader.bindTexture("gPosition",resource.textures["gPosition"],0);
+    lightingShader.bindTexture("gNormal",resource.textures["gNormal"],1);
+    lightingShader.bindTexture("gAlbedo",resource.textures["gAlbedo"],2);
+    lightingShader.bindTexture("gMaterial",resource.textures["gMaterial"],3);
+    lightingShader.bindTexture("gEmission",resource.textures["gEmission"],4);
+    lightingShader.bindTexture("gDepth",resource.textures["gDepth"],5);
+    lightingShader.bindTexture("shadowMap",resource.textures["shadowMap"],6);
 
     // IBL纹理
-    glActiveTexture(GL_TEXTURE15);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, scene.irradianceMap);
-    lightingShader.setInt("irradianceMap", 15);
-    glActiveTexture(GL_TEXTURE14);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, scene.prefilterMap);
-    lightingShader.setInt("prefilterMap", 14);
-    glActiveTexture(GL_TEXTURE13);
-    glBindTexture(GL_TEXTURE_2D, scene.lutMap);
-    lightingShader.setInt("lutMap", 13);
-    GL_CALL(glBindVertexArray(resource.VAOs["quad"]));
-    GL_CALL(glDrawArrays(GL_TRIANGLES, 0, 3));
-    GL_CALL(glBindVertexArray(0));
-    GL_CALL(lightingShader.unBind());
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    lightingShader.bindCubeMapTexture("irradianceMap",scene.irradianceMap,7);
+    lightingShader.bindCubeMapTexture("prefilterMap",scene.prefilterMap,8);
+    lightingShader.bindTexture("lutMap",scene.lutMap,9);
 
+    // 渲染
+    glBindVertexArray(resource.VAOs["quad"]);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glBindVertexArray(0);
+
+    lightingShader.unBind();
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     // 用于在后期处理传递
     resource.textures["preTexture"] = lightTexture;
 }

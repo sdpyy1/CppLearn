@@ -9,26 +9,25 @@
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_glfw.h"
 #include "helper/ImGUIManger.h"
-#include "pass/RenderPipeline.h"
+#include "RenderPipeline.h"
 
 int main() {
     // 初始化系统
     WindowManager app(1920, 1680);
+
     // 搭建场景
     Scene scene(&app.camera);
-    glm::vec3 lightDir = glm::normalize(glm::vec3(-1.0f, -1.0f, -1.0f));
-    DirectionalLight directionalLight(lightDir, glm::vec3(1.0f), 1.0f);
-    Model plane = Model::createPlane(100, 2);
+    // 太阳光
+    glm::vec3 Sun = glm::normalize(glm::vec3(-1.0f, -1.0f, -1.0f));
+    DirectionalLight directionalLight(Sun, glm::vec3(1.0f), 1.0f);
+    scene.addLight(std::make_shared<DirectionalLight>(directionalLight));
+    // 模型
+    Model plane = Model::createPlane(100, 1);
     scene.loadHDRAndIBL("assets/HDR/2.hdr");
     scene.addModel(plane);
-    // scene.addModel("assets/Empty/CornellBox.obj");
-    // scene.addDefaultModel("helmet");
-    Model cube = Model::createCube();
-    cube.translation = glm::vec3(2, 2, 2);
-    // scene.addModel(cube);
-    scene.addLight(std::make_shared<DirectionalLight>(directionalLight));
+    scene.addDefaultModel("helmet");
 
-    // 管线建立
+    // 管线
     RenderPipeline renderPipeline;
     renderPipeline.setupDeferredRenderPipeline(scene);
 

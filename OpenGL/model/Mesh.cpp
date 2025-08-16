@@ -83,42 +83,19 @@ void Mesh::loadNewTexture(const std::string& path, const std::string& typeName)
     }
 }
 
-// 定义从0开始连续的材质槽位
-enum MaterialTextureSlot {
-    TEX_ALBEDO = 10,
-    TEX_NORMAL = 11,
-    TEX_METALLIC = 12,
-    TEX_ROUGHNESS = 13,
-    TEX_AO = 14,
-    TEX_EMISSION = 15
-};
 
 void Mesh::draw(Shader& shader)
 {
-    // 假设 Mesh 有一个成员 Material material;
-    glActiveTexture(GL_TEXTURE0+TEX_ALBEDO);
-    glBindTexture(GL_TEXTURE_2D, mat.albedo);
-    glUniform1i(glGetUniformLocation(shader.ID, "texture_albedo"), TEX_ALBEDO);
-    glActiveTexture(GL_TEXTURE0+TEX_NORMAL);
-    glBindTexture(GL_TEXTURE_2D, mat.normal);
-    glUniform1i(glGetUniformLocation(shader.ID, "texture_normal"), TEX_NORMAL);
-    glActiveTexture(GL_TEXTURE0+TEX_METALLIC);
-    glBindTexture(GL_TEXTURE_2D, mat.metallic);
-    glUniform1i(glGetUniformLocation(shader.ID, "texture_metallic"), TEX_METALLIC);
-    glActiveTexture(GL_TEXTURE0+TEX_ROUGHNESS);
-    glBindTexture(GL_TEXTURE_2D, mat.roughness);
-    glUniform1i(glGetUniformLocation(shader.ID, "texture_roughness"), TEX_ROUGHNESS);
-    glActiveTexture(GL_TEXTURE0+TEX_AO);
-    glBindTexture(GL_TEXTURE_2D, mat.ao);
-    glUniform1i(glGetUniformLocation(shader.ID, "texture_ao"), TEX_AO);
-    glActiveTexture(GL_TEXTURE0+TEX_EMISSION);
-    glBindTexture(GL_TEXTURE_2D, mat.emission);
-    glUniform1i(glGetUniformLocation(shader.ID, "texture_emission"), TEX_EMISSION);
+    shader.bindTexture("texture_albedo",mat.albedo,0);
+    shader.bindTexture("texture_normal",mat.normal,1);
+    shader.bindTexture("texture_metallic",mat.metallic,2);
+    shader.bindTexture("texture_roughness",mat.roughness,3);
+    shader.bindTexture("texture_ao",mat.ao,4);
+    shader.bindTexture("texture_emission",mat.emission,5);
 
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
-
     glActiveTexture(GL_TEXTURE0);
 }
 

@@ -262,6 +262,20 @@ void Shader::setMat4(const std::string& name, const glm::mat4& mat) const
     glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
 }
 
+void Shader::bindTexture(const std::string& name, unsigned int texture, int slot)
+{
+    glActiveTexture(GL_TEXTURE0 + slot);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    setInt(name, slot);
+}
+
+void Shader::bindCubeMapTexture(const std::string& name, unsigned int texture, int slot)
+{
+    glActiveTexture(GL_TEXTURE0 + slot);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, texture); // 改成 3D 纹理
+    setInt(name, slot); // 告诉 shader uniform 用哪个 slot
+}
+
 void Shader::checkCompileErrors(GLuint shader, const std::string& type)
 {
     GLint success;

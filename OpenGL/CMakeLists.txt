@@ -24,7 +24,6 @@ set(SOURCES
         ${MODEL_SOURCES}
         ${HELPER_SOURCES}
         ${UTILS_SOURCES}
-        core/AABB.h
 )
 add_library(imgui
         ${IMGUI_DIR}/imgui.cpp
@@ -55,12 +54,12 @@ elseif (APPLE)
 
 endif ()
 
-# 复制lib目录到输出目录（执行目录）
-add_custom_command(TARGET OpenGLRender POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_CURRENT_SOURCE_DIR}/third/lib
-        $<TARGET_FILE_DIR:OpenGLRender>
-)
+## 复制lib目录到输出目录（执行目录）
+#add_custom_command(TARGET OpenGLRender POST_BUILD
+#        COMMAND ${CMAKE_COMMAND} -E copy_directory
+#        ${CMAKE_CURRENT_SOURCE_DIR}/third/lib
+#        $<TARGET_FILE_DIR:OpenGLRender>
+#)
 
 
 # Copy shader directory

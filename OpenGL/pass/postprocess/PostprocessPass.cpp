@@ -61,35 +61,16 @@ int PostprocessPass::bindParams(RenderResource &resource) {
         postShader.setVec3("lightPos", scene.lights[0]->position);
         postShader.setVec3("lightColor", scene.lights[0]->color);
     }
-    // gBuffer
-    GL_CALL(postShader.setInt("gPosition", 0));
-    GL_CALL(postShader.setInt("gNormal", 1));
-    GL_CALL(postShader.setInt("gAlbedo", 2));
-    GL_CALL(postShader.setInt("gMaterial", 3));
-    GL_CALL(postShader.setInt("gEmission", 4));
-    GL_CALL(postShader.setInt("gDepth", 5));
-    GL_CALL(postShader.setInt("shadowMap", 6));
-    GL_CALL(postShader.setInt("lightTexture", 7));
-    GL_CALL(postShader.setInt("preTexture", 8));
-    // 绑定 G-Buffer纹理
-    GL_CALL(glActiveTexture(GL_TEXTURE0));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D, resource.textures["gPosition"]));
-    GL_CALL(glActiveTexture(GL_TEXTURE1));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D, resource.textures["gNormal"]));
-    GL_CALL(glActiveTexture(GL_TEXTURE2));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D, resource.textures["gAlbedo"]));
-    GL_CALL(glActiveTexture(GL_TEXTURE3));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D, resource.textures["gMaterial"]));
-    GL_CALL(glActiveTexture(GL_TEXTURE4));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D, resource.textures["gEmission"]));
-    GL_CALL(glActiveTexture(GL_TEXTURE5));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D, resource.textures["gDepth"]));
-    GL_CALL(glActiveTexture(GL_TEXTURE6));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D, resource.textures["shadowMap"]));
-    glActiveTexture(GL_TEXTURE7);
-    glBindTexture(GL_TEXTURE_2D, resource.textures["lightTexture"]);
-    glActiveTexture(GL_TEXTURE8);
-    glBindTexture(GL_TEXTURE_2D, resource.textures["preTexture"]);
+    postShader.bindTexture("gPosition",resource.textures["gPosition"],0);
+    postShader.bindTexture("gNormal",resource.textures["gNormal"],1);
+    postShader.bindTexture("gAlbedo",resource.textures["gAlbedo"],2);
+    postShader.bindTexture("gMaterial",resource.textures["gMaterial"],3);
+    postShader.bindTexture("gEmission",resource.textures["gEmission"],4);
+    postShader.bindTexture("gDepth",resource.textures["gDepth"],5);
+    postShader.bindTexture("shadowMap",resource.textures["shadowMap"],6);
+
+    postShader.bindTexture("lightTexture",resource.textures["lightTexture"],7);
+    postShader.bindTexture("preTexture",resource.textures["preTexture"],8);
     // 返回下一个可用的纹理通道
     return 9;
 }
