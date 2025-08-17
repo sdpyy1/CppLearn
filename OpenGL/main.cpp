@@ -2,7 +2,7 @@
 #include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
-
+#define GLM_ENABLE_EXPERIMENTAL
 #include "model/Model.h"
 #include "core/WindowManager.h"
 #include "helper/Scene.h"
@@ -10,6 +10,7 @@
 #include "imgui_impl_glfw.h"
 #include "helper/ImGUIManger.h"
 #include "RenderPipeline.h"
+#include "glm/gtx/string_cast.hpp"
 
 int main() {
     // 初始化系统
@@ -33,6 +34,11 @@ int main() {
 
     // GUI
     ImGUIManger imGUIManger(scene, &renderPipeline);
+
+    // 实验
+    // glm::vec4 pos = {1,3,4,0};
+    // auto transtion = glm::mat4(1.0);
+    // std::cout << glm::to_string(app.camera.getProjectionMatrix()*app.camera.getViewMatrix()*transtion*pos) << std::endl;
 
     // 渲染
     while (!glfwWindowShouldClose(app.window)) {

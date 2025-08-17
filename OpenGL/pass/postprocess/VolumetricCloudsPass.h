@@ -1,7 +1,8 @@
 #ifndef VOLUMETRICCLOUDSPASS_H
 #define VOLUMETRICCLOUDSPASS_H
 #include "PostprocessPass.h"
-
+#include <vector>
+#include <random>
 class VolumetricCloudsPass : public PostprocessPass {
 public:
     explicit VolumetricCloudsPass(Scene &scene)
@@ -43,7 +44,9 @@ public:
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
         noiseGenShader.unBind();
 #endif
-
+#ifdef __APPLE__
+        noiseTexture = create3DNoiseTexture(32);
+#endif
     }
 
     void create3DTextureRGBA(const int width, const int height, const int depth) {
@@ -65,6 +68,49 @@ public:
 
 private:
     GLuint noiseTexture = 0;
+    static GLuint create3DNoiseTexture(int size) {
+        // 1. 分配噪声数据
+        std::vector<float> data(size * size * size);
+
+        std::mt19937 rng(1234); // 固定种子，便于复现
+        std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+
+        for (int z = 0; z < size; ++z) {
+            for (int y = 0; y < size; ++y) {
+                for (int x = 0; x < size; ++x) {
+                    int idx = x + y * size + z * size * size;
+                    data[idx] = dist(rng); // [0,1] 随机值
+                }
+            }
+        }
+
+        // 2. 创建 OpenGL 3D 纹理
+        GLuint texID;
+        glGenTextures(1, &texID);
+        glBindTexture(GL_TEXTURE_3D, texID);
+
+        glTexImage3D(
+            GL_TEXTURE_3D,
+            0,                // mipmap level
+            GL_R8,            // 内部存储格式 (单通道 8bit)
+            size, size, size,
+            0,                // border
+            GL_RED,           // 上传数据通道
+            GL_FLOAT,         // 数据类型
+            data.data()       // 数据指针
+        );
+
+        // 3. 设置采样参数
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
+
+        glBindTexture(GL_TEXTURE_3D, 0);
+
+        return texID;
+    }
 #ifdef _WIN32
     Shader noiseGenShader;
 #endif
