@@ -50,7 +50,7 @@ public:
         noiseGenShader.unBind();
         // 读取纹理数据
         std::vector<unsigned char> data(TEX_SIZE_X * TEX_SIZE_Y * TEX_SIZE_Z);
-        glBindTexture(GL_TEXTURE_3D, tex3D);
+        glBindTexture(GL_TEXTURE_3D, noiseTexture);
         glGetTexImage(GL_TEXTURE_3D, 0, GL_RED, GL_UNSIGNED_BYTE, data.data());
 
         // 保存为二进制文件
@@ -73,6 +73,22 @@ private:
 
 #ifdef _WIN32
     Shader noiseGenShader;
+    void create3DTextureRGBA(const int width, const int height, const int depth) {
+        glGenTextures(1, &noiseTexture);
+        glBindTexture(GL_TEXTURE_3D, noiseTexture);
+
+        // 分配4通道32位浮点存储
+        glTexStorage3D(GL_TEXTURE_3D, 1, GL_RGBA32F, width, height, depth);
+
+        // 线性过滤和重复包裹
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
+
+        glBindTexture(GL_TEXTURE_3D, 0);
+    }
 #endif
 
 };
