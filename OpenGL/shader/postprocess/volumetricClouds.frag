@@ -103,7 +103,7 @@ vec3 Transmittance(in AtmosphereParameter param, vec3 p1, vec3 p2)
     if(p1 == p2){
         return vec3(1);
     }
-    const int N_SAMPLE = 32;
+    const int N_SAMPLE = 16;
     vec3 dir = normalize(p2 - p1);
     float distance = length(p2 - p1);
     float ds = distance / float(N_SAMPLE);
@@ -141,12 +141,16 @@ float RayIntersectSphere(vec3 center, float radius, vec3 rayStart, vec3 rayDir)
     return t;
 }
 
-vec3 singleScatterSkyColor(vec3 camPos1, AtmosphereParameter param, vec3 rayMarchDir){
+vec3 singleScatterSkyColor(vec3 camPosInPlanet, AtmosphereParameter param, vec3 viewDir){
     vec3 lightDir = normalize(-lightPos);
-    int N_SAMPLE = 32;
-    float disToAtmosphere = RayIntersectSphere(vec3(0,0,0),param.PlanetRadius + param.AtmosphereHeight,camPos1,rayMarchDir);
-    float stepSize = disToAtmosphere / float(N_SAMPLE);
-    vec3 testPoint = camPos1;
+    int N_SAMPLE = 16;
+    float dstToPlanet = RayIntersectSphere(vec3(0,0,0), param.PlanetRadius, camPosInPlanet, viewDir);
+    float dstToAtmosphere = RayIntersectSphere(vec3(0,0,0), param.PlanetRadius + param.AtmosphereHeight, camPosInPlanet, viewDir);
+//    if(dstToPlanet > 0.0 || dstToAtmosphere < 0.0){
+//        return vec3(0);
+//    }
+    float stepSize = dstToAtmosphere / float(N_SAMPLE);
+    vec3 testPoint = camPosInPlanet;
     vec3 color = vec3(0);
     for (int i =0; i<N_SAMPLE; i++) {
         // 太阳方向rayMarching的距离
@@ -154,13 +158,18 @@ vec3 singleScatterSkyColor(vec3 camPos1, AtmosphereParameter param, vec3 rayMarc
         // 太阳到采样点之间的透光率
         vec3 tramsmittanceLightToTest = Transmittance(param,testPoint + lightDir * disToLight,testPoint);
         // 散射光比例
-        vec3 scattering = Scattering(param,testPoint,lightDir,rayMarchDir);
+        vec3 scattering = Scattering(param, testPoint, lightDir, viewDir);
         // 摄像机到采样点之间的透光度
-        vec3 tramsmittanceTestToCam = Transmittance(param,testPoint,camPos1);
+        vec3 tramsmittanceTestToCam = Transmittance(param,testPoint,camPosInPlanet);
         // 采样点的光照计算。// TODO：需要把太阳光放大很多倍才有比较亮的效果
-        vec3 inScattering = tramsmittanceLightToTest * scattering * tramsmittanceTestToCam  * stepSize * lightColor * 16;
-        testPoint += rayMarchDir * stepSize;
+        vec3 inScattering = tramsmittanceLightToTest * scattering * tramsmittanceTestToCam  * stepSize * lightColor * 31.4;
+        testPoint += viewDir * stepSize;
         color += inScattering;
+    }
+    float cosAngle = dot(viewDir, lightDir);
+    if(cosAngle > cos(0.06)) {
+        // 视线指向太阳圆盘
+        color += Transmittance(param, lightPos*1e9, camPosInPlanet) * lightColor * 31.4;
     }
     return color;
 }
@@ -319,28 +328,22 @@ void main() {
     6360000,// PlanetRadius
     60000  // AtmosphereHeight
     );
-    // 世界坐标（这里也可以从gBuffer的位置贴图获取，但是没有模型的地方就会出错（返回的是clearColor））
-    vec3 worldPos = reconstructWorldPos(TexCoords) + vec3(0, a.PlanetRadius, 0);
-    vec3 camPos1 = camPos + vec3(0, a.PlanetRadius, 0);
-    // raymarching方向
-    vec3 rayMarchDir = normalize(worldPos - camPos1);
+    // 世界坐标（这里也可以从gBuffer的位置贴图获取，但是没有模型的地方就会出错（返回的是clearColor）,所以统一都用重建来完成）
+    vec3 worldPosInPlanet = reconstructWorldPos(TexCoords) + vec3(0, a.PlanetRadius, 0);
+    vec3 camPosInPlanet = camPos + vec3(0, a.PlanetRadius, 0);
+    // 视角方向
+    vec3 viewDir = normalize(worldPosInPlanet - camPosInPlanet);
+    // 场景颜色
+    vec3 preColor = texture(preTexture, TexCoords).rgb;
+
     // 像素zBuffer深度（线性）
     float depth = LinearizeDepth(texture(gDepth, TexCoords).r);
-    vec3 preColor = texture(preTexture, TexCoords).rgb;
     // 无模型位置 && 开启天空盒
     if(depth > 99 && showSkyBox == 1) {
         // 从天空盒拿颜色
-//        preColor = texture(environmentMap, rayMarchDir).rgb;
-        preColor = singleScatterSkyColor(camPos1,a,rayMarchDir);
-    }
-    float cosAngle = dot(rayMarchDir, normalize(-lightPos));
-
-    if(cosAngle > cos(0.06)) {
-        // 视线指向太阳圆盘
-        preColor += Transmittance(a, lightPos*1e9, camPos1) * lightColor* 0.2;
+//      preColor = texture(environmentMap, rayMarchDir).rgb;
+        preColor = singleScatterSkyColor(camPosInPlanet,a,viewDir);
     }
 
-    //    FragColor = vec4(mix(preColor,cloudColor,1-alpha), 1);
     FragColor = vec4(preColor, 1);
-
 }
