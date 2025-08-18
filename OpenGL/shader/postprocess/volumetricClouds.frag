@@ -20,8 +20,152 @@ vec3 cloudBoxMin = vec3(20.0, 10.0, 20.0);
 vec3 cloudBoxMax = vec3(-20.0, 4.0, -20.0);
 //vec3 cloudBoxMin = vec3(-3.0, -3.0, -3.0);
 //vec3 cloudBoxMax = vec3(3.0, 3.0, 3.0);
+float PI = 3.141592653;
+// ------------------------------------------------------------------------- //
+// Atmosphere Parameters
+struct AtmosphereParameter {
+    float RayleighScatteringScalarHeight;
+    float MieScatteringScalarHeight;
+    float MieAnisotropy;
+    float OzoneLevelCenterHeight;
+    float OzoneLevelWidth;
+    float PlanetRadius;
+    float AtmosphereHeight;
+};
 
-float LinearizeDepth(float d) {
+// ------------------------------------------------------------------------- //
+
+vec3 RayleighCoefficient(AtmosphereParameter param, float h)
+{
+    const vec3 sigma = vec3(5.802, 13.558, 33.1) * 1e-6;
+    float H_R = param.RayleighScatteringScalarHeight;
+    float rho_h = exp(-(h / H_R));
+    return sigma * rho_h;
+}
+
+float RayleighPhase(AtmosphereParameter param, float cos_theta)
+{
+    return (3.0 / (16.0 * 3.14159265)) * (1.0 + cos_theta * cos_theta);
+}
+
+vec3 MieCoefficient(AtmosphereParameter param, float h)
+{
+    const vec3 sigma = vec3(3.996e-6);
+    float H_M = param.MieScatteringScalarHeight;
+    float rho_h = exp(-(h / H_M));
+    return sigma * rho_h;
+}
+
+float MiePhase(AtmosphereParameter param, float cos_theta)
+{
+    float g = param.MieAnisotropy;
+
+    float a = 3.0 / (8.0 * 3.14159265);
+    float b = (1.0 - g * g) / (2.0 + g * g);
+    float c = 1.0 + cos_theta * cos_theta;
+    float d = pow(1.0 + g * g - 2.0 * g * cos_theta, 1.5);
+
+    return a * b * (c / d);
+}
+
+vec3 MieAbsorption(AtmosphereParameter param, float h)
+{
+    const vec3 sigma = vec3(4.4e-6);
+    float H_M = param.MieScatteringScalarHeight;
+    float rho_h = exp(-(h / H_M));
+    return sigma * rho_h;
+}
+
+vec3 OzoneAbsorption(AtmosphereParameter param, float h)
+{
+    const vec3 sigma_lambda = vec3(0.650, 1.881, 0.085) * 1e-6;
+    float center = param.OzoneLevelCenterHeight;
+    float width = param.OzoneLevelWidth;
+    float rho = max(0.0, 1.0 - abs(h - center) / width);
+    return sigma_lambda * rho;
+}
+
+// ------------------------------------------------------------------------- //
+// 散射
+vec3 Scattering(AtmosphereParameter param, vec3 p, vec3 lightDir, vec3 viewDir)
+{
+    float cos_theta = dot(lightDir, viewDir);
+
+    float h = length(p) - param.PlanetRadius;
+    vec3 rayleigh = RayleighCoefficient(param, h) * RayleighPhase(param, cos_theta);
+    vec3 mie = MieCoefficient(param, h) * MiePhase(param, cos_theta);
+
+    return rayleigh + mie;
+}
+// 计算两点之间的透光率
+vec3 Transmittance(in AtmosphereParameter param, vec3 p1, vec3 p2)
+{
+    if(p1 == p2){
+        return vec3(1);
+    }
+    const int N_SAMPLE = 32;
+    vec3 dir = normalize(p2 - p1);
+    float distance = length(p2 - p1);
+    float ds = distance / float(N_SAMPLE);
+
+    vec3 sum = vec3(0.0);
+    vec3 p = p1 + dir * ds * 0.5;
+    for(int i = 0; i < N_SAMPLE; i++)
+    {
+        float h = length(p) - param.PlanetRadius;
+        vec3 scattering = RayleighCoefficient(param, h) + MieCoefficient(param, h);
+        vec3 absorption = OzoneAbsorption(param, h) + MieAbsorption(param, h);
+        vec3 extinction = scattering + absorption;
+        sum += extinction * ds;
+        p += dir * ds;
+    }
+    // 计算透光率
+    return exp(-sum);
+}
+float RayIntersectSphere(vec3 center, float radius, vec3 rayStart, vec3 rayDir)
+{
+    float OS = length(center - rayStart);
+    float SH = dot(center - rayStart, rayDir);
+    float OH = sqrt(OS * OS - SH * SH);
+
+    // 射线未击中球体
+    if(OH > radius) return -1.0;
+
+    float PH = sqrt(radius * radius - OH * OH);
+
+    // 使用最小正距离
+    float t1 = SH - PH;
+    float t2 = SH + PH;
+    float t = (t1 < 0.0) ? t2 : t1;
+
+    return t;
+}
+
+vec3 singleScatterSkyColor(vec3 camPos1, AtmosphereParameter param, vec3 rayMarchDir){
+    vec3 lightDir = normalize(-lightPos);
+    int N_SAMPLE = 32;
+    float disToAtmosphere = RayIntersectSphere(vec3(0,0,0),param.PlanetRadius + param.AtmosphereHeight,camPos1,rayMarchDir);
+    float stepSize = disToAtmosphere / float(N_SAMPLE);
+    vec3 testPoint = camPos1;
+    vec3 color = vec3(0);
+    for (int i =0; i<N_SAMPLE; i++) {
+        // 太阳方向rayMarching的距离
+        float disToLight = RayIntersectSphere(vec3(0,0,0), param.PlanetRadius + param.AtmosphereHeight, testPoint, lightDir);
+        // 太阳到采样点之间的透光率
+        vec3 tramsmittanceLightToTest = Transmittance(param,testPoint + lightDir * disToLight,testPoint);
+        // 散射光比例
+        vec3 scattering = Scattering(param,testPoint,lightDir,rayMarchDir);
+        // 摄像机到采样点之间的透光度
+        vec3 tramsmittanceTestToCam = Transmittance(param,testPoint,camPos1);
+        // 采样点的光照计算。// TODO：需要把太阳光放大很多倍才有比较亮的效果
+        vec3 inScattering = tramsmittanceLightToTest * scattering * tramsmittanceTestToCam  * stepSize * lightColor * 16;
+        testPoint += rayMarchDir * stepSize;
+        color += inScattering;
+    }
+    return color;
+}
+
+float LinearizeDepth(float d){
     float nearPlane = 0.1;
     float farPlane = 100;
     float z = d * 2.0 - 1.0; // back to NDC z in [-1,1]
@@ -166,23 +310,37 @@ vec3 reconstructWorldPos(vec2 uv) {
     return (inverseView * vec4(viewPos.xyz, 1.0)).xyz;
 }
 void main() {
+    AtmosphereParameter a = AtmosphereParameter(
+    8000,   // RayleighScatteringScalarHeight
+    1200,   // MieScatteringScalarHeight
+    0.8,     // MieAnisotropy
+    25000,  // OzoneLevelCenterHeight
+    15000,  // OzoneLevelWidth
+    6360000,// PlanetRadius
+    60000  // AtmosphereHeight
+    );
     // 世界坐标（这里也可以从gBuffer的位置贴图获取，但是没有模型的地方就会出错（返回的是clearColor））
-    vec3 worldPos = reconstructWorldPos(TexCoords);
+    vec3 worldPos = reconstructWorldPos(TexCoords) + vec3(0, a.PlanetRadius, 0);
+    vec3 camPos1 = camPos + vec3(0, a.PlanetRadius, 0);
     // raymarching方向
-    vec3 rayMarchDir = normalize(worldPos - camPos);
+    vec3 rayMarchDir = normalize(worldPos - camPos1);
     // 像素zBuffer深度（线性）
     float depth = LinearizeDepth(texture(gDepth, TexCoords).r);
     vec3 preColor = texture(preTexture, TexCoords).rgb;
     // 无模型位置 && 开启天空盒
     if(depth > 99 && showSkyBox == 1) {
         // 从天空盒拿颜色
-        preColor = texture(environmentMap, rayMarchDir).rgb;
+//        preColor = texture(environmentMap, rayMarchDir).rgb;
+        preColor = singleScatterSkyColor(camPos1,a,rayMarchDir);
     }
-    // 计算的是当前着色点云的密度
-    vec4 cloudInfo = cloudRayMarching(worldPos, rayMarchDir, depth);
-    float alpha = cloudInfo.w;
-    vec3 cloudColor = cloudInfo.xyz;
+    float cosAngle = dot(rayMarchDir, normalize(-lightPos));
 
-    FragColor = vec4(mix(preColor,cloudColor,1-alpha), 1);
+    if(cosAngle > cos(0.06)) {
+        // 视线指向太阳圆盘
+        preColor += Transmittance(a, lightPos*1e9, camPos1) * lightColor* 0.2;
+    }
+
+    //    FragColor = vec4(mix(preColor,cloudColor,1-alpha), 1);
+    FragColor = vec4(preColor, 1);
 
 }
