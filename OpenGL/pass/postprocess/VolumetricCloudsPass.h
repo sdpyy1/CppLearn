@@ -21,7 +21,8 @@ public:
     void render(RenderResource &resource) override {
         int nextFreeTextureId = bindParams(resource);
         // 参数设置
-        postShader.bind3DTexture("noiseTexture",noiseTexture,nextFreeTextureId++);
+        postShader.bind3DTexture("basicNoiseTexture",basicNoiseTexture,nextFreeTextureId++);
+        postShader.bind3DTexture("detailNoiseTexture",detailNoiseTexture,nextFreeTextureId++);
         postShader.bindCubeMapTexture("environmentMap",scene.envCubemap,nextFreeTextureId++);
         postShader.bindTexture("weatherTexture",weatherTexture,nextFreeTextureId++);
 
@@ -40,7 +41,9 @@ public:
 #ifdef _WIN32
         noiseGenShader.bind();
         create3DTextureRGBA(TEX_SIZE_X, TEX_SIZE_Y, TEX_SIZE_Z);
-        glBindImageTexture(0, noiseTexture, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+        glBindImageTexture(0, basicNoiseTexture, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+        glBindImageTexture(1, detailNoiseTexture, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+
         // 调用 compute shader
         GLuint groupX = (TEX_SIZE_X + 7) / 8;
         GLuint groupY = (TEX_SIZE_Y + 7) / 8;
@@ -50,25 +53,39 @@ public:
         noiseGenShader.unBind();
         // 读取纹理数据
         std::vector<unsigned char> data(TEX_SIZE_X * TEX_SIZE_Y * TEX_SIZE_Z);
-        glBindTexture(GL_TEXTURE_3D, noiseTexture);
+        glBindTexture(GL_TEXTURE_3D, basicNoiseTexture);
         glGetTexImage(GL_TEXTURE_3D, 0, GL_RED, GL_UNSIGNED_BYTE, data.data());
 
         // 保存为二进制文件
-        std::ofstream file("worleyNoise3D.bin", std::ios::binary);
+        std::ofstream file("basicNoiseTexture.bin", std::ios::binary);
         file.write(reinterpret_cast<char*>(data.data()), data.size());
         file.close();
-        std::cout << "3D noise texture saved as worleyNoise3D.bin\n";
+        std::cout << "3D noise texture saved as basicNoiseTexture.bin\n";
+
+        // 读取纹理数据
+        std::vector<unsigned char> data(TEX_SIZE_X * TEX_SIZE_Y * TEX_SIZE_Z);
+        glBindTexture(GL_TEXTURE_3D, detailNoiseTexture);
+        glGetTexImage(GL_TEXTURE_3D, 0, GL_RED, GL_UNSIGNED_BYTE, data.data());
+
+        // 保存为二进制文件
+        std::ofstream file("detailNoiseTexture.bin", std::ios::binary);
+        file.write(reinterpret_cast<char*>(data.data()), data.size());
+        file.close();
+        std::cout << "3D noise texture saved as detailNoiseTexture.bin\n";
 #endif
 
 
 #ifdef __APPLE__
-        noiseTexture = Shader::load3DTextureFromFile("worleyNoise3D.bin",TEX_SIZE_X,TEX_SIZE_Y,TEX_SIZE_Z);
+        basicNoiseTexture = Shader::load3DTextureFromFile("basicNoiseTexture.bin",TEX_SIZE_X,TEX_SIZE_Y,TEX_SIZE_Z);
+        detailNoiseTexture = Shader::load3DTextureFromFile("detailNoiseTexture.bin",TEX_SIZE_X,TEX_SIZE_Y,TEX_SIZE_Z);
+
 #endif
-        weatherTexture = Shader::loadTextureFormFile("assets/cloud/weatherTexture.png");
+        weatherTexture = Shader::loadTextureFormFile("assets/cloud/T_CloudWetherMap.png");
     }
 
 private:
-    GLuint noiseTexture = 0;
+    GLuint basicNoiseTexture = 0;
+    GLuint detailNoiseTexture = 0;
     GLuint weatherTexture = 0;
 
 #ifdef _WIN32

@@ -1,5 +1,6 @@
 #version 430 core
-layout (rgba32f, binding = 0) uniform writeonly image3D noiseTexture;
+layout (rgba32f, binding = 0) uniform writeonly image3D basicNoiseTexture;
+layout (rgba32f, binding = 1) uniform writeonly image3D detailNoiseTexture;
 
 layout (local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
 
@@ -20,14 +21,9 @@ vec3 hash33(vec3 p)
 // Gradient noise by iq (modified to be tileable)
 float gradientNoise(vec3 x, float freq)
 {
-    // grid
     vec3 p = floor(x);
     vec3 w = fract(x);
-
-    // quintic interpolant
     vec3 u = w * w * w * (w * (w * 6. - 15.) + 10.);
-
-    // gradients
     vec3 ga = hash33(mod(p + vec3(0., 0., 0.), freq));
     vec3 gb = hash33(mod(p + vec3(1., 0., 0.), freq));
     vec3 gc = hash33(mod(p + vec3(0., 1., 0.), freq));
@@ -36,8 +32,6 @@ float gradientNoise(vec3 x, float freq)
     vec3 gf = hash33(mod(p + vec3(1., 0., 1.), freq));
     vec3 gg = hash33(mod(p + vec3(0., 1., 1.), freq));
     vec3 gh = hash33(mod(p + vec3(1., 1., 1.), freq));
-
-    // projections
     float va = dot(ga, w - vec3(0., 0., 0.));
     float vb = dot(gb, w - vec3(1., 0., 0.));
     float vc = dot(gc, w - vec3(0., 1., 0.));
@@ -46,8 +40,6 @@ float gradientNoise(vec3 x, float freq)
     float vf = dot(gf, w - vec3(1., 0., 1.));
     float vg = dot(gg, w - vec3(0., 1., 1.));
     float vh = dot(gh, w - vec3(1., 1., 1.));
-
-    // interpolation
     return va +
     u.x * (vb - va) +
     u.y * (vc - va) +
@@ -63,7 +55,6 @@ float worleyNoise(vec3 uv, float freq)
 {
     vec3 id = floor(uv);
     vec3 p = fract(uv);
-
     float minDist = 10000.;
     for (float x = -1.; x <= 1.; ++x)
     {
@@ -79,8 +70,6 @@ float worleyNoise(vec3 uv, float freq)
             }
         }
     }
-
-    // inverted worley noise
     return 1. - minDist;
 }
 
@@ -96,12 +85,9 @@ float perlinfbm(vec3 p, float freq, int octaves)
         freq *= 2.;
         amp *= G;
     }
-
     return noise;
 }
 
-// Tileable Worley fbm inspired by Andrew Schneider's Real-Time Volumetric Cloudscapes
-// chapter in GPU Pro 7.
 float worleyFbm(vec3 p, float freq)
 {
     return worleyNoise(p*freq, freq) * .625 +
@@ -109,23 +95,58 @@ float worleyFbm(vec3 p, float freq)
     worleyNoise(p*freq*4., freq*4.) * .125;
 }
 
+
+float remap(float x, float a, float b, float c, float d)
+{
+    return (((x - a) / (b - a)) * (d - c)) + c;
+}
+
+float basicNoiseComposite(vec4 v)
+{
+    float wfbm = v.y * 0.625 + v.z * 0.25 + v.w * 0.125;
+
+    // cloud shape modeled after the GPU Pro 7 chapter
+    return remap(v.x, wfbm - 1.0, 1.0, 0.0, 1.0);
+}
+
+
 #define kDetailFrequency 8.0
+#define kBasicFrequency 4.0
+#define kBasicNoiseMixFactor 0.5
 void main()
 {
-    ivec3 texSize = imageSize(noiseTexture);
+    // 基础噪声
+    ivec3 texSize = imageSize(basicNoiseTexture);
     ivec3 workPos = ivec3(gl_GlobalInvocationID.xyz);
-
     if(workPos.x >= texSize.x || workPos.y >= texSize.y || workPos.z >= texSize.z)
     {
         return;
     }
+    const vec3 uvw = (vec3(workPos) + vec3(0.5f)) / vec3(texSize);
+    float pfbm = mix(1.0, perlinfbm(uvw, kBasicFrequency, 7), kBasicNoiseMixFactor);
+    pfbm = abs(pfbm * 2.0 - 1.0); // billowy perlin noise
+    vec4 col = vec4(0.0);
+    col.g += worleyFbm(uvw, kBasicFrequency * 1.0);
+    col.b += worleyFbm(uvw, kBasicFrequency * 2.0);
+    col.a += worleyFbm(uvw, kBasicFrequency * 4.0);
+    col.r += remap(pfbm, 0., 1., col.g, 1.0); // perlin-worley
 
-    vec3 uvw = (vec3(workPos) + vec3(0.5f)) / vec3(texSize);
+    // 细节噪声
+//    ivec3 texSize = imageSize(detailNoiseTexture);
+//    ivec3 workPos = ivec3(gl_GlobalInvocationID.xyz);
+
+//    if(workPos.x >= texSize.x || workPos.y >= texSize.y || workPos.z >= texSize.z)
+//    {
+//        return;
+//    }
+
+//    const vec3 uvw = (vec3(workPos) + vec3(0.5f)) / vec3(texSize);
 
     float detailNoise =
     worleyFbm(uvw, kDetailFrequency * 1.0) * 0.625 +
     worleyFbm(uvw, kDetailFrequency * 2.0) * 0.250 +
     worleyFbm(uvw, kDetailFrequency * 4.0) * 0.125;
 
-    imageStore(noiseTexture, workPos, vec4(detailNoise));
+    imageStore(basicNoiseTexture, workPos,  vec4(basicNoiseComposite(col)));
+    imageStore(detailNoiseTexture, workPos, vec4(detailNoise));
 }

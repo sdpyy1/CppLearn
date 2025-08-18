@@ -146,6 +146,7 @@ vec3 singleScatterSkyColor(vec3 camPosInPlanet, AtmosphereParameter param, vec3 
     int N_SAMPLE = 16;
     float dstToPlanet = RayIntersectSphere(vec3(0,0,0), param.PlanetRadius, camPosInPlanet, viewDir);
     float dstToAtmosphere = RayIntersectSphere(vec3(0,0,0), param.PlanetRadius + param.AtmosphereHeight, camPosInPlanet, viewDir);
+    // 还没实现别的渲染，纯黑的，先不判断
 //    if(dstToPlanet > 0.0 || dstToAtmosphere < 0.0){
 //        return vec3(0);
 //    }
@@ -161,15 +162,15 @@ vec3 singleScatterSkyColor(vec3 camPosInPlanet, AtmosphereParameter param, vec3 
         vec3 scattering = Scattering(param, testPoint, lightDir, viewDir);
         // 摄像机到采样点之间的透光度
         vec3 tramsmittanceTestToCam = Transmittance(param,testPoint,camPosInPlanet);
-        // 采样点的光照计算。// TODO：需要把太阳光放大很多倍才有比较亮的效果
-        vec3 inScattering = tramsmittanceLightToTest * scattering * tramsmittanceTestToCam  * stepSize * lightColor * 31.4;
+        // 采样点的光照计算。// TODO：需要把太阳光放大很多倍才有比较亮的效果（因为ToneMapping压黑的）
+        vec3 inScattering = tramsmittanceLightToTest * scattering * tramsmittanceTestToCam  * stepSize * lightColor * 4;
         testPoint += viewDir * stepSize;
         color += inScattering;
     }
     float cosAngle = dot(viewDir, lightDir);
-    if(cosAngle > cos(0.06)) {
+    if(cosAngle > cos(0.02)) {
         // 视线指向太阳圆盘
-        color += Transmittance(param, lightPos*1e9, camPosInPlanet) * lightColor * 31.4;
+        color += Transmittance(param, lightPos + vec3(0,param.PlanetRadius + param.AtmosphereHeight,0), camPosInPlanet) * lightColor;
     }
     return color;
 }
