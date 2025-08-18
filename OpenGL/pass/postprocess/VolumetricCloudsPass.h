@@ -34,13 +34,14 @@ public:
     void init(RenderResource &resource) override {
         passName = "VolumetricCloudsPass";
         PostprocessPass::init(resource);
-        int TEX_SIZE_X = 128;
-        int TEX_SIZE_Y = 128;
-        int TEX_SIZE_Z = 128;
+        int TEX_SIZE_X = 64;
+        int TEX_SIZE_Y = 64;
+        int TEX_SIZE_Z = 64;
 
 #ifdef _WIN32
         noiseGenShader.bind();
-        create3DTextureRGBA(TEX_SIZE_X, TEX_SIZE_Y, TEX_SIZE_Z);
+        basicNoiseTexture = create3DTextureRGBA(TEX_SIZE_X, TEX_SIZE_Y, TEX_SIZE_Z);
+        detailNoiseTexture = create3DTextureRGBA(TEX_SIZE_X, TEX_SIZE_Y, TEX_SIZE_Z);
         glBindImageTexture(0, basicNoiseTexture, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA32F);
         glBindImageTexture(1, detailNoiseTexture, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA32F);
 
@@ -63,12 +64,12 @@ public:
         std::cout << "3D noise texture saved as basicNoiseTexture.bin\n";
 
         // 读取纹理数据
-        std::vector<unsigned char> data(TEX_SIZE_X * TEX_SIZE_Y * TEX_SIZE_Z);
+        std::vector<unsigned char> data1(TEX_SIZE_X * TEX_SIZE_Y * TEX_SIZE_Z);
         glBindTexture(GL_TEXTURE_3D, detailNoiseTexture);
         glGetTexImage(GL_TEXTURE_3D, 0, GL_RED, GL_UNSIGNED_BYTE, data.data());
 
         // 保存为二进制文件
-        std::ofstream file("detailNoiseTexture.bin", std::ios::binary);
+        std::ofstream file1("detailNoiseTexture.bin", std::ios::binary);
         file.write(reinterpret_cast<char*>(data.data()), data.size());
         file.close();
         std::cout << "3D noise texture saved as detailNoiseTexture.bin\n";
@@ -90,7 +91,8 @@ private:
 
 #ifdef _WIN32
     Shader noiseGenShader;
-    void create3DTextureRGBA(const int width, const int height, const int depth) {
+    GLuint create3DTextureRGBA(const int width, const int height, const int depth) {
+        GLuint noiseTexture;
         glGenTextures(1, &noiseTexture);
         glBindTexture(GL_TEXTURE_3D, noiseTexture);
 
@@ -105,6 +107,7 @@ private:
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
 
         glBindTexture(GL_TEXTURE_3D, 0);
+        return noiseTexture;
     }
 #endif
 
