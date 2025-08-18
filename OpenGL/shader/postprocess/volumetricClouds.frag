@@ -14,8 +14,9 @@ uniform samplerCube environmentMap;
 uniform int showSkyBox;
 // 3D噪声图
 uniform sampler3D noiseTexture;
+uniform sampler2D weatherTexture;
 // AABB盒
-vec3 cloudBoxMin = vec3(20.0, 6.0, 20.0);
+vec3 cloudBoxMin = vec3(20.0, 10.0, 20.0);
 vec3 cloudBoxMax = vec3(-20.0, 4.0, -20.0);
 //vec3 cloudBoxMin = vec3(-3.0, -3.0, -3.0);
 //vec3 cloudBoxMax = vec3(3.0, 3.0, 3.0);
@@ -26,7 +27,11 @@ float LinearizeDepth(float d) {
     float z = d * 2.0 - 1.0; // back to NDC z in [-1,1]
     return (2.0 * nearPlane * farPlane) / (farPlane + nearPlane - z * (farPlane - nearPlane));
 }
-
+// 比例缩放
+float remap(float original_value, float original_min, float original_max, float new_min, float new_max)
+{
+    return new_min + (((original_value - original_min) / (original_max - original_min)) * (new_max - new_min));
+}
 // 返回射线进入时间和在盒内的持续时间
 vec2 rayBoxDst(vec3 origin, vec3 direction, vec3 boxMin, vec3 boxMax){
     vec3 invDirection = vec3(
@@ -46,12 +51,30 @@ vec2 rayBoxDst(vec3 origin, vec3 direction, vec3 boxMin, vec3 boxMax){
 }
 float sampleNoise(vec3 testPoint)
 {
-    // TODO：就剩下怎么进行采样噪声了
+    vec3 boundsCentre = (cloudBoxMax + cloudBoxMin) * 0.5;
     vec3 regionSize = cloudBoxMax - cloudBoxMin;
     vec3 uvw = (testPoint - cloudBoxMin) / regionSize;
+    vec2 uv = (regionSize.xz * 0.5f + (testPoint.xz - boundsCentre.xz)) / max(regionSize.x, regionSize.z);
 
-    return texture(noiseTexture, uvw).r;
+    // 天气图
+    float coverage = texture(weatherTexture, uv).r;
 
+    // 采样点在体积云的高度占比
+    float heightPercent = (testPoint.y - cloudBoxMin.y) / regionSize.y;
+    float heightGradient = clamp(remap(heightPercent, 0.0, coverage, 0.0, 1.0), 0.0, 1.0);
+
+    // 3D 基础噪声
+//    float3 uvwShape  = rayPos * _shapeTiling + float3(speedShape, speedShape * 0.2,0);
+//    float4 shapeNoise = tex3D(_noiseTex, uvwShape);
+//    float4 normalizedShapeWeights = _shapeNoiseWeights / dot(_shapeNoiseWeights, 1);
+//    float shapeFBM = dot(shapeNoise, normalizedShapeWeights) ;
+//    float baseShapeDensity = shapeFBM + _densityOffset * 0.01;
+//    return baseShapeDensity;
+
+
+    // 最终密度
+    float density = 1 * heightGradient;
+    return density;
 }
 
 float BeerPowder(float opticalDepth) {

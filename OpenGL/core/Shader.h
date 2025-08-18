@@ -36,6 +36,9 @@ public:
     void bindCubeMapTexture(const std::string& name, unsigned int texture, int slot);
 
     void bind3DTexture(const std::string &name, unsigned int texture, int slot);
+    static GLuint load3DTextureFromFile(const std::string& filename, int width, int height, int depth);
+
+    static GLuint loadTextureFormFile(const std::string& filePath);
 
 private:
     void checkCompileErrors(GLuint shader, const std::string &type);

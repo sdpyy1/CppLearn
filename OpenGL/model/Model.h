@@ -47,6 +47,7 @@ public:
     static Model createPlane(float size = 100.0f,int type = 1);  // 1 木板  2 金属
     static Model createArrow(float shaftLength = 1.0f, float shaftRadius = 0.05f, float headLength = 0.2f, float headRadius = 0.1f);
     static Model createCube(float size = 1.f);
+    static unsigned int TextureFromFile(const char* path, const string& directory);
 
 
 private:
@@ -55,7 +56,6 @@ private:
     void processNode(aiNode* node, const aiScene* scene);
     Mesh processMesh(aiMesh* mesh, const aiScene* scene);
     vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, const string& typeName);
-    unsigned int TextureFromFile(const char* path, const string& directory);
 
 
     void calculateOrientationFix();

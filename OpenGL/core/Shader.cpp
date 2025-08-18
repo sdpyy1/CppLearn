@@ -6,6 +6,8 @@
 #include <sstream>
 #include <iostream>
 
+#include "stb_image.h"
+
 Shader::Shader(const char* vertexPath, const char* fragmentPath)
 {
     std::string vertexCode, fragmentCode;
@@ -286,6 +288,82 @@ void Shader::bind3DTexture(const std::string& name, unsigned int texture, int sl
     // 将纹理单元索引传递给着色器中的uniform变量
     setInt(name, slot);
 }
+// 加载 3D 纹理，返回 OpenGL 纹理 ID
+GLuint Shader::load3DTextureFromFile(const std::string& filename, int width, int height, int depth)
+{
+    // 打开二进制文件
+    std::ifstream file(filename, std::ios::binary);
+    if (!file)
+    {
+        std::cerr << "Failed to open file: " << filename << std::endl;
+        return 0;
+    }
+
+    // 读取所有数据
+    std::vector<unsigned char> data(width * height * depth);
+    file.read(reinterpret_cast<char*>(data.data()), data.size());
+    file.close();
+
+    if (file.gcount() != data.size())
+    {
+        std::cerr << "File size mismatch!" << std::endl;
+        return 0;
+    }
+
+    // 创建 3D 纹理
+    GLuint tex3D;
+    glGenTextures(1, &tex3D);
+    glBindTexture(GL_TEXTURE_3D, tex3D);
+
+    // 上传数据到 GPU
+    glTexImage3D(GL_TEXTURE_3D, 0, GL_R8, width, height, depth, 0, GL_RED, GL_UNSIGNED_BYTE, data.data());
+
+    // 设置纹理参数
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
+
+    glBindTexture(GL_TEXTURE_3D, 0);
+
+    return tex3D;
+}
+
+GLuint Shader::loadTextureFormFile(const std::string& filePath)
+{
+
+    unsigned int textureID;
+    glGenTextures(1, &textureID);
+
+    int width, height, nrComponents;
+    unsigned char *data = stbi_load(filePath.c_str(), &width, &height, &nrComponents, 0);
+    if (data) {
+        GLenum format = GL_RGB;
+        if (nrComponents == 1)
+            format = GL_RED;
+        else if (nrComponents == 3)
+            format = GL_RGB;
+        else if (nrComponents == 4)
+            format = GL_RGBA;
+
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        stbi_image_free(data);
+    } else {
+        std::cout << "Texture failed to load at path: " << filePath << std::endl;
+        stbi_image_free(data);
+    }
+    return textureID;
+}
+
 void Shader::checkCompileErrors(GLuint shader, const std::string& type)
 {
     GLint success;
