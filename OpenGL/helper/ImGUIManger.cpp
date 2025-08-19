@@ -18,7 +18,13 @@ void ImGUIManger::render() {
     ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
     ImGui::Begin("Debug UI", nullptr, ImGuiWindowFlags_NoMove);
-
+    if (ImGui::CollapsingHeader("Camera")) {
+        glm::vec3 camPos = scene.camera->Position; // 获取摄像机位置
+        ImGui::Text("Position: %.2f, %.2f, %.2f", camPos.x, camPos.y, camPos.z);
+        // 如果你想实时修改摄像机位置（可选）
+        ImGui::DragFloat3("Position", glm::value_ptr(camPos), 0.1f);
+        scene.camera->Position = camPos;
+    }
     if (ImGui::CollapsingHeader("Scene Settings")) {
         renderIBLSelectionUI();
         renderShadowSetting();

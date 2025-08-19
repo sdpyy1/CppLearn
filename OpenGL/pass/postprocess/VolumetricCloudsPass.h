@@ -22,7 +22,7 @@ public:
         int nextFreeTextureId = bindParams(resource);
         // 参数设置
         postShader.bind3DTexture("basicNoiseTexture",basicNoiseTexture,nextFreeTextureId++);
-        postShader.bind3DTexture("detailNoiseTexture",detailNoiseTexture,nextFreeTextureId++);
+        // postShader.bind3DTexture("detailNoiseTexture",detailNoiseTexture,nextFreeTextureId++);
         postShader.bindCubeMapTexture("environmentMap",scene.envCubemap,nextFreeTextureId++);
         postShader.bindTexture("weatherTexture",weatherTexture,nextFreeTextureId++);
 
@@ -70,15 +70,15 @@ public:
 
         // 保存为二进制文件
         std::ofstream file1("detailNoiseTexture.bin", std::ios::binary);
-        file.write(reinterpret_cast<char*>(data.data()), data.size());
-        file.close();
+        file1.write(reinterpret_cast<char*>(data1.data()), data1.size());
+        file1.close();
         std::cout << "3D noise texture saved as detailNoiseTexture.bin\n";
 #endif
 
 
 #ifdef __APPLE__
         basicNoiseTexture = Shader::load3DTextureFromFile("basicNoiseTexture.bin",TEX_SIZE_X,TEX_SIZE_Y,TEX_SIZE_Z);
-        detailNoiseTexture = Shader::load3DTextureFromFile("detailNoiseTexture.bin",TEX_SIZE_X,TEX_SIZE_Y,TEX_SIZE_Z);
+        // detailNoiseTexture = Shader::load3DTextureFromFile("detailNoiseTexture.bin",TEX_SIZE_X,TEX_SIZE_Y,TEX_SIZE_Z);
 
 #endif
         weatherTexture = Shader::loadTextureFormFile("assets/cloud/T_CloudWetherMap.png");
