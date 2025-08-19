@@ -131,17 +131,6 @@ void main()
     col.a += worleyFbm(uvw, kBasicFrequency * 4.0);
     col.r += remap(pfbm, 0., 1., col.g, 1.0); // perlin-worley
 
-    // 细节噪声
-//    ivec3 texSize = imageSize(detailNoiseTexture);
-//    ivec3 workPos = ivec3(gl_GlobalInvocationID.xyz);
-
-//    if(workPos.x >= texSize.x || workPos.y >= texSize.y || workPos.z >= texSize.z)
-//    {
-//        return;
-//    }
-
-//    const vec3 uvw = (vec3(workPos) + vec3(0.5f)) / vec3(texSize);
-
     float detailNoise =
     worleyFbm(uvw, kDetailFrequency * 1.0) * 0.625 +
     worleyFbm(uvw, kDetailFrequency * 2.0) * 0.250 +

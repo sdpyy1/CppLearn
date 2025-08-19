@@ -1,7 +1,8 @@
 #version 330 core
 out vec4 FragColor;
 in vec2 TexCoords;
-
+precision highp float;
+precision highp int;
 uniform vec3 camPos;
 uniform vec3 lightPos;
 uniform vec3 lightColor;
@@ -32,8 +33,8 @@ struct AtmosphereParameter {
     float OzoneLevelWidth;
     float PlanetRadius;
     float AtmosphereHeight;
-    float radiusCloudStart;
-    float radiusCloudEnd;
+    float cloudStart;
+    float cloudEnd;
     vec3 earthCenter;
 };
 vec3 reconstructWorldPos(vec2 uv) {
@@ -188,7 +189,7 @@ vec3 singleScatterSkyColor(vec3 camPosInPlanet, AtmosphereParameter param, vec3 
         vec3 scattering = Scattering(param, testPoint, lightDir, viewDir);
         // 摄像机到采样点之间的透光度
         vec3 tramsmittanceTestToCam = Transmittance(param,testPoint,camPosInPlanet);
-        // 采样点的光照计算。// TODO：需要把太阳光放大很多倍才有比较亮的效果（因为ToneMapping压黑的）
+        // 采样点的光照计算。// TODO：需要把太阳光放大很多倍才有比较亮的效果（因为步长的原因）
         vec3 inScattering = tramsmittanceLightToTest * scattering * tramsmittanceTestToCam  * stepSize * lightColor * 16;
         testPoint += viewDir * stepSize;
         color += inScattering;
@@ -222,27 +223,47 @@ vec3 singleScatterSkyColor(vec3 camPosInPlanet, AtmosphereParameter param, vec3 
 //}
 
 
-float BeerPowder(float opticalDepth) {
-    return 2 * exp(-opticalDepth) * (1-exp(-opticalDepth * 2));
-}
-float HenyeyGreenstein(float cosTheta, float g) {
-    float g2 = g * g;
-    return (1.0 - g2) / (4.0 * 3.14159265 * pow(1.0 + g2 - 2.0 * g * cosTheta, 1.5));
-}
-float phase(float a) {
-    vec4 _phaseParams = vec4(0.8, 0.3, 0.4, 1.5);
-    float blend = .5;
-    float hgBlend = HenyeyGreenstein(a, _phaseParams.x) * (1 - blend) + HenyeyGreenstein(a, -_phaseParams.y) * blend;
-    return _phaseParams.z + hgBlend * _phaseParams.w;
+float hash(vec3 p)
+{
+    // 简单 hash，返回 0-1
+    return fract(sin(dot(p, vec3(12.9898,78.233,37.719))) * 43758.5453);
 }
 
-float sampleNoise(vec3 worldPos)
+float sampleNoise(vec3 worldPos, AtmosphereParameter param)
 {
-    vec3 uvw = (worldPos - cloudBoxMin) / (cloudBoxMax - cloudBoxMin);
-    // 大噪声 & 细节噪声
-    float basicNoise = texture(basicNoiseTexture, uvw).r;
-//    float detailNoise = texture(detailNoiseTexture, uvw * 2.0).r;
-    return 1;
+    // 定义不同尺度的采样，用于生成多尺度噪声
+    const int octaves = 3;
+    float total = 0.0;
+    float persistence = 0.5;
+    float frequency = 1.0;
+    float amplitude = 1.0;
+
+    // 从天气纹理获取基础权重（使用世界位置的x/z分量作为2D坐标）
+    vec2 weatherUV = worldPos.xz * 0.001; // 缩放因子控制天气纹理的影响范围
+    vec4 weatherData = texture(weatherTexture, weatherUV);
+    float weatherWeight = weatherData.r; // 使用r通道作为权重
+
+    // 多尺度采样3D噪声，结合天气纹理的影响
+    for(int i = 0; i < octaves; i++) {
+        // 计算当前尺度的采样坐标
+        vec3 samplePos = worldPos * frequency * 0.01; // 缩放因子控制噪声的细节程度
+
+        // 采样3D噪声
+        float noise = texture(basicNoiseTexture, samplePos).r;
+
+        // 应用天气纹理的影响，使噪声分布更符合天气特征
+        noise = mix(noise, noise * weatherWeight, 0.3);
+
+        // 累加各尺度的噪声值
+        total += noise * amplitude;
+
+        // 更新频率和振幅（遵循分形噪声的特性）
+        frequency *= 2.0;
+        amplitude *= persistence;
+    }
+
+    // 将噪声值归一化到[0, 1]范围
+    return clamp(total * 0.5 + 0.5, 0.3, 1.0);
 }
 
 // 在球外无交点返回(0,0)  在球内返回(0,dstToSphere)
@@ -279,7 +300,8 @@ vec2 RayCloudLayerDst(vec3 sphereCenter, float earthRadius, float heightMin, flo
         if (pos.y <= heightMin + earthRadius)
         {
             vec3 startPos = pos + rayDir * cloudDstMin.y;
-            if (startPos.y >= 0.0)
+            // 到达内圈时，如果y值低于地表说明穿透地球了
+            if (startPos.y >= earthRadius)
             {
                 dstToCloudLayer = cloudDstMin.y;
                 dstInCloudLayer = cloudDstMax.y - cloudDstMin.y;
@@ -306,105 +328,108 @@ vec2 RayCloudLayerDst(vec3 sphereCenter, float earthRadius, float heightMin, flo
     }
     return vec2(dstToCloudLayer, dstInCloudLayer);
 }
-
+float BeerPowder(float density, float absorptivity)
+{
+    return 2.0 * exp(-density * absorptivity) * (1.0 - exp(-2.0 * density));
+}
 // 计算一个采样点的光照
-vec3 rayMarchToLight(AtmosphereParameter param, vec3 currentPos, vec3 dirToLight)
+float rayMarchToLight(AtmosphereParameter param, vec3 currentPos, vec3 dirToLight)
 {
     float SAMPLE_NUM = 16;
-    float lightAbsorptionTowardSun = 1;
-    // beer衰减系数
-    //    float dstInsideBox = rayBoxDst(currentPos, dirToLight, cloudBoxMin, cloudBoxMax).y;
-    float dstInsideBox = RayCloudLayerDst(param.earthCenter,param.PlanetRadius, param.radiusCloudStart, param.radiusCloudEnd, currentPos, dirToLight, false).y;
+    float dstInsideBox = RayCloudLayerDst(param.earthCenter, param.PlanetRadius, param.cloudStart, param.cloudEnd, currentPos, dirToLight, false).y;
     float stepSize = dstInsideBox / SAMPLE_NUM;
-
+    float traveled = 0;
     // 计算当前采样点到光源之间的云层密度
     float totalDensity = 0.0;
     for (int i = 0; i < SAMPLE_NUM; i++)
     {
-        totalDensity += max(0.0, sampleNoise(currentPos) * stepSize);
-        currentPos += dirToLight * stepSize;
+        traveled += stepSize;
+        vec3 pos = currentPos + dirToLight * traveled;
+        totalDensity += sampleNoise(pos,param) * stepSize;
     }
     // 透光率
-    float transmittance = exp(-totalDensity * lightAbsorptionTowardSun);
-    // TODO:BeerPowder
-    return transmittance * lightColor;
+    return BeerPowder(totalDensity,1);
 }
 
-// 球体体积云
-vec4 cloudRayMarching(AtmosphereParameter param, vec3 worldPosInPlanet, vec3 viewDir, float depth)
+float hgPhase(float g, float cosTheta)
 {
-    float SAMPLE_NUM = 16;
-    vec3 lightDir = normalize(-lightPos);
-    vec2 rayBoxInfo = RayCloudLayerDst(param.earthCenter, param.PlanetRadius, param.radiusCloudStart, param.radiusCloudEnd, worldPosInPlanet, viewDir, true);
-    // 相机距离云的距离
-    float dstToCloud = rayBoxInfo.x;
-    // 相机在云内部的穿行距离
-    float dstInsideCloud = rayBoxInfo.y;
-    if( dstInsideCloud <= 0 || depth < 99){
-        return vec4(0,0,0,1);
-    }
-    // 步进距离限制
-    float dstLimit = dstInsideCloud;
+    float numer = 1.0f - g * g;
+    float denom = 1.0f + g * g + 2.0f * g * cosTheta;
+    return numer / (4.0f * PI * denom * sqrt(denom));
+}
 
-    // 描述视角与光源方向夹角不同时的散射强度
-    float phase = phase(dot(viewDir, lightDir));
-    // 直接从云层球内圈开始步进
-    vec3 startPos = worldPosInPlanet + viewDir * dstToCloud;
-    vec3 sumLight = vec3(0);
-    float stepSize =  dstInsideCloud / SAMPLE_NUM;
-    // 已步进距离（时间）
-    float travelled = 0.0;
-    float transmittance = 1;
-    for (int i = 0; i < SAMPLE_NUM; i++) {
-        if(travelled < dstLimit){
-            // 采样点
-            vec3 testPoint = startPos + (viewDir * travelled);
-            // 采样点光照
-            vec3 light = rayMarchToLight(param, testPoint, lightDir);
-            // 采样密度
-            float density = sampleNoise(testPoint);
-            sumLight += light * density * stepSize * transmittance * phase;;
-            transmittance *= exp(-density * stepSize);
-        }
-        travelled += stepSize;
+float dualLobPhase(float g0, float g1, float w, float cosTheta)
+{
+return mix(hgPhase(g0, cosTheta), hgPhase(g1, cosTheta), w);
+}
+// 球体体积云
+vec4 cloudRayMarching(AtmosphereParameter param, vec3 camPosInPlanet, vec3 viewDir, float depth)
+{
+    float SAMPLE_NUM = 100;
+    vec3 lightDir = normalize(-lightPos);
+    vec2 rayBoxInfo = RayCloudLayerDst(param.earthCenter, param.PlanetRadius, param.cloudStart, param.cloudEnd, camPosInPlanet, viewDir, true);
+    float dstToCloud = rayBoxInfo.x;
+    float dstInsideCloud = rayBoxInfo.y;
+    if(dstInsideCloud <= 0) return vec4(0,0,0,1);
+    float transmittance = 1.0f;
+    vec3 scattering = vec3(0.0f);
+    vec3 startPos = camPosInPlanet + viewDir * dstToCloud;
+    float stepSize =dstInsideCloud / SAMPLE_NUM;
+    float sunPhase = dualLobPhase(0.5, -0.5, 0.2, -dot(viewDir,lightDir));
+
+    vec3 testPos = startPos;
+    for(int i = 0;i<SAMPLE_NUM;i++){
+        testPos += viewDir * stepSize;
+        float density = sampleNoise(testPos,param);
+        float stepTransmittance = exp(-density * stepSize);
+        // 寒霜引擎 光照计算
+        vec3 stepScattering = rayMarchToLight(param,testPos,lightDir) * lightColor * sunPhase;
+        vec3 sigmaS = vec3(density);
+        const float sigmaA = 0.0;
+        vec3 sigmaE = max(vec3(1e-8f), sigmaA + sigmaS);
+        vec3 sactterLitStep = stepScattering * sigmaS;
+        sactterLitStep = transmittance * (sactterLitStep - sactterLitStep * stepTransmittance);
+        sactterLitStep /= sigmaE;
+        scattering += sactterLitStep;
+        // 累积透射率
+        transmittance *= stepTransmittance;
     }
-    return vec4(sumLight,transmittance);
+    return vec4(scattering,transmittance);
 }
 // -----------------------------体积云 END-------------------------------------------- //
 
 void main() {
-    AtmosphereParameter a = AtmosphereParameter(
-    8000,   // RayleighScatteringScalarHeight
-    1200,   // MieScatteringScalarHeight
-    0.8,     // MieAnisotropy
-    25000,  // OzoneLevelCenterHeight
-    15000,  // OzoneLevelWidth
-    6360000,// PlanetRadius
-    60000,  // AtmosphereHeight
-    2000, // CloudStartHeight
-    5000,   // CloudEndHeight
-    vec3(0,0,0)
-    );
-    // 世界坐标（这里也可以从gBuffer的位置贴图获取，但是没有模型的地方就会出错（返回的是clearColor）,所以统一都用重建来完成）
-    vec3 worldPosInPlanet = reconstructWorldPos(TexCoords) + vec3(0, a.PlanetRadius, 0);
-    vec3 camPosInPlanet = camPos + vec3(0, a.PlanetRadius, 0);
+    AtmosphereParameter params;
+    params.RayleighScatteringScalarHeight = 8000.0;
+    params.MieScatteringScalarHeight      = 1200.0;
+    params.MieAnisotropy                  = 0.8;
+    params.OzoneLevelCenterHeight         = 25000.0;
+    params.OzoneLevelWidth                = 15000.0;
+    params.PlanetRadius                   = 6360000.0;
+    params.AtmosphereHeight               = 60000.0;
+    params.cloudStart                     = 2500.0;
+    params.cloudEnd                       = 2550.0;
+    params.earthCenter                    = vec3(0.0, 0.0, 0.0);
+
+    vec3 worldPosInPlanet = reconstructWorldPos(TexCoords) + vec3(0, params.PlanetRadius, 0);
+    vec3 camPosInPlanet = camPos + vec3(0, params.PlanetRadius, 0);
     // 视角方向
-    vec3 viewDir = normalize(worldPosInPlanet - camPosInPlanet);
+    vec3 viewDirInPlanet = normalize(worldPosInPlanet - camPosInPlanet);
     // 场景颜色
     vec3 preColor = texture(preTexture, TexCoords).rgb;
-
-    // 像素zBuffer深度（线性）
+    // 像素深度
     float depth = LinearizeDepth(texture(gDepth, TexCoords).r);
     // 无模型位置 && 开启天空盒
     if(depth > 99 && showSkyBox == 1) {
         // 从天空盒拿颜色
-      preColor = texture(environmentMap, viewDir).rgb;
-//        preColor = singleScatterSkyColor(camPosInPlanet,a,viewDir);
+//      preColor = texture(environmentMap, viewDirInPlanet).rgb;
+        // 实时大气渲染
+        preColor = singleScatterSkyColor(camPosInPlanet,params,viewDirInPlanet);
     }
-    vec4 cloudInfo = cloudRayMarching(a,worldPosInPlanet, viewDir, depth);
+// TODO:体积云放弃
+    vec4 cloudInfo = cloudRayMarching(params, camPosInPlanet, viewDirInPlanet, depth);
     float alpha = cloudInfo.w;
     vec3 cloudColor = cloudInfo.xyz;
-
     FragColor = vec4(mix(preColor,cloudColor,1-alpha), 1);
-//    FragColor = vec4(cloudColor,1);
+//    FragColor = vec4(preColor,1);
 }
