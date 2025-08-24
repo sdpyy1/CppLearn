@@ -15,7 +15,7 @@ public:
     bool mouseHide = true;
 #ifdef _WIN32
     int majorVersion = 4;
-    int minorVersion = 3;
+    int minorVersion = 6;
 #endif
 #ifdef __APPLE__
     int majorVersion = 3;
@@ -23,7 +23,7 @@ public:
 #endif
     // 构造函数：初始化宽高和相机
     explicit WindowManager(int w = 800, int h = 600)
-            : camera(w, h, glm::vec3(.0f, 3.0f, 10.0f)), width(w), height(h){
+            : camera(w, h, glm::vec3(.0f, 5.0f, 10.0f)), width(w), height(h){
         lastX = w/2;
         lastY = h/2;
         firstMouse = true;

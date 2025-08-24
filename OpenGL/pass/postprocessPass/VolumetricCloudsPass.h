@@ -4,29 +4,31 @@
 #include <vector>
 #include <random>
 #include <fstream>
-class VolumetricCloudsPass : public PostprocessPass {
+class VolumetricCloudsPass final : public PostprocessPass {
 public:
     explicit VolumetricCloudsPass(Scene &scene)
         : PostprocessPass(scene, Shader("shader/quad.vert", "shader/postprocess/volumetricClouds.frag"))
-#ifdef _WIN32
-          ,noiseGenShader(Shader("shader/compute/volumetricClouds.comp"))
-#endif
-          {
-    }
+          ,noiseGenShader(Shader("shader/compute/volumetricCloudsNoise.comp")){}
 
     void GUIRender() override {
         ImGui::Checkbox("Enable ShyBox", &scene.showSkybox);
+        ImGui::SliderFloat("Cloud Feather", &scene.cloudFeather, 0.0f, 1.0f, "%.2f");
+
     }
 
     void render(RenderResource &resource) override {
         int nextFreeTextureId = bindParams(resource);
         // 参数设置
         postShader.bind3DTexture("basicNoiseTexture",basicNoiseTexture,nextFreeTextureId++);
-        // postShader.bind3DTexture("detailNoiseTexture",detailNoiseTexture,nextFreeTextureId++);
+        postShader.bind3DTexture("detailNoiseTexture",detailNoiseTexture,nextFreeTextureId++);
         postShader.bindCubeMapTexture("environmentMap",scene.envCubemap,nextFreeTextureId++);
         postShader.bindTexture("weatherTexture",weatherTexture,nextFreeTextureId++);
-
+        postShader.bindTexture("cloudCurlNoise",cloudCurlNoise,nextFreeTextureId++);
         postShader.setInt("showSkyBox", scene.showSkybox == true?1:0);
+        postShader.setFloat("time",static_cast<float>(glfwGetTime()));
+        // GUi参数
+        postShader.setFloat("cloudFeather",scene.cloudFeather);
+
         GL_CALL(PostprocessPass::render(resource));
         postShader.unBind();
     }
@@ -34,11 +36,9 @@ public:
     void init(RenderResource &resource) override {
         passName = "VolumetricCloudsPass";
         PostprocessPass::init(resource);
-        int TEX_SIZE_X = 64;
-        int TEX_SIZE_Y = 64;
-        int TEX_SIZE_Z = 64;
-
-#ifdef _WIN32
+        int TEX_SIZE_X = 128;
+        int TEX_SIZE_Y = 128;
+        int TEX_SIZE_Z = 128;
         noiseGenShader.bind();
         basicNoiseTexture = create3DTextureRGBA(TEX_SIZE_X, TEX_SIZE_Y, TEX_SIZE_Z);
         detailNoiseTexture = create3DTextureRGBA(TEX_SIZE_X, TEX_SIZE_Y, TEX_SIZE_Z);
@@ -52,44 +52,17 @@ public:
         glDispatchCompute(groupX, groupY, groupZ);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
         noiseGenShader.unBind();
-        // 读取纹理数据
-        std::vector<unsigned char> data(TEX_SIZE_X * TEX_SIZE_Y * TEX_SIZE_Z);
-        glBindTexture(GL_TEXTURE_3D, basicNoiseTexture);
-        glGetTexImage(GL_TEXTURE_3D, 0, GL_RED, GL_UNSIGNED_BYTE, data.data());
 
-        // 保存为二进制文件
-        std::ofstream file("basicNoiseTexture.bin", std::ios::binary);
-        file.write(reinterpret_cast<char*>(data.data()), data.size());
-        file.close();
-        std::cout << "3D noise texture saved as basicNoiseTexture.bin\n";
-
-        // 读取纹理数据
-        std::vector<unsigned char> data1(TEX_SIZE_X * TEX_SIZE_Y * TEX_SIZE_Z);
-        glBindTexture(GL_TEXTURE_3D, detailNoiseTexture);
-        glGetTexImage(GL_TEXTURE_3D, 0, GL_RED, GL_UNSIGNED_BYTE, data.data());
-
-        // 保存为二进制文件
-        std::ofstream file1("detailNoiseTexture.bin", std::ios::binary);
-        file1.write(reinterpret_cast<char*>(data1.data()), data1.size());
-        file1.close();
-        std::cout << "3D noise texture saved as detailNoiseTexture.bin\n";
-#endif
-
-
-#ifdef __APPLE__
-        basicNoiseTexture = Shader::load3DTextureFromFile("basicNoiseTexture.bin",TEX_SIZE_X,TEX_SIZE_Y,TEX_SIZE_Z);
-        // detailNoiseTexture = Shader::load3DTextureFromFile("detailNoiseTexture.bin",TEX_SIZE_X,TEX_SIZE_Y,TEX_SIZE_Z);
-
-#endif
         weatherTexture = Shader::loadTextureFormFile("assets/cloud/T_CloudWetherMap.png");
+        cloudCurlNoise = Shader::loadTextureFormFile("assets/cloud/T_CurlNoise.png");
     }
 
 private:
     GLuint basicNoiseTexture = 0;
     GLuint detailNoiseTexture = 0;
     GLuint weatherTexture = 0;
+    GLuint cloudCurlNoise = 0;
 
-#ifdef _WIN32
     Shader noiseGenShader;
     GLuint create3DTextureRGBA(const int width, const int height, const int depth) {
         GLuint noiseTexture;
@@ -109,7 +82,6 @@ private:
         glBindTexture(GL_TEXTURE_3D, 0);
         return noiseTexture;
     }
-#endif
 
 };
 #endif //VOLUMETRICCLOUDSPASS_H

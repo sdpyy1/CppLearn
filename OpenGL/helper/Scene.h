@@ -58,8 +58,9 @@ public:
     bool showEmission = false;
     bool showLightTexture = false;
 
-    int toneMappingType = 2; // 0=None 1=Uncharted2 2=ACESFilm
+    int toneMappingType = 1; // 0=None 1=Uncharted2 2=ACESFilm
     bool showSkybox = true;
+    float cloudFeather = 0.2;
 
 
     explicit Scene(Camera* camera);

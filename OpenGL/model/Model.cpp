@@ -532,7 +532,7 @@ Model Model::createPlane(float size, int type) {
     if (!mesh.mat.hasEmission) mesh.mat.emission = defaultBlack;
     if (!mesh.mat.hasNormal) mesh.mat.normal = defaultNormal;
 
-    planeModel.translation = glm::vec3(0.0f, -2.f, 0.0f);
+    planeModel.translation = glm::vec3(0.0f, -10.f, 0.0f);
     planeModel.directory = "floor";
     return planeModel;
 }
