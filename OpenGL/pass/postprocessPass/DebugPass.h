@@ -6,9 +6,9 @@
 #define OPENGLRENDER_DEBUGPASS_H
 
 
-#include "RenderPass.h"
-#include "../core/Shader.h"
-#include "../helper/Scene.h"
+#include "../RenderPass.h"
+#include "../../core/Shader.h"
+#include "../../helper/Scene.h"
 
 class DebugPass : public RenderPass {
 public:

@@ -44,15 +44,8 @@ void Scene::drawAll(Shader &shader) {
 void Scene::setVP(Shader &shader) const {
     glm::mat4 projection = camera->getProjectionMatrix();
     glm::mat4 view = camera->getViewMatrix();
-
     shader.setMat4("projection", projection);
     shader.setMat4("view", view);
-
-    shader.setVec3("camPos", camera->Position);
-    if (!lights.empty()) {
-        shader.setVec3("lightPos", lights[0]->position);
-        shader.setVec3("lightColor", lights[0]->color);
-    }
 }
 
 void Scene::renderCube() {

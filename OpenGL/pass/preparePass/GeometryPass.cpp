@@ -46,17 +46,23 @@ void GeometryPass::init(RenderResource &resource) {
     GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
     GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, gEmission, 0));
     // Depth renderbuffer
-    glGenTextures(1, &gDepth);
-    glBindTexture(GL_TEXTURE_2D, gDepth);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, scene.width, scene.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT,
-                 nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    float borderColor[] = {1.0, 1.0, 1.0, 1.0};
-    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, gDepth, 0);
+    // pre-z关闭
+    // glGenTextures(1, &gDepth);
+    // glBindTexture(GL_TEXTURE_2D, gDepth);
+    // glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, scene.width, scene.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT,
+    //              nullptr);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    // float borderColor[] = {1.0, 1.0, 1.0, 1.0};
+    // glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+    // glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, gDepth, 0);
+
+    // pre-z开启
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, resource.textures["gDepth"], 0);
+
+
     // attach 到 FBO 的 color attachmentN，比如 GL_COLOR_ATTACHMENT4
     // TODO:添加了gBuffer缓冲后，必须添加在这
     const GLuint attachments[5] = {
@@ -72,7 +78,6 @@ void GeometryPass::init(RenderResource &resource) {
     resource.textures["gAlbedo"] = gAlbedo;
     resource.textures["gMaterial"] = gMaterial;
     resource.textures["gEmission"] = gEmission;
-    resource.textures["gDepth"] = gDepth;
     resource.framebuffers["gBuffer"] = gBuffer;
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     RenderPass::init(resource);
@@ -82,11 +87,15 @@ void GeometryPass::init(RenderResource &resource) {
 void GeometryPass::render(RenderResource &resource) {
     shader.bind();
     glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
+    glDepthMask(GL_FALSE);
     glViewport(0, 0, scene.width, scene.height);
     glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT);
     GL_CALL(scene.drawAll(shader));
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDisable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+    glDepthMask(GL_TRUE);
     shader.unBind();
 }

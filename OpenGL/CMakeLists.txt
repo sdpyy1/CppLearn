@@ -7,7 +7,7 @@ INCLUDE_DIRECTORIES(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/third/include)
 
 # 源文件
 file(GLOB CORE_SOURCES "core/*.cpp")
-file(GLOB PASS_SOURCES "pass/*.cpp" "pass/postprocess/*.cpp")
+file(GLOB PASS_SOURCES "pass/*.cpp" "pass/postprocessPass/*.cpp" "pass/preparePass/*.cpp")
 file(GLOB MODEL_SOURCES "model/*.cpp")
 file(GLOB HELPER_SOURCES "helper/*.cpp")
 file(GLOB UTILS_SOURCES "utils/*.cpp")

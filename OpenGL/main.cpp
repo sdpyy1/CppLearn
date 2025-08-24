@@ -25,8 +25,8 @@ int main() {
     // 模型
     Model plane = Model::createPlane(100, 1);
     scene.loadHDRAndIBL("assets/HDR/2.hdr");
-    scene.addModel(plane);
     scene.addDefaultModel("helmet");
+    scene.addModel(plane);
 
     // 管线
     RenderPipeline renderPipeline;

@@ -2,8 +2,8 @@
 #define OPENGLRENDER_SHADOWPASS_H
 #include <glad/glad.h>
 
-#include "RenderPass.h"
-#include "../helper/Scene.h"
+#include "../RenderPass.h"
+#include "../../helper/Scene.h"
 
 class ShadowPass : public RenderPass {
 public:

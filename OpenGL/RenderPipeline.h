@@ -9,14 +9,15 @@
 #include <vector>
 #include <memory>
 #include "pass/RenderPass.h"
-#include "pass/ShadowPass.h"
-#include "pass/GeometryPass.h"
+#include "pass/preparePass/ShadowPass.h"
+#include "pass/preparePass/GeometryPass.h"
 #include "pass/LightingPass.h"
-#include "pass/DebugPass.h"
-#include "pass/postprocess/PostprocessPass.h"
+#include "pass/postprocessPass/DebugPass.h"
+#include "pass/postprocessPass/PostprocessPass.h"
 #include "core/Shader.h"
 
-#include "pass/postprocess/PostProcessManager.h"
+#include "pass/postprocessPass/PostProcessManager.h"
+#include "pass/preparePass/PreZPass.h"
 
 class RenderPipeline {
 public:
@@ -71,6 +72,7 @@ public:
 
     void setupDeferredRenderPipeline(Scene &scene) {
         addPass(std::make_unique<ShadowPass>(scene));
+        addPass(std::make_unique<PreZPass>(scene));
         addPass(std::make_unique<GeometryPass>(scene));
         addPass(std::make_unique<LightingPass>(scene));
 

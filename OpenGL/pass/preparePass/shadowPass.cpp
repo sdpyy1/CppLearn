@@ -3,11 +3,11 @@
 //
 #include <iostream>
 #include "ShadowPass.h"
-#include "../helper/Scene.h"
+#include "../../helper/Scene.h"
 #include <glm/glm.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
-#include "../utils/checkGlCommand.h"
+#include "../../utils/checkGlCommand.h"
 
 ShadowPass::ShadowPass(Scene &scene): RenderPass("ShadowPass"), scene(scene),
                                       shadowShader("shader/shadow.vert", "shader/shadow.frag") {

@@ -174,9 +174,9 @@ vec3 singleScatterSkyColor(vec3 camPosInPlanet, AtmosphereParameter param, vec3 
     float dstToPlanet = RayIntersectSphere(param.earthCenter, param.PlanetRadius, camPosInPlanet, viewDir);
     float dstToAtmosphere = RayIntersectSphere(param.earthCenter, param.PlanetRadius + param.AtmosphereHeight, camPosInPlanet, viewDir);
     // 还没实现别的渲染，纯黑的，先不判断
-//    if(dstToPlanet > 0.0 || dstToAtmosphere < 0.0){
-//        return vec3(0);
-//    }
+    //    if(dstToPlanet > 0.0 || dstToAtmosphere < 0.0){
+    //        return vec3(0);
+    //    }
     float stepSize = dstToAtmosphere / float(N_SAMPLE);
     vec3 testPoint = camPosInPlanet;
     vec3 color = vec3(0);
@@ -360,7 +360,7 @@ float hgPhase(float g, float cosTheta)
 
 float dualLobPhase(float g0, float g1, float w, float cosTheta)
 {
-return mix(hgPhase(g0, cosTheta), hgPhase(g1, cosTheta), w);
+    return mix(hgPhase(g0, cosTheta), hgPhase(g1, cosTheta), w);
 }
 // 球体体积云
 vec4 cloudRayMarching(AtmosphereParameter param, vec3 camPosInPlanet, vec3 viewDir, float depth)
@@ -383,7 +383,7 @@ vec4 cloudRayMarching(AtmosphereParameter param, vec3 camPosInPlanet, vec3 viewD
         float density = sampleNoise(testPos,param);
         float stepTransmittance = exp(-density * stepSize);
         // 寒霜引擎 光照计算
-        vec3 stepScattering = rayMarchToLight(param,testPos,lightDir) * lightColor * sunPhase;
+        vec3 stepScattering = lightColor * sunPhase;
         vec3 sigmaS = vec3(density);
         const float sigmaA = 0.0;
         vec3 sigmaE = max(vec3(1e-8f), sigmaA + sigmaS);
@@ -422,14 +422,14 @@ void main() {
     // 无模型位置 && 开启天空盒
     if(depth > 99 && showSkyBox == 1) {
         // 从天空盒拿颜色
-//      preColor = texture(environmentMap, viewDirInPlanet).rgb;
+        //      preColor = texture(environmentMap, viewDirInPlanet).rgb;
         // 实时大气渲染
         preColor = singleScatterSkyColor(camPosInPlanet,params,viewDirInPlanet);
     }
-// TODO:体积云放弃
-    vec4 cloudInfo = cloudRayMarching(params, camPosInPlanet, viewDirInPlanet, depth);
-    float alpha = cloudInfo.w;
-    vec3 cloudColor = cloudInfo.xyz;
-    FragColor = vec4(mix(preColor,cloudColor,1-alpha), 1);
-//    FragColor = vec4(preColor,1);
+    // TODO:体积云放弃
+//    vec4 cloudInfo = cloudRayMarching(params, camPosInPlanet, viewDirInPlanet, depth);
+//    float alpha = cloudInfo.w;
+//    vec3 cloudColor = cloudInfo.xyz;
+//    FragColor = vec4(mix(preColor,cloudColor,1-alpha), 1);
+        FragColor = vec4(preColor,1);
 }

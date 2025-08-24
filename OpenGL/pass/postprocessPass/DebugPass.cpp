@@ -3,8 +3,8 @@
 //
 
 #include "DebugPass.h"
-#include "../core/Shader.h"
-#include "../utils/checkGlCommand.h"
+#include "../../core/Shader.h"
+#include "../../utils/checkGlCommand.h"
 
 DebugPass::DebugPass(Scene &scene) : RenderPass("DebugPass"), scene(scene),
                                      skyboxShader("shader/debug/skybox.vert", "shader/debug/skybox.frag"),
