@@ -11,9 +11,15 @@ public:
           ,noiseGenShader(Shader("shader/compute/volumetricCloudsNoise.comp")){}
 
     void GUIRender() override {
-        ImGui::Checkbox("Enable ShyBox", &scene.showSkybox);
-        ImGui::SliderFloat("Cloud Feather", &scene.cloudFeather, 0.0f, 1.0f, "%.2f");
-
+        ImGui::RadioButton("NONE", &scene.skyMode, 0);
+        ImGui::SameLine();
+        ImGui::RadioButton("SkyBox", &scene.skyMode, 1);
+        ImGui::SameLine();
+        ImGui::RadioButton("Atmospheric", &scene.skyMode, 2);
+        ImGui::Checkbox("clouds", &scene.showClouds);
+        if (scene.showClouds) {
+            ImGui::SliderFloat("Cloud Feather", &scene.cloudFeather, 0.0f, 1.0f, "%.2f");
+        }
     }
 
     void render(RenderResource &resource) override {
@@ -24,8 +30,9 @@ public:
         postShader.bindCubeMapTexture("environmentMap",scene.envCubemap,nextFreeTextureId++);
         postShader.bindTexture("weatherTexture",weatherTexture,nextFreeTextureId++);
         postShader.bindTexture("cloudCurlNoise",cloudCurlNoise,nextFreeTextureId++);
-        postShader.setInt("showSkyBox", scene.showSkybox == true?1:0);
+        postShader.setInt("skyMode", scene.skyMode);
         postShader.setFloat("time",static_cast<float>(glfwGetTime()));
+        postShader.setBool("showClouds",scene.showClouds);
         // GUi参数
         postShader.setFloat("cloudFeather",scene.cloudFeather);
 
@@ -53,8 +60,8 @@ public:
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
         noiseGenShader.unBind();
 
-        weatherTexture = Shader::loadTextureFormFile("assets/cloud/T_CloudWetherMap.png");
-        cloudCurlNoise = Shader::loadTextureFormFile("assets/cloud/T_CurlNoise.png");
+        weatherTexture = Shader::loadTextureFormFile("assets/cloud/weather.png");
+        cloudCurlNoise = Shader::loadTextureFormFile("assets/cloud/T_Noise.png");
     }
 
 private:

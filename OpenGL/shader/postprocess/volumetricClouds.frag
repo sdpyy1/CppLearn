@@ -12,7 +12,8 @@ uniform sampler2D gPosition;
 uniform sampler2D gDepth;
 uniform sampler2D preTexture;
 uniform samplerCube environmentMap;
-uniform int showSkyBox;
+uniform int skyMode;
+uniform bool showClouds;
 // 3D噪声图
 uniform sampler3D basicNoiseTexture;
 uniform sampler3D detailNoiseTexture;
@@ -26,8 +27,8 @@ uniform float time;
 
 
 // AABB盒
-vec3 cloudBoxMin = vec3(-100.0, 26.0, -100.0);
-vec3 cloudBoxMax = vec3(100.0, 30.0, 100.0);
+vec3 cloudBoxMin = vec3(-64.0, 21.0, -64.0);
+vec3 cloudBoxMax = vec3(64.0, 26.0, 64.0);
 //vec3 cloudBoxMin = vec3(-30.0, 0.0, -30.0);
 //vec3 cloudBoxMax = vec3(30.0, 3.0, 30.0);
 float PI = 3.141592653;
@@ -249,26 +250,26 @@ float getCloudTypeDensity(float heightFraction, float cloud_min, float cloud_max
 //{
 //    vec3 UVW = (testPos - cloudBoxMin) / (cloudBoxMax - cloudBoxMin);
 //    float normalizeHeight = UVW.y;
-//    vec2 UV = UVW.xz;
-//    // 超参数
-//    float kCoverage = 1;
-//    vec3 windDirection = vec3(0.1, 0, 0);
-//    float cloudSpeed = 5;
-//    float kDensity = 1;
-//    float cloudBasicNoiseScale =0.8;
-//    float cloudDetailNoiseScale = 0.05;
-//    // 坐标转到 [0,1]
 //
+//    // 超参数
+//    float kCoverage = 0.5;
+//    vec3 windDirection = normalize(vec3(0.5, 0, 0));
+//    float cloudSpeed = 0.01;
+//    float kDensity = 1;
+//    float cloudBasicNoiseScale =1;
+//    float cloudDetailNoiseScale = 1;
+//    // 坐标转到 [0,1]
 //    vec3 windOffset = (windDirection + vec3(0.0, 0.0001, 0.0)) * time * cloudSpeed;
 //    UVW += windDirection * normalizeHeight;
+//    vec2 UV = UVW.xz;
 //    // 天气图采样
 //    float weatherValue = texture(weatherTexture, UV).r;
-//    //    float localCoverage = texture(cloudCurlNoise, (time * cloudSpeed * 50.0 + UV) * 0.00001+ 0.5).x;
-//    //    localCoverage = saturate(localCoverage * 3.0 - 0.75) * 0.2;
-//    float coverage = saturate(kCoverage * weatherValue);
+//    float localCoverage = texture(cloudCurlNoise, (time * cloudSpeed * 50.0 + UV) * 0.00001+ 0.5).x;
+//    localCoverage = saturate(localCoverage * 3.0 - 0.75) * 0.2;
+//    float coverage = saturate(kCoverage * (localCoverage + weatherValue));
 //
 //    float gradienShape = remap(normalizeHeight, 0.00, 0.10, 0.1, 1.0) * remap(normalizeHeight, 0.10, 0.80, 1.0, 0.2);
-//    float basicNoise = texture(basicNoiseTexture, (UVW + windOffset) * vec3(cloudBasicNoiseScale)).r;
+//    float basicNoise = pow(texture(basicNoiseTexture, (UVW + windOffset) * vec3(cloudBasicNoiseScale)).r,7);
 //    float basicCloudNoise = gradienShape * basicNoise;
 //    float basicCloudWithCoverage = coverage * remap(basicCloudNoise, 1.0 - coverage, 1, 0, 1);
 //    vec3 sampleDetailNoise = UVW - windOffset * 0.15;
@@ -277,53 +278,32 @@ float getCloudTypeDensity(float heightFraction, float cloud_min, float cloud_max
 //    float detailNoiseMixByHeight = 0.2 * mix(detailNoiseComposite, 1 - detailNoiseComposite, saturate(normalizeHeight * 10.0));
 //    float densityShape = saturate(0.01 + normalizeHeight * 1.15) * kDensity * remap(normalizeHeight, 0.0, 0.1, 0.0, 1.0) * remap(normalizeHeight, 0.8, 1.0, 1.0, 0.0);
 //    float cloudDensity = remap(basicCloudWithCoverage, detailNoiseMixByHeight, 1.0, 0.0, 1.0);
-//    //    return cloudDensity * densityShape;
-//    return basicCloudWithCoverage;
+//    return saturate(cloudDensity * densityShape);
 //}
 float sampleNoise(vec3 testPos)
 {
-    // --------------------------
-    // 参数
-    // --------------------------
-    float cloudSpeed = 1.0;                     // 云漂移速度
-    vec3 windDirection = normalize(vec3(1.0, 0.0, 0.3)); // 风向，可有Y分量
+    float shapeTiling = 1.0;
+    float speedShape = 0.2;
 
-    // --------------------------
-    // 云整体漂移
-    // --------------------------
-    vec3 driftOffset = windDirection * cloudSpeed * time;
-    vec3 samplePos = testPos + driftOffset;
-
-    // --------------------------
-    // UV/UVW 归一化
-    // --------------------------
-    vec3 UVW = (samplePos - cloudBoxMin) / (cloudBoxMax - cloudBoxMin);
+    vec3 UVW = (testPos - cloudBoxMin) / (cloudBoxMax - cloudBoxMin);
     vec2 UV = UVW.xz;
+    float heightPercent = UVW.y;
+    float coverage = texture(weatherTexture,UV).r;
+    // 让云上窄下宽
+    vec3 uvwShape = UVW;
+    float shapeNoise = texture(basicNoiseTexture, uvwShape).r;
 
-    // --------------------------
-    // 基础云噪声 + 天气覆盖率
-    // --------------------------
-    float baseCloud = texture(basicNoiseTexture, UVW).r;
-    float cloud_coverage = texture(weatherTexture, UV).r;
-    float base_cloud_with_coverage = baseCloud * cloud_coverage;
+    const float containerEdgeFadeDst = 10;
+    float dstFromEdgeX = min(containerEdgeFadeDst, min(testPos.x - cloudBoxMin.x, cloudBoxMax.x - testPos.x));
+    float dstFromEdgeZ = min(containerEdgeFadeDst, min(testPos.z - cloudBoxMin.z, cloudBoxMax.z - testPos.z));
+    float edgeWeight = min(dstFromEdgeZ, dstFromEdgeX) / containerEdgeFadeDst;
 
-    // --------------------------
-    // 细节噪声（局部动态扰动）
-    // --------------------------
-    vec3 detailOffset = vec3(0.0, 0.1, 0.0) * time;      // 高度扰动
-    float detailCloud = texture(detailNoiseTexture, UVW + detailOffset).r;
-    float high_freq_noise_modifier = mix(detailCloud, 1.0 - detailCloud, saturate(UVW.y * 10.0));
+    float gMin = remap(coverage, 0, 1, 0.1, 0.6);
+    float heightGradient = saturate(remap(heightPercent, 0.0,coverage, 1, 0)) * saturate(remap(heightPercent, 0.0, gMin, 0, 1));
+//    heightGradient *= edgeWeight;
 
-    // --------------------------
-    // 最终云密度
-    // --------------------------
-    float final_cloud = remap(base_cloud_with_coverage, high_freq_noise_modifier * 0.2, 1.0, 0.0, 1.0);
-
-    return final_cloud;
+    return coverage * pow(shapeNoise,2) * getCloudTypeDensity(heightPercent, 0.0, 1, cloudFeather);
 }
-
-
-
 //// 在球外无交点返回(0,0)  在球内返回(0,dstToSphere)
 //vec2 RaySphereDst(vec3 sphereCenter, float sphereRadius, vec3 pos, vec3 rayDir)
 //{
@@ -390,7 +370,7 @@ float BeerPowder(float density, float absorptivity)
 // 计算一个采样点的光照
 float rayMarchToLight(vec3 currentPos, vec3 dirToLight)
 {
-    float darknessThreeshold = 0.1;
+    float darknessThreeshold = 0.4;
     float SAMPLE_NUM = 16;
     float dstInsideBox = rayBoxDst(currentPos, dirToLight, cloudBoxMin, cloudBoxMax).y;
     float stepSize = dstInsideBox / SAMPLE_NUM;
@@ -444,7 +424,7 @@ vec4 cloudRayMarching(vec3 viewDir, vec3 lightDir, float depth)
 //    float stepSize = 0.5;
     // 方向散射系数
 //    float sunPhase = dualLobPhase(0.5, -0.5, 0.2, -dot(viewDir,lightDir));
-//    float sunPhase = hgPhase(0.5, -dot(viewDir,lightDir));
+//    float sunPhase = hgPhase(0.8, dot(viewDir,lightDir));
     float sunPhase = 1;
 
     for(int i = 0;i<SAMPLE_NUM;i++){
@@ -506,19 +486,25 @@ void main() {
     // 像素深度
     float depth = LinearizeDepth(texture(gDepth, TexCoords).r);
     // 无模型位置 && 开启天空盒
-    if(depth > 99 && showSkyBox == 1) {
-        // 从天空盒拿颜色
-         preColor = texture(environmentMap, viewDir).rgb;
-        // 实时大气渲染
-//        preColor = singleScatterSkyColor(camPosInPlanet,params,viewDirInPlanet);
+    if(depth > 99) {
+        if(skyMode == 1){
+            // 从天空盒拿颜色
+            preColor = texture(environmentMap, viewDir).rgb;
+        }else if(skyMode == 2){
+            // 实时大气渲染
+            preColor = singleScatterSkyColor(camPosInPlanet,params,viewDirInPlanet);
+        }
     }else{
         preColor = texture(preTexture, TexCoords).rgb;
     }
-    // lightPos存的是平行光照射方向
-    vec3 lightDir = normalize(-lightPos);
-    vec4 cloudInfo = cloudRayMarching(viewDir, lightDir, depth);
-    float alpha = cloudInfo.w;
-    vec3 cloudColor = cloudInfo.xyz;
-    FragColor = vec4(mix(preColor,cloudColor,1-alpha), 1);
-//  FragColor = vec4(preColor,1);
+    if(showClouds){
+        // lightPos存的是平行光照射方向
+        vec3 lightDir = normalize(-lightPos);
+        vec4 cloudInfo = cloudRayMarching(viewDir, lightDir, depth);
+        float alpha = cloudInfo.w;
+        vec3 cloudColor = cloudInfo.xyz;
+        FragColor = vec4(mix(preColor,cloudColor,1-alpha), 1);
+    }else{
+        FragColor = vec4(preColor,1);
+    }
 }
