@@ -276,7 +276,7 @@ void ImGUIManger::renderAddModelUI() {
 }
 
 void ImGUIManger::renderIBLSelectionUI() {
-    static int currentHDRIndex = 2;
+    static int currentHDRIndex = 3;
     const char* hdrFiles[] = { "No IBL","1.hdr", "2.hdr", "3.hdr", "4.hdr" };
 
 

@@ -16,6 +16,14 @@ void PostprocessPass::toScreen() {
     }
 }
 
+void PostprocessPass::bindFBO() const {
+    glBindFramebuffer(GL_FRAMEBUFFER, postFBO);
+}
+
+GLuint PostprocessPass::getColorTexture() {
+    return this->renderedTexture;
+}
+
 void PostprocessPass::init(RenderResource &resource) {
     isRender = true;
     // 初始化FBO
@@ -45,7 +53,6 @@ void PostprocessPass::render(RenderResource &resource) {
         // 给下一个pass传递上一个pass的结果
         resource.textures["preTexture"] = renderedTexture;
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
     }
 }
 

@@ -23,9 +23,10 @@ int main() {
     DirectionalLight directionalLight(Sun, glm::vec3(1.0f), 1.0f);
     scene.addLight(std::make_shared<DirectionalLight>(directionalLight));
     // 模型
-    Model plane = Model::createPlane(100, 1);
-    scene.loadHDRAndIBL("assets/HDR/2.hdr");
+    Model plane = Model::createPlane(1000);
+    scene.loadHDRAndIBL("assets/HDR/3.hdr");
     scene.addModel(plane);
+    scene.addDefaultModel("helmet");
 
     // 管线
     RenderPipeline renderPipeline;

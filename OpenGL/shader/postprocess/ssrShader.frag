@@ -45,7 +45,7 @@ float GetGBufferDepth(vec2 uv) {
 }
 float LinearizeDepth(float d) {
     float nearPlane = 0.1;
-    float farPlane = 100;
+    float farPlane = 1000;
     float z = d * 2.0 - 1.0; // back to NDC z in [-1,1]
     return (2.0 * nearPlane * farPlane) / (farPlane + nearPlane - z * (farPlane - nearPlane));
 }

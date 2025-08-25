@@ -21,7 +21,8 @@ public:
     Shader postShader;
     Scene &scene;
     bool isRender = false;
-
+    void bindFBO() const;
+    GLuint getColorTexture();
 private:
     GLuint renderedTexture = 0;
     GLuint postFBO = 0;

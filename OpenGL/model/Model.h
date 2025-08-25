@@ -44,7 +44,7 @@ public:
     static GLuint defaultAO;
     static GLuint defaultBlack;
 
-    static Model createPlane(float size = 100.0f,int type = 1);  // 1 木板  2 金属
+    static Model createPlane(float size = 100.0f);
     static Model createArrow(float shaftLength = 1.0f, float shaftRadius = 0.05f, float headLength = 0.2f, float headRadius = 0.1f);
     static Model createCube(float size = 1.f);
     static unsigned int TextureFromFile(const char* path, const string& directory);

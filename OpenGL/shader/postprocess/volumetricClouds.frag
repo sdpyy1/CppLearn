@@ -27,8 +27,8 @@ uniform float time;
 
 
 // AABB盒
-vec3 cloudBoxMin = vec3(-64.0, 21.0, -64.0);
-vec3 cloudBoxMax = vec3(64.0, 26.0, 64.0);
+vec3 cloudBoxMin = vec3(-640.0, 210.0, -640.0);
+vec3 cloudBoxMax = vec3(640.0, 215.0, 640.0);
 //vec3 cloudBoxMin = vec3(-30.0, 0.0, -30.0);
 //vec3 cloudBoxMax = vec3(30.0, 3.0, 30.0);
 float PI = 3.141592653;
@@ -63,7 +63,7 @@ vec3 reconstructWorldPos(vec2 uv) {
 
 float LinearizeDepth(float d){
     float nearPlane = 0.1;
-    float farPlane = 100;
+    float farPlane = 1000;
     float z = d * 2.0 - 1.0; // back to NDC z in [-1,1]
     return (2.0 * nearPlane * farPlane) / (farPlane + nearPlane - z * (farPlane - nearPlane));
 }

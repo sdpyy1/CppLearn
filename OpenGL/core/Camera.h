@@ -19,7 +19,7 @@ const float SPEED = 8.0f;
 const float SENSITIVITY = 0.1f;
 const float ZOOM = 45.0f;
 const float NEAR = 0.1f;
-const float FAR = 100.f;
+const float FAR = 1000.f;
 
 // TODO：基于四元数的相机系统、轨迹球系统
 class Camera
