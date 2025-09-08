@@ -1,0 +1,11 @@
+Model Information:
+* title:	RX-79【G】Ez-8 Gundam
+* source:	https://sketchfab.com/3d-models/rx-79gez-8-gundam-33bba321108a4bb6928c490e8b01b6b4
+* author:	雨川雪 (https://sketchfab.com/mostima0521)
+
+Model License:
+* license type:	CC-BY-NC-SA-4.0 (http://creativecommons.org/licenses/by-nc-sa/4.0/)
+* requirements:	Author must be credited. No commercial use. Modified versions must have the same license.
+
+If you bind this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "RX-79【G】Ez-8 Gundam" (https://sketchfab.com/3d-models/rx-79gez-8-gundam-33bba321108a4bb6928c490e8b01b6b4) by 雨川雪 (https://sketchfab.com/mostima0521) licensed under CC-BY-NC-SA-4.0 (http://creativecommons.org/licenses/by-nc-sa/4.0/)

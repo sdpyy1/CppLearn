@@ -1,0 +1,11 @@
+Model Information:
+* title:	ASW-G-01 Gundam Bael
+* source:	https://sketchfab.com/3d-models/asw-g-01-gundam-bael-875c1899b94f4739815d1909761baa9c
+* author:	雨川雪 (https://sketchfab.com/mostima0521)
+
+Model License:
+* license type:	CC-BY-NC-SA-4.0 (http://creativecommons.org/licenses/by-nc-sa/4.0/)
+* requirements:	Author must be credited. No commercial use. Modified versions must have the same license.
+
+If you bind this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "ASW-G-01 Gundam Bael" (https://sketchfab.com/3d-models/asw-g-01-gundam-bael-875c1899b94f4739815d1909761baa9c) by 雨川雪 (https://sketchfab.com/mostima0521) licensed under CC-BY-NC-SA-4.0 (http://creativecommons.org/licenses/by-nc-sa/4.0/)
