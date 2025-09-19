@@ -18,4 +18,4 @@ add_executable(proName1 hello.cpp)
 # 别的地方的头文件需要
 include_directories(include)
 
-add_executable(funP 函数指针.cpp)
+add_executable(funP 模板类.cpp)
